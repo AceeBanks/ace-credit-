@@ -4,6 +4,14 @@
 
 ---
 
+## QUANT LAB INFRA UPGRADE
+
+The complete GLX FORGE Phase 0–11 blueprint, 58 build books, final construction guide, Codex instructions, and current implementation status are organized under [QUANT-LAB-INFRA-UPGRADE](QUANT-LAB-INFRA-UPGRADE/README.md).
+
+Start a new coding session with [CODEX_START_HERE.md](QUANT-LAB-INFRA-UPGRADE/CODEX_START_HERE.md). Current implementation remains bounded to Phase 0 Reality Lock.
+
+---
+
 ## 🚀 Quick Start
 
 ```bash
