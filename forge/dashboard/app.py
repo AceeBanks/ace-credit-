@@ -45,6 +45,8 @@ class TaskStatus(BaseModel):
 
 # Task storage
 tasks: Dict[str, TaskStatus] = {}
+portfolio_data: Optional[Dict] = None
+test_results_data: Optional[Dict] = None
 
 
 class DashboardData(BaseModel):
@@ -52,6 +54,8 @@ class DashboardData(BaseModel):
     total_modules: int
     last_updated: str
     tasks: List[TaskStatus]
+    portfolio: Optional[Dict] = None
+    test_results: Optional[Dict] = None
 
 
 # Phase definitions
@@ -417,6 +421,77 @@ async def dashboard():
                 font-size: 0.85rem;
                 color: #00ff88;
             }
+            .portfolio-section {
+                margin-top: 40px;
+                background: rgba(255, 255, 255, 0.05);
+                padding: 30px;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .portfolio-section h2 {
+                margin-bottom: 20px;
+                color: #00d4ff;
+            }
+            .portfolio-item {
+                background: rgba(0, 0, 0, 0.3);
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .portfolio-item .portfolio-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .portfolio-item .portfolio-value {
+                font-size: 1.5rem;
+                color: #00ff88;
+                font-weight: 600;
+            }
+            .test-results-section {
+                margin-top: 40px;
+                background: rgba(255, 255, 255, 0.05);
+                padding: 30px;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .test-results-section h2 {
+                margin-bottom: 20px;
+                color: #00d4ff;
+            }
+            .test-result-item {
+                background: rgba(0, 0, 0, 0.3);
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .test-result-item .phase-name {
+                font-weight: 600;
+                color: #00d4ff;
+                margin-bottom: 10px;
+            }
+            .test-result-item .metrics {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+            }
+            .test-result-item .metric {
+                background: rgba(0, 212, 255, 0.1);
+                padding: 10px;
+                border-radius: 6px;
+            }
+            .test-result-item .metric-label {
+                font-size: 0.8rem;
+                color: #888;
+            }
+            .test-result-item .metric-value {
+                font-size: 1.1rem;
+                color: #e0e0e0;
+                font-weight: 600;
+            }
         </style>
     </head>
     <body>
@@ -491,6 +566,16 @@ async def dashboard():
                 <h2>Active Tasks</h2>
                 <div id="tasksList"></div>
             </div>
+            
+            <div class="portfolio-section">
+                <h2>Portfolio Status</h2>
+                <div id="portfolioData"></div>
+            </div>
+            
+            <div class="test-results-section">
+                <h2>Test Results</h2>
+                <div id="testResultsData"></div>
+            </div>
         </div>
         
         <script>
@@ -516,6 +601,12 @@ async def dashboard():
                 
                 // Load tasks
                 loadTasks(data.tasks);
+                
+                // Load portfolio
+                loadPortfolio(data.portfolio);
+                
+                // Load test results
+                loadTestResults(data.test_results);
             }
             
             async function loadTasks(tasks) {
@@ -546,6 +637,68 @@ async def dashboard():
                     `;
                     tasksList.appendChild(taskItem);
                 });
+            }
+            
+            async function loadPortfolio(portfolio) {
+                const portfolioData = document.getElementById('portfolioData');
+                portfolioData.innerHTML = '';
+                
+                if (!portfolio) {
+                    portfolioData.innerHTML = '<p style="color: #888;">No portfolio data available</p>';
+                    return;
+                }
+                
+                const portfolioItem = document.createElement('div');
+                portfolioItem.className = 'portfolio-item';
+                portfolioItem.innerHTML = `
+                    <div class="portfolio-header">
+                        <span>Portfolio ID: ${portfolio.portfolio_id}</span>
+                        <span class="portfolio-value">$${portfolio.cash?.toLocaleString() || '0'}</span>
+                    </div>
+                    <div style="color: #aaa; font-size: 0.9rem;">
+                        <div>Type: ${portfolio.portfolio_type}</div>
+                        <div>Status: ${portfolio.status}</div>
+                        <div>Position: ${portfolio.quantity || 0} ${portfolio.instrument || 'N/A'}</div>
+                        <div>Avg Entry: $${portfolio.avg_entry_price?.toLocaleString() || '0'}</div>
+                    </div>
+                `;
+                portfolioData.appendChild(portfolioItem);
+            }
+            
+            async function loadTestResults(testResults) {
+                const testResultsData = document.getElementById('testResultsData');
+                testResultsData.innerHTML = '';
+                
+                if (!testResults) {
+                    testResultsData.innerHTML = '<p style="color: #888;">No test results available</p>';
+                    return;
+                }
+                
+                for (const [phase, data] of Object.entries(testResults)) {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'test-result-item';
+                    
+                    let metricsHtml = '';
+                    for (const [key, value] of Object.entries(data)) {
+                        if (typeof value === 'number') {
+                            const displayValue = key.includes('pct') || key.includes('rate') || key.includes('return') || key.includes('drawdown') 
+                                ? `${(value * 100).toFixed(2)}%` 
+                                : value.toFixed(2);
+                            metricsHtml += `
+                                <div class="metric">
+                                    <div class="metric-label">${key}</div>
+                                    <div class="metric-value">${displayValue}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    resultItem.innerHTML = `
+                        <div class="phase-name">${phase.toUpperCase()}</div>
+                        <div class="metrics">${metricsHtml}</div>
+                    `;
+                    testResultsData.appendChild(resultItem);
+                }
             }
             
             async function submitWorkflow() {
@@ -610,8 +763,26 @@ async def get_phases() -> DashboardData:
         phases=phases,
         total_modules=total_modules,
         last_updated=datetime.now(timezone.utc).isoformat(),
-        tasks=task_list
+        tasks=task_list,
+        portfolio=portfolio_data,
+        test_results=test_results_data
     )
+
+
+@app.post("/api/update-portfolio")
+async def update_portfolio(portfolio: Dict):
+    """Update portfolio data"""
+    global portfolio_data
+    portfolio_data = portfolio
+    return {"status": "updated"}
+
+
+@app.post("/api/update-test-results")
+async def update_test_results(results: Dict):
+    """Update test results data"""
+    global test_results_data
+    test_results_data = results
+    return {"status": "updated"}
 
 
 @app.post("/api/workflow")
