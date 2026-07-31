@@ -1,7 +1,7 @@
 # System Overview — All Levels
 
 > **Purpose:** High-level view of the entire larger-lab system.
-> **Updated:** 2026-05-16
+> **Updated:** 2026-07-31
 
 ## Level 1: Human Interface + Agent Network
 
@@ -203,7 +203,7 @@ graph TB
     CTXMON --> OC2
 ```
 
-<!-- ARCH-COMMIT [2026-05-16 21:19 UTC] AS: oce/backend/event_fabric.py -- Fixed Event model auto-classification bug -->
+<!-- ARCH-COMMIT [2026-07-31 21:19 UTC] AS: oce/backend/event_fabric.py -- Fixed Event model auto-classification bug -->
 
 <!-- ARCH-COMMIT [2026-05-17 10:34 UTC] OC: oce/docs/execution-policies.md -- Created execution policies framework with 5 policy types (rate limiting, permissions, sandboxing, timeouts, retry), enforcement architecture, and SRRA-OPH alignment -->
 
