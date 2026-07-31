@@ -30,3 +30,21 @@ credentials.json
 memory-bank/
 artifacts/
 progress/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Data files
+data/*.db
+data/*.sqlite
+data/*.sqlite3
