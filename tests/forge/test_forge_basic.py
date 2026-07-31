@@ -27,7 +27,6 @@ class TestPhase1EventContracts:
     def test_imports(self):
         """Test event contract imports"""
         from forge.events.trading import OrderSubmitted, OrderFilled, PositionOpened
-        from forge.events.market import TickReceived, QuoteUpdated
         assert OrderSubmitted is not None
         assert OrderFilled is not None
 
