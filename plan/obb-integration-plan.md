@@ -241,33 +241,39 @@ Per FINAL-ANCHOR: "OBB-01 Book 1 must consume and reconcile Phase 0 inventory ev
 
 ## Implementation Phases
 
-### Phase A: Planning (Current)
-- ✅ Phase 0 Book 1 complete
-- ✅ Phase 0 decision points identified
+### Phase A: Planning (Current - Allowed)
+- ✅ Phase 0 Book 1 Parts 1-4 complete (implemented_unverified)
+- ✅ Safe defaults applied to Phase 0 decisions
 - ✅ OBB integration strategy defined
-- ⏳ OBB-01 detailed planning
+- ⏳ OBB-01 detailed planning (can proceed now)
 
-### Phase B: OBB-01 Implementation (Parallel with Phase 0 Books 2-4)
+**Note:** OBB planning is NOT gated by Phase 0 completion. Only OBB runtime/canonical integration is gated by relevant Phase 0–3 locks.
+
+### Phase B: OBB-01 Implementation (After Phase 0 Lock)
 - Consume Phase 0 evidence
 - Create OBB seam inventory
 - Generate capability matrix
 - Document simulation debt
+- **Gate:** Phase 0 Reality Lock
 
-### Phase C: OBB-02 Foundation (After Phase 0 Lock)
+### Phase C: OBB-02 Foundation (After Phase 1-3 Locks)
 - Install OpenBB
 - Create FORGE adapter
 - Implement data provenance
 - Configure provider management
+- **Gate:** Phase 1-3 data/runtime completion
 
 ### Phase D: OBB-03 Agent Research (After OBB-02)
 - Integrate research agents
 - Build discovery pipeline
 - Connect research workspace
+- **Gate:** OBB-02 foundation
 
-### Phase E: OBB-04 Validation (After OBB-03)
+### Phase E: OBB-04 Validation (After Phase 6-8 Locks)
 - Integrate validation pipeline
 - Implement operations mode
 - Quality assurance
+- **Gate:** Phase 6-8 strategy/validation completion
 
 ---
 
@@ -275,30 +281,21 @@ Per FINAL-ANCHOR: "OBB-01 Book 1 must consume and reconcile Phase 0 inventory ev
 
 ### Decision OBB-1: OpenBB Installation Strategy
 **Question:** How to install and manage OpenBB dependency?  
-**Options:**
-- A) Add to main dependency management
-- B) Use as optional dependency
-- C) Use as service dependency  
-**Decision Maker:** MAD  
-**Approval Required:** Yes
+**Safe Default:** Add to main dependency management behind FORGE adapter  
+**Decision Maker:** OCE Operations Director  
+**Approval Required:** No (safe default)
 
 ### Decision OBB-2: Provider Configuration
 **Question:** Which OpenBB providers to configure?  
-**Options:**
-- A) All available providers
-- B) Selected providers based on need
-- C) No providers until explicitly approved  
-**Decision Maker:** MAD  
-**Approval Required:** Yes
+**Safe Default:** Selected providers based on need (not all)  
+**Decision Maker:** OCE Operations Director  
+**Approval Required:** No (safe default)
 
 ### Decision OBB-3: Adapter Architecture
 **Question:** FORGE-OpenBB adapter architecture?  
-**Options:**
-- A) Direct integration
-- B) Service layer
-- C) Plugin system  
+**Safe Default:** Service layer (consistent with FORGE adapter pattern)  
 **Decision Maker:** OCE Operations Director  
-**Approval Required:** Yes
+**Approval Required:** No (safe default)
 
 ---
 
@@ -315,7 +312,7 @@ Per FINAL-ANCHOR: "OBB-01 Book 1 must consume and reconcile Phase 0 inventory ev
 ## Risk Assessment
 
 ### High Risks
-- **Phase 0 Reality Lock Delay:** Blocks OBB-02+ implementation
+- **Phase 0 Reality Lock Delay:** Blocks OBB-02+ runtime integration (not OBB-01 planning)
 - **Provider Access:** May require credentials/approval
 - **Architecture Conflicts:** FORGE-OpenBB integration complexity
 
@@ -325,7 +322,8 @@ Per FINAL-ANCHOR: "OBB-01 Book 1 must consume and reconcile Phase 0 inventory ev
 - **Dependency Drift:** OpenBB updates breaking integration
 
 ### Mitigation
-- Begin OBB-01 planning in parallel (can proceed without Phase 0 Lock)
+- OBB-01 planning can proceed now (not gated by Phase 0 completion)
+- OBB-02+ runtime integration gated by relevant Phase locks
 - Clearly define authority boundaries (per FINAL-ANCHOR)
 - Implement adapter layer for flexibility
 - Create fallback mechanisms

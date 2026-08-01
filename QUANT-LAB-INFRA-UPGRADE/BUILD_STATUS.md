@@ -1,9 +1,10 @@
 # QUANT LAB INFRA UPGRADE — Build Status
 
 > **Recorded:** 2026-07-31
+> **Updated:** 2026-08-01
 > **Canonical branch:** `main`
 > **Program planning:** complete for Phases 0–11
-> **Program implementation:** Phase 0 in progress
+> **Program implementation:** Phase 0 Book 1 Parts 1-4 implemented_unverified; Books 2-4 planned
 > **Live or capital authority:** none
 
 ## Truth Snapshot
@@ -11,11 +12,43 @@
 | Plane | Current state | Evidence |
 |---|---|---|
 | Design | Complete Phase 0–11 planning corpus | Master blueprint, final build guide, 12 phase READMEs, 58 books |
-| Build | Phase 0 Book 1 Part 1 exists | `tools/forge/phase0_inventory.py` and `tests/forge/phase_00/` |
-| Verification | Builder checks pass; independent review pending | 10 Part 1 tests plus deterministic real-workspace replay |
+| Build | Phase 0 Book 1 Parts 1-4 implemented_unverified; Books 2-4 planned | `tools/forge/phase0_inventory.py`, `phase0_trading_census.py`, `phase0_claims_secrets.py`, `phase0_book_gate.py` |
+| Verification | Builder checks pass; independent review pending | 49 Phase 0 tests passing (Part 1: 12, Part 2: 10, Part 3: 9, Part 4: 8) |
 | Operations | No FORGE production runtime has been certified | No Phase Lock or production authority artifact exists |
 
-The current Part 1 state is `implemented_unverified`. Do not describe Phase 0 as complete or locked.
+## Phase 0 Book 1 Status
+
+| Part | Status | Tests | Evidence |
+|---|---|---|---|
+| Part 1 - Repository Fingerprint | implemented_unverified | 12/12 passing | repository-fingerprint.json, core-component-inventory.json |
+| Part 2 - Trading Census | implemented_unverified | 10/10 passing | trading-file-census.json, dependency-inventory.json, data-inventory.json |
+| Part 3 - Claims/Secrets/Contradictions | implemented_unverified | 9/9 passing | claims-secrets-inventory.json, contradictions-register.json |
+| Part 4 - Canonical Merge & Book Gate | implemented_unverified | 8/8 passing | workspace-inventory.json, book-gate-record.json |
+
+**Total Book 1 Tests:** 49/49 passing  
+**Independent Review:** Pending for all parts
+
+## Phase 0 Books 2-4 Status
+
+| Book | Status | Progress |
+|---|---|---|
+| Book 2 - Reproducible Baseline | planned | Environment fingerprinting complete (9/9 tests); test discovery, bounded execution, service readiness, backtest reproduction pending |
+| Book 3 - Component Classification | planned | Safe defaults applied; component classification pending implementation |
+| Book 4 - Reality Lock | planned | Decision framework complete; implementation pending |
+
+**Safe Defaults Applied:**
+- Canonical branch: main
+- NautilusTrader: pinned upstream dependency (vendored source quarantined)
+- MT5 MCP: experimental/quarantined
+- Agent authority: deny by default
+- Classification: strict (supporting/quarantined until verified)
+- Quarantine: targeted and enforceable
+- Canonical path map: one canonical per function
+- Service readiness: verify only canonical/current services
+
+**MAD Decisions Required:** 1 (Critical contradiction resolution after deduplication/severity-ranking of 170,702 raw contradictions)
+
+Do not describe Phase 0 as complete or locked.
 
 ## Implemented Slice
 
