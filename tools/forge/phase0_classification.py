@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Phase 0 Book 3: Component classification."""
+"""
+Phase 0 Book 3: Component classification.
+
+LEGACY/UNTRUSTED - P0-REPAIR-01
+This tool is marked as legacy/untrusted until repaired per P0-REPAIR-01.
+Do not use to approve Phase 0. Classification violates strict rules:
+classifies based on component names (e.g., "OCE", "MT5") rather than
+evidence-based analysis. Requires evidence-based reimplementation.
+"""
 
 import argparse
 import json

@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Phase 0 Book 2 Final: Baseline report consolidation."""
+"""
+Phase 0 Book 2 Final: Baseline report consolidation.
+
+LEGACY/UNTRUSTED - P0-REPAIR-01
+This tool is marked as legacy/untrusted until repaired per P0-REPAIR-01.
+Do not use to approve Phase 0. Test counts and evidence verification
+need reconciliation from actual test collection.
+"""
 
 import argparse
 import json

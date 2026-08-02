@@ -4,6 +4,7 @@
 > **Status:** Draft - Initial inventory complete  
 > **Created:** 2026-08-01  
 > **Classification:** MT5 MCP: experimental/quarantined (per safe default)
+> **Repository Branches:** main = canonical forward development; master = legacy/reference evidence
 
 ---
 
@@ -83,17 +84,20 @@
 
 ---
 
-### 3. CEREBUS Symmetry Option B EA (External Candidate)
+### 3. CEREBUS Symmetry Option B EA (External MQL5 Candidate)
 
-**Status:** Discovered external FX execution candidate  
+**Status:** Discovered external MQL5 EA candidate  
 **Source:** CEREBUS FX v4.0 manual  
-**Type:** Pine Script Expert Advisor  
-**Location:** External (not in repository - must be registered and reviewed)  
-**Classification:** External blocker (until registered)
+**Type:** MQL5 Expert Advisor (MetaTrader 5)  
+**Location:** `C:\Users\wifik\AppData\Roaming\MetaQuotes\Terminal\A9831A95D2ED3390882422E0C995D278\MQL5\Experts\Cerebus_Symmetry_OptionB.mq5` (referenced by `tools/scripts/monitor_ea.py`)  
+**Classification:** External MQL5 EA candidate (pending registration and review)
+
+**Reference:** 
+- Monitoring script: `tools/scripts/monitor_ea.py` (line 16)
+- Purpose: Continuous compilation and backtest iteration
 
 **Action Required:**
-- [ ] Register external EA location
-- [ ] Hash EA source code
+- [ ] Register EA source hash in repository
 - [ ] Review EA logic and safety controls
 - [ ] Parity-check with Nautilus Symmetry Trap
 - [ ] Document interface and data requirements
@@ -105,10 +109,10 @@
 
 | Feature | MT5 Controller EA | Nautilus Symmetry Trap | CEREBUS Option B EA |
 |---------|-------------------|------------------------|---------------------|
-| Platform | MT5 (MetaTrader 5) | Nautilus Trader | TradingView (Pine Script) |
-| Data Source | MT5 Terminal | CSV (forex.com/OX) | TradingView |
-| Backtest Engine | MT5 Strategy Tester | Nautilus Backtest Engine | TradingView Strategy Tester |
-| Session Timing | Configurable | Hardcoded per manual | Configurable |
+| Platform | MT5 (MetaTrader 5) | Nautilus Trader | MT5 (MetaTrader 5) |
+| Data Source | MT5 Terminal | CSV (forex.com/OX) | MT5 Terminal |
+| Backtest Engine | MT5 Strategy Tester | Nautilus Backtest Engine | MT5 Strategy Tester |
+| Session Timing | Configurable | Hardcoded per manual | Unknown |
 | Tier System | Not implemented | Implemented (T1/T2/T3) | Unknown |
 | Risk Management | Basic | Advanced (0.25% per trade) | Unknown |
 | Position Management | Not implemented | Advanced (T25/T50/T100) | Unknown |
@@ -128,16 +132,19 @@
 - **Risk:** Low (test environment only)
 
 ### Nautilus Symmetry Trap Status
-- **Classification:** Canonical FX backtest strategy
+- **Classification:** Candidate canonical backtest path (pending reproducibility validation)
 - **Framework:** Nautilus Trader (per anchor A6)
 - **Completeness:** Fully implements CEREBUS v4.0 manual
 - **Risk:** Low (backtest environment only)
+- **Parity Status:** Pine/MQL5 parity validation pending
+- **Session/DST:** America/New_York timezone and DST/session behavior validation required
 
 ### External FX Script Gap
-- **Current Status:** External blocker (not in repository)
-- **Candidate:** CEREBUS Symmetry Option B EA
-- **Action Required:** Register, hash, review, parity-check before use
-- **Impact:** FX execution blocked until location/interface recorded
+- **Current Status:** External MQL5 EA candidate (location known, pending registration)
+- **Candidate:** CEREBUS Symmetry Option B EA (MQL5)
+- **Location:** Known (referenced by monitor_ea.py)
+- **Action Required:** Hash source, review logic, parity-check before use
+- **Impact:** FX execution blocked until hash registration and parity validation
 - **Non-Blocker:** Research and data phases are not blocked
 
 ---
@@ -145,21 +152,22 @@
 ## Recommendations
 
 ### Immediate Actions
-1. **Register CEREBUS Option B EA:** Document external location, hash source, review logic
-2. **Parity Analysis:** Compare Symmetry Trap logic between Nautilus and Pine implementations
-3. **MT5 MCP Classification:** Maintain as experimental/quarantined (not canonical FX path)
+1. **Register CEREBUS Option B EA:** Hash source code, review logic, document in repository
+2. **Parity Analysis:** Compare Symmetry Trap logic between Nautilus and MQL5 implementations
+3. **Session/DST Validation:** Validate America/New_York timezone and DST/session behavior parity
+4. **MT5 MCP Classification:** Maintain as experimental/quarantined (not canonical FX path)
 
 ### For Phase 0 Book 3 Classification
 - **MT5 MCP:** Experimental/Quarantined
-- **Nautilus Symmetry Trap:** Canonical backtest strategy
-- **CEREBUS Option B EA:** External blocker (until registered)
+- **Nautilus Symmetry Trap:** Candidate canonical backtest path (pending reproducibility)
+- **CEREBUS Option B EA:** External MQL5 EA candidate (pending hash registration)
 - **FX Execution Path:** External blocker (Phase 9 issue, not Phase 0 blocker)
 
 ### For Future FX Integration
 - Evaluate MT5 MCP as candidate for Pine ↔ MT5 bridge
-- Consider Nautilus Symmetry Trap as canonical strategy logic
-- Integrate CEREBUS Option B EA only after registration and parity check
+- Consider Nautilus Symmetry Trap as canonical strategy logic after reproducibility validation
+- Integrate CEREBUS Option B EA only after hash registration and parity check
 
 ---
 
-**Status:** MT5 EA inventory complete. Parity analysis required for CEREBUS EA. FX execution remains external blocker.
+**Status:** MT5 EA inventory complete. Parity analysis required for CEREBUS EA. FX execution remains external blocker. Session/DST parity validation required for Nautilus Symmetry Trap.

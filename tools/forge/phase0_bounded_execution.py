@@ -1,34 +1,97 @@
 #!/usr/bin/env python3
-"""Phase 0 Book 2: Bounded Test Execution.
+"""
+Phase 0 Book 2: Bounded Test Execution.
 
 This module runs bounded test groups for Phase 0 baseline.
 It uses the discovered test commands and executes them in groups.
+
+SECURITY: P0-REPAIR-01 - Uses strict approved-command allowlist and shell=False
+Do not infer commands from repository text. Only approved commands may execute.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+# Windows-specific subprocess flags (ERR-0007)
+try:
+    CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+except AttributeError:
+    CREATE_NO_WINDOW = 0
+
 SCHEMA_VERSION = "0.1.0"
 PART_ID = "PHASE-00-BOOK-02-BOUNDED-EXECUTION"
 DEFAULT_OUTPUT = Path("artifacts/forge/phase-00/book-02")
 
+# Strict approved-command allowlist (P0-REPAIR-01)
+# Only these base commands are permitted for execution
+APPROVED_COMMANDS = {
+    "python",
+    "python3",
+    "pytest",
+    "python3-m",
+    "pip",
+    "pip3",
+}
+
+
+def parse_command(cmd_str: str) -> list[str] | None:
+    """
+    Parse command string into list of arguments.
+    Returns None if command is not in approved allowlist.
+    """
+    try:
+        # Parse the command safely
+        args = shlex.split(cmd_str)
+        if not args:
+            return None
+        
+        # Check if base command is approved
+        base_cmd = args[0]
+        if base_cmd not in APPROVED_COMMANDS:
+            return None
+        
+        return args
+    except (ValueError, shlex.Error):
+        return None
+
 
 def run_command(cmd: str, timeout: int = 300) -> dict[str, Any]:
-    """Run a command and capture results."""
+    """
+    Run a command and capture results.
+    Uses shell=False and strict allowlist per P0-REPAIR-01.
+    Windows subprocess flags prevent window flashing (ERR-0007).
+    """
+    # Parse and validate command
+    args = parse_command(cmd)
+    if args is None:
+        return {
+            "command": cmd,
+            "exit_code": -2,
+            "stdout": "",
+            "stderr": "Command not in approved allowlist or invalid syntax",
+            "success": False,
+            "blocked": True,
+        }
+    
+    # Windows-specific flags to prevent window flashing (ERR-0007)
+    creation_flags = CREATE_NO_WINDOW
+    
     try:
         result = subprocess.run(
-            cmd,
-            shell=True,
+            args,
+            shell=False,  # P0-REPAIR-01: security fix
             capture_output=True,
             text=True,
             timeout=timeout,
+            creationflags=creation_flags,  # ERR-0007: prevent window flashing
         )
         return {
             "command": cmd,

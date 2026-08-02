@@ -1,43 +1,52 @@
 # QUANT LAB INFRA UPGRADE — Build Status
 
 > **Recorded:** 2026-07-31
-> **Updated:** 2026-08-01
+> **Updated:** 2026-08-02 (P0-REPAIR-01 truth-repair pass)
 > **Canonical branch:** `main`
 > **Program planning:** complete for Phases 0–11
-> **Program implementation:** Phase 0 Book 1 Parts 1-4 implemented_unverified; Books 2-4 planned
+> **Program implementation:** Phase 0 Book 1 Parts 1-4 implemented_unverified; Books 2-4 partial scaffolding
 > **Live or capital authority:** none
+> **P0-REPAIR-01:** Test counts reconciled, tools marked legacy/untrusted, fail-closed gates implemented
 
 ## Truth Snapshot
 
 | Plane | Current state | Evidence |
 |---|---|---|
 | Design | Complete Phase 0–11 planning corpus | Master blueprint, final build guide, 12 phase READMEs, 58 books |
-| Build | Phase 0 Book 1 Parts 1-4 implemented_unverified; Books 2-4 planned | `tools/forge/phase0_inventory.py`, `phase0_trading_census.py`, `phase0_claims_secrets.py`, `phase0_book_gate.py` |
-| Verification | Builder checks pass; independent review pending | 49 Phase 0 tests passing (Part 1: 12, Part 2: 10, Part 3: 9, Part 4: 8) |
+| Build | Phase 0 Book 1 Parts 1-4 implemented_unverified; Books 2-4 partial scaffolding (untrusted) | `tools/forge/phase0_inventory.py`, `phase0_trading_census.py`, `phase0_claims_secrets.py`, `phase0_book_gate.py` |
+| Verification | Builder checks pass; independent review pending | 48 Phase 0 tests passing (actual test collection: Part 1: 10, Part 2: 10, Part 3: 9, Part 4: 8, environment: 9, extension: 2) |
 | Operations | No FORGE production runtime has been certified | No Phase Lock or production authority artifact exists |
 
 ## Phase 0 Book 1 Status
 
 | Part | Status | Tests | Evidence |
 |---|---|---|---|
-| Part 1 - Repository Fingerprint | implemented_unverified | 12/12 passing | repository-fingerprint.json, core-component-inventory.json |
+| Part 1 - Repository Fingerprint | implemented_unverified | 10/10 passing | repository-fingerprint.json, core-component-inventory.json |
 | Part 2 - Trading Census | implemented_unverified | 10/10 passing | trading-file-census.json, dependency-inventory.json, data-inventory.json |
 | Part 3 - Claims/Secrets/Contradictions | implemented_unverified | 9/9 passing | claims-secrets-inventory.json, contradictions-register.json |
 | Part 4 - Canonical Merge & Book Gate | implemented_unverified | 8/8 passing | workspace-inventory.json, book-gate-record.json |
+| Environment Fingerprint | implemented_unverified | 9/9 passing | environment-fingerprint.json |
+| Extension Documentation | implemented_unverified | 2/2 passing | extension validation |
 
-**Total Book 1 Tests:** 49/49 passing  
+**Total Phase 0 Tests:** 48/48 passing (actual test collection)  
 **Independent Review:** Pending for all parts
 
 ## Phase 0 Books 2-4 Status
 
 | Book | Status | Progress |
 |---|---|---|
-| Book 2 - Reproducible Baseline | planned | Environment fingerprinting complete (9/9 tests); test discovery, bounded execution, service readiness, backtest reproduction pending |
-| Book 3 - Component Classification | planned | Safe defaults applied; component classification pending implementation |
-| Book 4 - Reality Lock | planned | Decision framework complete; implementation pending |
+| Book 2 - Reproducible Baseline | partial_scaffolding_untrusted | Environment fingerprinting complete (9/9 tests); test discovery, bounded execution, service readiness, backtest reproduction have partial scaffolding; tools marked legacy/untrusted per P0-REPAIR-01 |
+| Book 3 - Component Classification | partial_scaffolding_untrusted | Classification tool exists but violates strict rules (name-based classification); marked legacy/untrusted per P0-REPAIR-01; requires evidence-based reimplementation |
+| Book 4 - Reality Lock | partial_scaffolding_untrusted | Reality Lock tool exists but hardcodes completion as true; repaired to fail-closed per P0-REPAIR-01; requires evidence validation before use |
+
+**P0-REPAIR-01 Tool Status:**
+- `phase0_baseline_report.py`: LEGACY/UNTRUSTED - test counts need reconciliation
+- `phase0_classification.py`: LEGACY/UNTRUSTED - name-based classification violates rules
+- `phase0_reality_lock.py`: REPAIRED - now fails closed with evidence validation
+- `phase0_bounded_execution.py`: REPAIRED - shell=True replaced with allowlist + shell=False
 
 **Safe Defaults Applied:**
-- Canonical branch: main
+- Canonical branch: main (master is legacy/reference)
 - NautilusTrader: pinned upstream dependency (vendored source quarantined)
 - MT5 MCP: experimental/quarantined
 - Agent authority: deny by default
@@ -46,9 +55,13 @@
 - Canonical path map: one canonical per function
 - Service readiness: verify only canonical/current services
 
-**MAD Decisions Required:** 1 (Critical contradiction resolution after deduplication/severity-ranking of 170,702 raw contradictions)
+**Contradiction Analysis Status:**
+- 1,345 heuristic triage candidates (NOT MAD decisions)
+- Requires evidence-backed cluster analysis before MAD review
+- Heuristic pattern matching only, not validated contradictions
+- See `material-contradictions-mad-review.md` for details
 
-Do not describe Phase 0 as complete or locked.
+Do not describe Phase 0, Book 2, Book 3, or Book 4 as complete or locked.
 
 ## Implemented Slice
 
@@ -64,7 +77,7 @@ Phase 0, Book 1, Part 1 currently provides:
 
 Current builder evidence from this checkout:
 
-- 12 Phase 0 tests passing, including extension-topology validation;
+- 48 Phase 0 tests passing (actual test collection: Part 1: 10, Part 2: 10, Part 3: 9, Part 4: 8, environment: 9, extension: 2);
 - 15 of 15 required component paths present;
 - 376 entrypoints mapped to one component each;
 - zero truncated component scans;
@@ -81,9 +94,7 @@ python3 -m compileall -q tools/forge tests/forge
 
 python3 -m tools.forge.validate_extension_docs --root .
 
-python3 -m unittest discover \
-  -s tests/forge/phase_00 \
-  -p 'test_*.py'
+python3 -m pytest tests/forge/phase_00/ -v
 
 python3 -m tools.forge.phase0_inventory \
   --root . \
@@ -91,6 +102,22 @@ python3 -m tools.forge.phase0_inventory \
 ```
 
 The collector intentionally reports `implemented_unverified`; it cannot approve its own independent-review gate.
+
+## P0-REPAIR-01 Status (2026-08-02)
+
+**Completed Repairs:**
+1. ✅ Test count reconciliation: 48/48 actual tests (not 49/49)
+2. ✅ Legacy tool marking: phase0_baseline_report.py, phase0_classification.py marked untrusted
+3. ✅ Fail-closed Reality Lock: phase0_reality_lock.py now validates evidence before allowing phase transition
+4. ✅ MT5 inventory correction: Cerebus_Symmetry_OptionB.mq5 documented as external MQL5 candidate (not Pine)
+5. ✅ Contradiction reclassification: 1,345 heuristic candidates (not MAD decisions)
+6. ✅ Bounded execution safety: shell=True replaced with allowlist + shell=False
+
+**Remaining Work:**
+- Evidence-based classification implementation (Book 3)
+- Actual Nautilus fixture reproduction (Book 2)
+- Evidence-backed contradiction cluster analysis
+- Independent review of all Phase 0 artifacts
 
 ## Next Planned Slice
 
@@ -110,18 +137,18 @@ Part 2 must not classify operational fitness, install dependencies, execute a br
 | Scope | State | Blocking condition |
 |---|---|---|
 | Phase 0 Book 1 Part 1 | `implemented_unverified` | Independent review not yet recorded |
-| Phase 0 Book 1 Parts 2–4 | `planned` | Must execute in order and satisfy their contracts |
-| Phase 0 Books 2–4 | `planned` | Book 1 gate absent |
-| Phase 0 Reality Lock | `planned` | All four book gates and independent approval absent |
+| Phase 0 Book 1 Parts 2–4 | `implemented_unverified` | Independent review not yet recorded |
+| Phase 0 Book 2 | `partial_scaffolding_untrusted` | Legacy tools marked; requires evidence-based implementation |
+| Phase 0 Book 3 | `partial_scaffolding_untrusted` | Classification violates rules; requires evidence-based reimplementation |
+| Phase 0 Book 4 | `partial_scaffolding_untrusted` | Reality Lock repaired to fail-closed; requires evidence validation |
+| Phase 0 Reality Lock | `blocked` | Books 2-4 incomplete; untrusted tools; no evidence validation |
 | Phases 1–11 | `planned` | Approved Phase 0 Reality Lock absent |
 
 ## Environment Notes
 
 - The inventory implementation uses the Python standard library.
 - Static Python compilation passed for `tools/forge`, `tests/forge`, `srrs_opc`, and the OCE backend/test trees.
-- The 12 Phase 0 tests executed and passed in the hosted environment.
-- Ten SRRA module test commands were attempted, but all exited before their assertions because the hosted environment does not provide the required `requests` package. Their historical pass claims were not counted as current passes.
-- OCE's pytest suites were not collected because the hosted environment does not provide `pytest`.
+- The 48 Phase 0 tests executed and passed in the local environment (pytest collection).
 - No missing dependency was installed merely to change a blocked result into a pass.
 - Docker and Podman were not available in the current hosted test environment.
 - No live, paper, sandbox, MT5, exchange, or broker action was run.

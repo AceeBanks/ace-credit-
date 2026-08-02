@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Phase 0 Book 4: Reality Lock."""
+"""
+Phase 0 Book 4: Reality Lock.
+
+LEGACY/UNTRUSTED - P0-REPAIR-01
+This tool is marked as legacy/untrusted until repaired per P0-REPAIR-01.
+Do not use to approve Phase 0. Hardcodes Books 1-4 as "complete" and
+sets ready_for_phase_1=true without proper evidence validation.
+Must be repaired to fail-closed behavior.
+"""
 
 import argparse
 import json
@@ -93,33 +101,95 @@ def generate_reality_lock(repo_root: Path) -> dict[str, Any]:
                 "reason": classification.get("reasoning", ["Unknown"]),
             })
     
-    # Build decision register
-    decision_register = [
-        {
+    # Validate evidence existence - fail closed if missing
+    blocking_issues = []
+    required_artifacts = {
+        "repository_fingerprint": repository_fingerprint,
+        "core_component_inventory": core_component_inventory,
+        "environment_fingerprint": environment_fingerprint,
+        "component_classification": component_classification,
+    }
+    
+    for artifact_name, artifact_data in required_artifacts.items():
+        if "error" in artifact_data:
+            blocking_issues.append(f"Missing or invalid required artifact: {artifact_name}")
+    
+    # Check Book 1 completion (actual evidence, not hardcoded)
+    book_1_complete = (
+        "error" not in repository_fingerprint and
+        "error" not in core_component_inventory and
+        repository_fingerprint.get("generated_at") and
+        core_component_inventory.get("components")
+    )
+    
+    # Check Book 2 completion (actual evidence, not hardcoded)
+    book_2_complete = (
+        "error" not in environment_fingerprint and
+        "error" not in test_discovery and
+        "error" not in test_collection and
+        "error" not in test_execution and
+        "error" not in service_readiness and
+        "error" not in backtest_reproduction
+    )
+    
+    # Check Book 3 completion (actual evidence, not hardcoded)
+    book_3_complete = (
+        "error" not in component_classification and
+        component_classification.get("classifications")
+    )
+    
+    # Check Book 4 completion (this tool)
+    book_4_complete = True  # This tool is running
+    
+    # Build decision register based on actual evidence
+    decision_register = []
+    
+    if book_1_complete:
+        decision_register.append({
             "decision_id": "DEC-001",
-            "decision_type": "baseline_acceptance",
-            "description": "Accept partial baseline with known blockers",
-            "rationale": "Workspace cleaned for FORGE build; blockers expected and documented",
-            "made_by": "FORGE_IMPLEMENTATION",
+            "decision_type": "book_1_acceptance",
+            "description": "Book 1 Inventory evidence validated",
+            "rationale": "Required artifacts present and structurally valid",
+            "made_by": "REALITY_LOCK_VALIDATION",
             "made_at": utc_now(),
-        },
-        {
+        })
+    else:
+        blocking_issues.append("Book 1 Inventory incomplete: missing or invalid artifacts")
+    
+    if book_2_complete:
+        decision_register.append({
             "decision_id": "DEC-002",
-            "decision_type": "component_quarantine",
-            "description": "Quarantine all empty components until FORGE implementation",
-            "rationale": "Components exist but are empty; safe to quarantine",
-            "made_by": "FORGE_IMPLEMENTATION",
+            "decision_type": "book_2_acceptance",
+            "description": "Book 2 Baseline evidence validated",
+            "rationale": "Required artifacts present and structurally valid",
+            "made_by": "REALITY_LOCK_VALIDATION",
             "made_at": utc_now(),
-        },
-        {
+        })
+    else:
+        blocking_issues.append("Book 2 Baseline incomplete: missing or invalid artifacts")
+    
+    if book_3_complete:
+        decision_register.append({
             "decision_id": "DEC-003",
-            "decision_type": "phase_transition",
-            "description": "Advance to Phase 1 Forge Constitution",
-            "rationale": "Phase 0 baseline complete with documented gaps ready for FORGE build",
-            "made_by": "FORGE_IMPLEMENTATION",
+            "decision_type": "book_3_acceptance",
+            "description": "Book 3 Classification evidence validated",
+            "rationale": "Classification artifact present and structurally valid",
+            "made_by": "REALITY_LOCK_VALIDATION",
             "made_at": utc_now(),
-        },
-    ]
+        })
+    else:
+        blocking_issues.append("Book 3 Classification incomplete: missing or invalid artifact")
+    
+    # Decision register for quarantine (always present if classification exists)
+    if quarantine_register:
+        decision_register.append({
+            "decision_id": "DEC-004",
+            "decision_type": "component_quarantine",
+            "description": f"Quarantine {len(quarantine_register)} components",
+            "rationale": "Components classified as quarantine per evidence-based rules",
+            "made_by": "REALITY_LOCK_VALIDATION",
+            "made_at": utc_now(),
+        })
     
     return {
         "schema_version": SCHEMA_VERSION,
@@ -128,12 +198,12 @@ def generate_reality_lock(repo_root: Path) -> dict[str, Any]:
         "generated_at": utc_now(),
         "repository_sha": current_sha,
         
-        # Phase 0 completion status
+        # Phase 0 completion status (evidence-based, not hardcoded)
         "phase_00_completion": {
-            "book_1_inventory": "complete",
-            "book_2_baseline": "complete",
-            "book_3_classification": "complete",
-            "book_4_lock": "complete",
+            "book_1_inventory": "complete" if book_1_complete else "incomplete",
+            "book_2_baseline": "complete" if book_2_complete else "incomplete",
+            "book_3_classification": "complete" if book_3_complete else "incomplete",
+            "book_4_lock": "complete" if book_4_complete else "incomplete",
         },
         
         # Canonical path map
@@ -179,15 +249,21 @@ def generate_reality_lock(repo_root: Path) -> dict[str, Any]:
             "environment_fingerprint": environment_fingerprint.get("environment", {}),
         },
         
-        # Exit gate status
+        # Exit gate status (fail-closed)
         "exit_gate": {
-            "ready_for_phase_1": True,
-            "blocking_issues": [],
+            "ready_for_phase_1": (
+                book_1_complete and
+                book_2_complete and
+                book_3_complete and
+                book_4_complete and
+                len(blocking_issues) == 0
+            ),
+            "blocking_issues": blocking_issues,
             "warnings": [
                 "Backtest fixtures not available - must implement in Phase 3 or Phase 6",
                 "Services not verified - must implement in Phase 2",
-                "12 components require manual classification review during FORGE build",
-            ],
+                "Classification requires evidence-based reimplementation per P0-REPAIR-01",
+            ] if not blocking_issues else [],
         },
     }
 
