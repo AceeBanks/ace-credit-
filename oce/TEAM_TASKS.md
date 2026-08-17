@@ -1,9 +1,39 @@
 # OCE Team Tasks
 
 > **Generated:** 2026-05-16
-> **Updated:** 2026-05-17
-> **Lead:** OWL (RL) — Phase 8 Lead
-> **Status:** Phase 8 — Sovereign Coevolution ✅ Complete | Phase 9 Pending
+> **Updated:** 2026-05-30
+> **Lead:** CC2 (Phase 00 Planning) -> CC1 (Phase 00 Execution)
+> **Status:** Phase 00 - Cognitive Filesystem Foundation [Ready for Build]
+
+---
+
+## PHASE 00 - O2C COGNITIVE FILESYSTEM FOUNDATION (NEW)
+
+> **Full Plan:** oce/O2C_PHASE00_BUILD-NOTES.md
+> **Team Tasks:** oce/O2C_PHASE00_TEAM_TASKS.md
+> **Progress:** progress/O2C-PHASE00-PROGRESS.md
+
+### Quick Reference
+| Phase | Component | Agent | Status |
+|-------|-----------|-------|--------|
+| 0A | Vault Writer | CC1 | Pending |
+| 0B | Compressor | CC1 | Pending |
+| 0C | Linker | CC1 | Pending |
+| 0D | Skill System | AS | Pending |
+| 0E | Skill Loader | PM | Pending |
+| 0F | Execution Journal | CC1 | Pending |
+| 0G | Live Sync | RL | Pending |
+| 0H | Doctrine Taxonomy | AS | Pending |
+| 0I | Note Standard | AS | Pending |
+
+### Hard Rules
+1. NO autonomous recursive skill mutation
+2. NO unbounded vault writes
+3. NO overengineering - direct markdown writes first
+4. Compression is mandatory
+5. CAUSE/FIX/RESULT/LINKS on every note
+
+---
 
 ---
 
@@ -208,6 +238,23 @@
 | Governance API | RL | `governance_api.py` (24 endpoints) | ✅ Complete |
 | **Total Phase 8** | | | **✅ 47/47 passing** |
 | **Total OCE (Phases 1-8)** | | | **✅ 330/330 passing** |
+
+---
+
+## Phase 9 — Entropy Economics (Complete)
+
+> **Lead:** OWL (RL)
+> **Status:** Backend Complete — 40/40 tests passing
+> **Depends on:** OCE Phase 8 (Sovereign Coevolution) — ✅ Complete
+
+| Component | Owner | File | Status |
+|-----------|-------|------|--------|
+| Economics Engine | RL | `oce/backend/economics_engine.py` | ✅ 17 tests |
+| Sync Cost Optimizer | RL | `oce/backend/sync_cost_optimizer.py` | ✅ 10 tests |
+| Adaptive Compression | RL | `oce/backend/adaptive_compression.py` | ✅ 13 tests |
+| Economics API | RL | `main.py` (9 endpoints) | ✅ Complete |
+| **Total Phase 9** | | | **✅ 40/40 passing** |
+| **Total OCE (Phases 1-9)** | | | **✅ 370/370 passing** |
 
 ---
 

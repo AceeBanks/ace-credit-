@@ -1,107 +1,166 @@
-#!/usr/bin/env python3
 """
 Terminal Cleanup Utility
-========================
-Kills stale terminal processes that are no longer needed.
-Run this at the start of each agent session to free resources.
-
-Usage:
-  python tools/terminal_cleanup.py           # Show what would be killed
-  python tools/terminal_cleanup.py --force   # Kill stale processes
-  python tools/terminal_cleanup.py --all     # Kill ALL python/node processes (careful)
+Kills stale python/node processes. Active PIDs tracked via .active-pids.json.
+Usage: python tools/terminal_cleanup.py --force
+Register: python tools/terminal_cleanup.py --register PID
 """
+import os, sys, json, signal
+from pathlib import Path
+from datetime import datetime
 
-import subprocess
-import sys
-import os
-from datetime import datetime, timedelta
+try:
+    import psutil
+    HAS_PSUTIL = True
+except ImportError:
+    HAS_PSUTIL = False
 
-def get_stale_processes(max_age_minutes=60):
-    """Find python/node processes older than max_age_minutes that are not actively serving."""
-    stale = []
-    try:
-        # Get all python and node processes
-        result = subprocess.run(
-            ['wmic', 'process', 'where', 'name="python.exe" or name="node.exe"',
-             'get', 'ProcessId,CommandLine,CreationDate', '/format:csv'],
-            capture_output=True, text=True, timeout=10
-        )
-        lines = result.stdout.strip().split('\n')
-        for line in lines[2:]:  # Skip header lines
-            if not line.strip():
+WORKSPACE_ROOT = Path(__file__).parent.parent
+TOOLS_DIR = Path(__file__).parent
+PID_FILE = TOOLS_DIR / ".active-pids.json"
+STALE_THRESHOLD_MINUTES = 30
+
+def get_active_pids():
+    if PID_FILE.exists():
+        try:
+            data = json.loads(PID_FILE.read_text())
+            return set(data.get("pids", []))
+        except Exception:
+            pass
+    return set()
+
+def register_pid(pid):
+    active = get_active_pids()
+    active.add(int(pid))
+    PID_FILE.write_text(json.dumps({"pids": list(active), "updated": datetime.now().isoformat()}))
+
+def unregister_pid(pid):
+    active = get_active_pids()
+    active.discard(int(pid))
+    PID_FILE.write_text(json.dumps({"pids": list(active), "updated": datetime.now().isoformat()}))
+
+def get_powershell_processes():
+    """Get stale powershell/pwsh processes (excluding current session)."""
+    if not HAS_PSUTIL:
+        return []
+    processes = []
+    current_pid = os.getpid()
+    for proc in psutil.process_iter(["pid", "name", "cmdline", "create_time"]):
+        try:
+            info = proc.info
+            if info["pid"] == current_pid:
                 continue
-            parts = line.split(',')
-            if len(parts) >= 4:
-                pid = parts[1].strip()
-                cmdline = parts[2].strip() if len(parts) > 2 else ''
-                creation = parts[3].strip() if len(parts) > 3 else ''
-                
-                # Skip current process
-                if pid == str(os.getpid()):
-                    continue
-                    
-                # Parse creation time
-                try:
-                    if creation:
-                        # WMIC format: 20260516154434.000000+000
-                        dt = datetime.strptime(creation[:14], '%Y%m%d%H%M%S')
-                        age = datetime.now() - dt
-                        if age > timedelta(minutes=max_age_minutes):
-                            stale.append({
-                                'pid': pid,
-                                'cmdline': cmdline[:80],
-                                'age_min': int(age.total_seconds() / 60)
-                            })
-                except ValueError:
-                    pass
-    except Exception as e:
-        print(f"  ⚠ Error scanning: {e}")
-    return stale
+            if info["name"] and info["name"].lower() in ("powershell.exe", "pwsh.exe"):
+                cmdline = " ".join(info["cmdline"]) if info["cmdline"] else ""
+                create_time = datetime.fromtimestamp(info["create_time"])
+                age_minutes = (datetime.now() - create_time).total_seconds() / 60
+                processes.append({"pid": info["pid"], "cmdline": cmdline[:200],
+                                  "age_minutes": round(age_minutes, 1)})
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return processes
 
-def kill_process(pid):
-    """Kill a process by PID."""
-    try:
-        subprocess.run(['taskkill', '/PID', pid, '/F'], 
-                      capture_output=True, timeout=5)
+def get_python_processes():
+    if not HAS_PSUTIL:
+        return []
+    processes = []
+    for proc in psutil.process_iter(["pid", "name", "cmdline", "create_time"]):
+        try:
+            info = proc.info
+            if info["name"] and "python" in info["name"].lower():
+                cmdline = " ".join(info["cmdline"]) if info["cmdline"] else ""
+                create_time = datetime.fromtimestamp(info["create_time"])
+                age_minutes = (datetime.now() - create_time).total_seconds() / 60
+                if info["pid"] == os.getpid():
+                    continue
+                if "terminal_cleanup" in cmdline:
+                    continue
+                processes.append({"pid": info["pid"], "cmdline": cmdline[:200],
+                                  "age_minutes": round(age_minutes, 1)})
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return processes
+
+def is_active(pid, cmdline):
+    if pid in get_active_pids():
         return True
-    except Exception:
-        return False
+    keywords = ["test_11_1_b","chaos_20x","chaos_engine","chaos_scaled","chaos_amplified",
+                "chaos_continuous","chaos_long","chaos_runner","owl_autopilot","progress-sync",
+                "progress_sync","memory_sync","chat_sync","jupyter","uvicorn","flask","streamlit",
+                "stability_runner","semantic_test","analyze_topology","observability_stress"]
+    cl = cmdline.lower()
+    return any(k in cl for k in keywords)
+
+def cleanup_stale(force=False, threshold=STALE_THRESHOLD_MINUTES):
+    processes = get_python_processes()
+    if not processes:
+        print("[CLEANUP] No python processes found.")
+        return []
+    print(f"\n[CLEANUP] {len(processes)} python process(es):")
+    print(f"{'PID':<8} {'Age':<10} {'Status':<8} {'Command'}")
+    print("-" * 80)
+    killed, kept = [], []
+    for p in processes:
+        active = is_active(p["pid"], p["cmdline"])
+        stale = p["age_minutes"] > threshold
+        status = "ACTIVE" if active else ("STALE" if stale else "RECENT")
+        print(f"{p['pid']:<8} {p['age_minutes']:<10.1f} {status:<8} {p['cmdline'][:60]}")
+        if stale and not active:
+            if force:
+                try:
+                    psutil.Process(p["pid"]).terminate()
+                    killed.append(p["pid"])
+                    print(f"  -> KILLED PID {p['pid']}")
+                except Exception as e:
+                    print(f"  -> FAILED: {e}")
+            else:
+                print(f"  -> WOULD KILL (use --force)")
+        else:
+            kept.append(p["pid"])
+    print(f"\n[CLEANUP] Killed: {len(killed)}, Kept: {len(kept)}")
+    return killed
 
 def main():
-    force = '--force' in sys.argv
-    kill_all = '--all' in sys.argv
-    
-    print("🧹 Terminal Cleanup Utility")
-    print(f"   Mode: {'FORCE KILL' if force else 'DRY RUN'}")
-    print()
-    
-    if kill_all:
-        # Kill all python/node except current
-        print("  ⚠ Killing ALL python/node processes...")
-        for name in ['python.exe', 'node.exe']:
-            subprocess.run(['taskkill', '/IM', name, '/F'], 
-                          capture_output=True, timeout=5)
-        print("  ✅ Done.")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--threshold", type=int, default=STALE_THRESHOLD_MINUTES)
+    parser.add_argument("--register", type=int)
+    parser.add_argument("--unregister", type=int)
+    args = parser.parse_args()
+
+    if args.register:
+        register_pid(args.register)
+        print(f"[CLEANUP] Registered PID {args.register}")
         return
-    
-    stale = get_stale_processes(max_age_minutes=30 if not force else 0)
-    
-    if not stale:
-        print("  ✅ No stale processes found.")
+    if args.unregister:
+        unregister_pid(args.unregister)
+        print(f"[CLEANUP] Unregistered PID {args.unregister}")
         return
+
+    print("=" * 50)
+    print("  TERMINAL CLEANUP")
+    print(f"  Active PIDs: {get_active_pids()}")
+    print(f"  Force: {args.force}")
     
-    print(f"  Found {len(stale)} stale process(es):")
-    for p in stale:
-        print(f"    PID {p['pid']:>6} | {p['age_min']:>3}m old | {p['cmdline']}")
+    # Clean PowerShell processes first
+    ps_procs = get_powershell_processes()
+    if ps_procs:
+        print(f"\n[CLEANUP] {len(ps_procs)} PowerShell process(es):")
+        ps_killed = 0
+        for p in ps_procs:
+            stale = p["age_minutes"] > args.threshold
+            status = "STALE" if stale else "RECENT"
+            print(f"  PID {p['pid']:<8} {p['age_minutes']:<10.1f} {status:<8} {p['cmdline'][:60]}")
+            if stale and args.force:
+                try:
+                    psutil.Process(p["pid"]).terminate()
+                    ps_killed += 1
+                    print(f"    -> KILLED")
+                except Exception as e:
+                    print(f"    -> FAILED: {e}")
+        print(f"[CLEANUP] PowerShell killed: {ps_killed}")
     
-    if force:
-        killed = 0
-        for p in stale:
-            if kill_process(p['pid']):
-                killed += 1
-        print(f"\n  ✅ Killed {killed}/{len(stale)} processes.")
-    else:
-        print(f"\n  Run with --force to kill these processes.")
+    cleanup_stale(force=args.force, threshold=args.threshold)
 
 if __name__ == "__main__":
     main()

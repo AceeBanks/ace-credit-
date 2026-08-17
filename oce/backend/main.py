@@ -9,49 +9,77 @@ Provides endpoints for:
 - Event stream access
 - Attractor panel data
 - Memory view
+- Browser control proxy (OC2 sidecar)
 """
+import os
+import sys
+from pathlib import Path
+
+# --- SINGLETON: Kill duplicates, exit if already running ---
+_repo_root = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(_repo_root / "scripts"))
+from singleton import enforce_singleton
+enforce_singleton("oce_backend", kill_others=True)
 
 from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, AsyncGenerator
 from datetime import datetime, timezone
 import asyncio
 import json
 import logging
 import traceback
+import httpx
 
 logger = logging.getLogger("oce")
 
 # Import SRRA-OPH adapter
-from srrs_adapter import get_adapter, SRRSAdapter
-from event_fabric import get_fabric, get_router, get_persistence, EventFabric, TopologicalRouter, EventPersistence
-from observer_runtime import get_runtime, ObserverRuntime, ObserverConfig, ObserverState
-from structural_memory import StructuralMemory, MemoryEntry, MemoryLayer, MemoryStats
-from dspy_pipelines import OCEPipelineManager
-from phase4_api import register_phase4_endpoints
-from metrics_collector import get_metrics_collector, MetricsCollector
-from tracing_engine import get_tracing_engine, TracingEngine
-from alerting_engine import get_alerting_engine, AlertingEngine, AlertSeverity
-from execution_engine import get_execution_engine, ExecutionEngine, ExecutionTask, ExecutionStatus, ExecutionPriority
-from execution_api import register_execution_endpoints
-from drift_detector import get_drift_detector, DriftDetector
-from self_healing_engine import get_self_healing_engine, SelfHealingEngine
-from governance_api import register_governance_endpoints
-from command_center import router as command_center_router
-from governance_engine import get_governance_engine, GovernanceEngine, ProposalStatus, ProposalType
-from consensus_engine import get_consensus_engine, ConsensusEngine
-from coevolution_protocol import get_coevolution_protocol, CoevolutionProtocol
-from economics_engine import get_economics_engine, EconomicsEngine
-from sync_cost_optimizer import get_sync_cost_optimizer, SyncCostOptimizer
-from adaptive_compression import get_adaptive_compression, AdaptiveCompression
+from .srrs_adapter import get_adapter, SRRSAdapter
+from .rate_limit_tracker import get_rate_limit_tracker, record_api_call
+from .event_fabric import get_fabric, get_router, get_persistence, EventFabric, TopologicalRouter, EventPersistence
+from .observer_runtime import get_runtime, ObserverRuntime, ObserverConfig, ObserverState
+from .structural_memory import StructuralMemory, MemoryEntry, MemoryLayer, MemoryStats
+from .dspy_pipelines import OCEPipelineManager
+from .phase4_api import register_phase4_endpoints
+from .metrics_collector import get_metrics_collector, MetricsCollector
+from .tracing_engine import get_tracing_engine, TracingEngine
+from .alerting_engine import get_alerting_engine, AlertingEngine, AlertSeverity
+from .execution_engine import get_execution_engine, ExecutionEngine, ExecutionTask, ExecutionStatus, ExecutionPriority
+from .execution_api import register_execution_endpoints
+from .drift_detector import get_drift_detector, DriftDetector
+from .self_healing_engine import get_self_healing_engine, SelfHealingEngine
+from .governance_api import register_governance_endpoints
+from .command_center import router as command_center_router
+from .governance_engine import get_governance_engine, GovernanceEngine, ProposalStatus, ProposalType
+from .consensus_engine import get_consensus_engine, ConsensusEngine
+from .coevolution_protocol import get_coevolution_protocol, CoevolutionProtocol
+from .economics_engine import get_economics_engine, EconomicsEngine
+from .sync_cost_optimizer import get_sync_cost_optimizer, SyncCostOptimizer
+from .adaptive_compression import get_adaptive_compression, AdaptiveCompression
+from .resonance_api import register_resonance_endpoints
+from .reconstruction_api import register_reconstruction_endpoints
+from .topology_api import register_topology_endpoints
+from .sovereign_api import register_sovereign_endpoints
+from .vault_api import register_vault_endpoints
+from .ml_api import register_ml_endpoints
+from .po_api import router as po_router
+from .po_tools_api import router as po_tools_router
+from .po_mcp_client import MCPToolRegistry, BUILTIN_MCP_SERVERS
+from .po_idle import POIdleRuntime, get_idle_runtime, set_idle_runtime
 
 app = FastAPI(
     title="OCE Continuity Core",
     description="Operator Continuity Engine API",
     version="1.0.0"
 )
+
+# Serve static frontend files (PO monitor dashboard)
+_frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+if _frontend_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(_frontend_dir)), name="static")
 
 # CORS for Next.js frontend
 app.add_middleware(
@@ -60,6 +88,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+
 )
 
 
@@ -70,6 +99,25 @@ async def global_exception_handler(request, exc):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Internal server error", "type": type(exc).__name__},
     )
+
+
+# ─── MCP Tool Registry ──────────────────────────────────────────────────────
+
+mcp_registry = MCPToolRegistry()
+
+
+@app.on_event("startup")
+async def startup_mcp():
+    """Connect to all MCP servers on startup."""
+    mcp_registry.discover_servers()
+    await mcp_registry.connect_all()
+    logger.info(f"MCP registry: {len(mcp_registry._tools)} tools from {len(mcp_registry._servers)} servers")
+
+
+@app.on_event("shutdown")
+async def shutdown_mcp():
+    """Disconnect from all MCP servers on shutdown."""
+    await mcp_registry.disconnect_all()
 
 
 # ─── Models ───────────────────────────────────────────────────────────────────
@@ -149,6 +197,15 @@ async def root():
     return {"message": "OCE Continuity Core API", "version": "1.0.0"}
 
 
+@app.get("/po-monitor")
+async def po_monitor_page():
+    """Serve the PO Monitor HTML dashboard."""
+    _monitor_file = Path(__file__).resolve().parent.parent / "frontend" / "po-monitor.html"
+    if _monitor_file.exists():
+        return HTMLResponse(content=_monitor_file.read_text(), status_code=200)
+    raise HTTPException(status_code=404, detail="PO Monitor page not found")
+
+
 @app.get("/health")
 async def health():
     return {"status": "healthy", "service": "oce-continuity-core"}
@@ -159,18 +216,196 @@ async def continuity_chat(request: ContinuityChatRequest):
     """
     Continuity chat endpoint.
     Preserves goals, trajectories, observer state, operational context.
+    Uses O-1/O-2/O-3 observer pipeline for intelligent responses.
     """
     try:
         adapter = await get_adapter()
         result = await adapter.process_continuity_message(request.message, request.context)
         return {
             "response": result.get("response", "No response"),
-            "session_id": request.session_id or "new_session",
-            "continuity_preserved": True
+            "session_id": result.get("session_id", request.session_id or "new_session"),
+            "continuity_preserved": True,
+            "observer": result.get("observer", {}),
+            "system": result.get("system", {}),
+            "confidence": result.get("confidence", 0),
         }
     except Exception as e:
         logger.error(f"Chat error: {e}")
         raise HTTPException(status_code=503, detail=f"Continuity service unavailable: {str(e)}")
+
+
+@app.post("/chat/stream")
+async def continuity_chat_stream(request: ContinuityChatRequest):
+    """
+    Streaming chat endpoint — Server-Sent Events (SSE).
+    Bypasses the heavy O-1/O-2/O-3 pipeline for direct ChatAgent responses.
+    """
+    async def event_generator() -> AsyncGenerator[str, None]:
+        try:
+            import queue
+            progress_queue = queue.Queue()
+
+            def on_progress(event_type: str, data: dict):
+                progress_queue.put({"type": event_type, "data": data})
+
+            def run_agent():
+                from core.observer.po_agent import POAgent
+                agent = POAgent()
+                return agent.chat(
+                    request.message,
+                    sovereign_context="",
+                    max_tool_rounds=8,
+                    progress_callback=on_progress,
+                )
+
+            loop = asyncio.get_event_loop()
+            import concurrent.futures
+            executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+            future = loop.run_in_executor(executor, run_agent)
+
+            while not future.done():
+                while not progress_queue.empty():
+                    try:
+                        evt = progress_queue.get_nowait()
+                        yield f"data: {json.dumps(evt, default=str)}\n\n"
+                    except queue.Empty:
+                        break
+                yield ": keepalive\n\n"
+                await asyncio.sleep(0.5)
+
+            while not progress_queue.empty():
+                try:
+                    evt = progress_queue.get_nowait()
+                    yield f"data: {json.dumps(evt, default=str)}\n\n"
+                except queue.Empty:
+                    break
+
+            response_text = await asyncio.wait_for(future, timeout=300)
+
+            # Log to chat log for conversation history
+            try:
+                from core.observer.chat_log import get_chat_log
+                chat_log = get_chat_log()
+                session_id = request.session_id or chat_log.get_current_session()
+                chat_log.add_message(
+                    role="user",
+                    content=request.message,
+                    session_id=session_id,
+                    observer_metadata={"source": "chat_stream"},
+                )
+                chat_log.add_message(
+                    role="assistant",
+                    content=response_text,
+                    session_id=session_id,
+                    observer_metadata={"source": "chat_stream"},
+                )
+            except Exception as log_err:
+                logger.warning(f"Chat log write failed (non-critical): {log_err}")
+
+            yield f"data: {json.dumps({'type': 'final', 'data': {'response': response_text, 'session_id': request.session_id or '', 'observer': {}, 'system': {}, 'confidence': 1.0}}, default=str)}\n\n"
+            executor.shutdown(wait=False)
+
+        except Exception as e:
+            logger.error(f"Stream error: {e}")
+            # Log error to chat log
+            try:
+                from core.observer.chat_log import get_chat_log
+                chat_log = get_chat_log()
+                session_id = request.session_id or chat_log.get_current_session()
+                chat_log.add_message(role="user", content=request.message, session_id=session_id)
+                chat_log.add_message(role="assistant", content=f"Error: {str(e)[:200]}", session_id=session_id)
+            except Exception:
+                pass
+            yield f"data: {json.dumps({'type': 'error', 'data': {'message': str(e)[:500]}})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+# ─── Chat Log Endpoints ──────────────────────────────────────────────────────
+
+@app.get("/chat/sessions")
+async def get_chat_sessions():
+    """List all chat sessions with recent messages."""
+    try:
+        from core.observer.chat_log import get_chat_log
+        chat_log = get_chat_log()
+        chat_log.reload()  # Force fresh read from disk
+        data = chat_log.to_dict()
+        sessions = []
+        for sid, s in data.get("sessions", {}).items():
+            sessions.append({
+                "session_id": s["session_id"],
+                "start_time": s["start_time"],
+                "last_active": s["last_active"],
+                "message_count": s["message_count"],
+                "user_message_count": s.get("user_message_count", 0),
+                "assistant_message_count": s.get("assistant_message_count", 0),
+                "recent_messages": s.get("messages", [])[-5:],
+            })
+        # Sort by last_active descending
+        sessions.sort(key=lambda x: x.get("last_active", ""), reverse=True)
+        return {
+            "sessions": sessions,
+            "active_session": data.get("current_session_id"),
+        }
+    except Exception as e:
+        logger.error(f"Chat sessions error: {e}")
+        raise HTTPException(status_code=503, detail=f"Chat log unavailable: {str(e)}")
+
+
+@app.get("/chat/history/{session_id}")
+async def get_chat_history(session_id: str):
+    """Get full conversation history for a session."""
+    try:
+        from core.observer.chat_log import get_chat_log
+        chat_log = get_chat_log()
+        messages = chat_log.get_session_messages(session_id)
+        summary = chat_log.get_session_summary(session_id)
+        return {
+            "session": summary,
+            "messages": messages,
+        }
+    except Exception as e:
+        logger.error(f"Chat history error: {e}")
+        raise HTTPException(status_code=503, detail=f"Chat log unavailable: {str(e)}")
+
+
+@app.get("/chat/recent")
+async def get_recent_messages(limit: int = Query(50, ge=1, le=200)):
+    """Get recent messages across all sessions."""
+    try:
+        from core.observer.chat_log import get_chat_log
+        chat_log = get_chat_log()
+        messages = chat_log.get_recent_messages(limit=limit)
+        return {"messages": messages}
+    except Exception as e:
+        logger.error(f"Chat recent error: {e}")
+        raise HTTPException(status_code=503, detail=f"Chat log unavailable: {str(e)}")
+
+
+@app.get("/chat/search")
+async def search_chat_history(q: str = Query(..., min_length=1, max_length=200)):
+    """Search chat history by content."""
+    try:
+        from core.observer.chat_log import get_chat_log
+        chat_log = get_chat_log()
+        results = chat_log.search_messages(query=q)
+        return {
+            "query": q,
+            "results": results,
+            "count": len(results),
+        }
+    except Exception as e:
+        logger.error(f"Chat search error: {e}")
+        raise HTTPException(status_code=503, detail=f"Chat log unavailable: {str(e)}")
 
 
 @app.get("/observers", response_model=List[ObserverStatus])
@@ -328,6 +563,45 @@ async def get_attractor_state():
         raise HTTPException(status_code=503, detail=f"Attractor service unavailable: {str(e)}")
 
 
+@app.get("/rate-limit/status")
+async def get_rate_limit_status():
+    """Get current rate-limit status for all API models."""
+    try:
+        tracker = get_rate_limit_tracker()
+        return tracker.get_status()
+    except Exception as e:
+        logger.error(f"Rate limit status error: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@app.get("/rate-limit/errors")
+async def get_rate_limit_errors(limit: int = Query(20, ge=1, le=100)):
+    """Get recent rate-limit errors."""
+    try:
+        tracker = get_rate_limit_tracker()
+        return {"errors": tracker.get_recent_errors(limit)}
+    except Exception as e:
+        logger.error(f"Rate limit errors error: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@app.post("/rate-limit/record")
+async def record_rate_limit(request: dict):
+    """Record an API call for rate-limit tracking."""
+    try:
+        record_api_call(
+            model=request.get("model", "unknown"),
+            status_code=request.get("status_code", 200),
+            error_type=request.get("error_type", ""),
+            cost=request.get("cost_usd", 0.0),
+            tokens=request.get("tokens_used", 0),
+        )
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"Rate limit record error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/memory")
 async def get_memory_view():
     """Trajectory memory, structural memory, repair memory."""
@@ -383,9 +657,200 @@ def _event_to_dict(event) -> Dict[str, Any]:
     return _event_to_response(event)
 
 
+# ─── Agent Action API ─────────────────────────────────────────────────────────
+# These endpoints let PO (and other agents) execute actions through OCE.
+
+class AgentActionRequest(BaseModel):
+    """Request model for agent-executed actions."""
+    action: str  # "run_command", "read_file", "write_file", "edit_file", "run_python", "git_op"
+    params: Dict[str, Any] = {}
+    agent_id: str = "po"
+    session_id: Optional[str] = None
+
+
+class AgentActionResponse(BaseModel):
+    """Response from an agent action."""
+    ok: bool
+    result: Any = None
+    error: Optional[str] = None
+    execution_time_ms: float = 0
+
+
+@app.post("/agent/execute", response_model=AgentActionResponse)
+async def agent_execute_action(request: AgentActionRequest):
+    """
+    Execute an action on behalf of an agent.
+    This is the main integration point for PO and other external agents
+    to interact with the workspace through the OCE backend.
+
+    Actions:
+    - run_command: Execute a shell command (params: command, timeout?, cwd?)
+    - read_file: Read a file (params: path, start_line?, max_lines?)
+    - write_file: Write a file (params: path, content)
+    - edit_file: Edit a file (params: path, old_text, new_text)
+    - run_python: Execute Python code (params: code, timeout?)
+    - git_op: Git operation (params: operation, args?)
+    """
+    import time as _time
+    from pathlib import Path as _Path
+
+    start = _time.time()
+    repo_root = _Path(__file__).resolve().parents[2]
+
+    try:
+        if request.action == "run_command":
+            cmd = request.params.get("command", "")
+            timeout = request.params.get("timeout", 30)
+            cwd = request.params.get("cwd", str(repo_root))
+            import subprocess
+            result = subprocess.run(
+                cmd, shell=True, capture_output=True, text=True,
+                timeout=timeout, cwd=cwd, encoding="utf-8", errors="replace",
+            )
+            output = result.stdout
+            if result.stderr:
+                output += "\n[STDERR]\n" + result.stderr
+            return AgentActionResponse(ok=True, result=output[:5000], execution_time_ms=(_time.time()-start)*1000)
+
+        elif request.action == "read_file":
+            path = request.params.get("path", "")
+            fp = repo_root / path
+            if not fp.exists():
+                return AgentActionResponse(ok=False, error=f"File not found: {path}")
+            content = fp.read_text(encoding="utf-8", errors="replace")
+            lines = content.splitlines()
+            start_line = request.params.get("start_line", 1)
+            max_lines = request.params.get("max_lines", 200)
+            if start_line > 1 or max_lines < len(lines):
+                end = min(start_line - 1 + max_lines, len(lines))
+                content = f"[Lines {start_line}-{end} of {len(lines)}]\n" + "\n".join(lines[start_line-1:end])
+            return AgentActionResponse(ok=True, result=content[:5000], execution_time_ms=(_time.time()-start)*1000)
+
+        elif request.action == "write_file":
+            path = request.params.get("path", "")
+            content = request.params.get("content", "")
+            fp = repo_root / path
+            fp.parent.mkdir(parents=True, exist_ok=True)
+            fp.write_text(content, encoding="utf-8")
+            return AgentActionResponse(ok=True, result=f"Wrote {len(content.splitlines())} lines to {path}", execution_time_ms=(_time.time()-start)*1000)
+
+        elif request.action == "edit_file":
+            path = request.params.get("path", "")
+            old_text = request.params.get("old_text", "")
+            new_text = request.params.get("new_text", "")
+            fp = repo_root / path
+            if not fp.exists():
+                return AgentActionResponse(ok=False, error=f"File not found: {path}")
+            content = fp.read_text(encoding="utf-8")
+            if old_text not in content:
+                return AgentActionResponse(ok=False, error=f"Text not found in {path}")
+            new_content = content.replace(old_text, new_text, 1)
+            fp.write_text(new_content, encoding="utf-8")
+            return AgentActionResponse(ok=True, result=f"Edited {path}", execution_time_ms=(_time.time()-start)*1000)
+
+        elif request.action == "run_python":
+            code = request.params.get("code", "")
+            timeout = request.params.get("timeout", 60)
+            import tempfile, os
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
+                f.write(code)
+                tmp_path = f.name
+            python_exe = str(repo_root / ".venv" / "Scripts" / "python.exe")
+            import subprocess
+            result = subprocess.run(
+                [python_exe, tmp_path], capture_output=True, text=True,
+                timeout=timeout, cwd=str(repo_root), encoding="utf-8", errors="replace",
+            )
+            os.unlink(tmp_path)
+            output = result.stdout
+            if result.stderr:
+                output += "\n[STDERR]\n" + result.stderr
+            return AgentActionResponse(ok=True, result=output[:5000], execution_time_ms=(_time.time()-start)*1000)
+
+        elif request.action == "git_op":
+            operation = request.params.get("operation", "")
+            args = request.params.get("args", "")
+            allowed_ops = ["status", "log", "diff", "add", "commit", "push", "pull", "branch", "checkout", "stash"]
+            if operation not in allowed_ops:
+                return AgentActionResponse(ok=False, error=f"Unknown git operation: {operation}. Allowed: {', '.join(allowed_ops)}")
+            cmd = f"git {operation} {args}"
+            import subprocess
+            result = subprocess.run(
+                cmd, shell=True, capture_output=True, text=True,
+                timeout=30, cwd=str(repo_root), encoding="utf-8", errors="replace",
+            )
+            output = result.stdout
+            if result.stderr:
+                output += "\n[STDERR]\n" + result.stderr
+            return AgentActionResponse(ok=True, result=output[:5000], execution_time_ms=(_time.time()-start)*1000)
+
+        else:
+            return AgentActionResponse(ok=False, error=f"Unknown action: {request.action}")
+
+    except subprocess.TimeoutExpired:
+        return AgentActionResponse(ok=False, error="Action timed out", execution_time_ms=(_time.time()-start)*1000)
+    except Exception as e:
+        return AgentActionResponse(ok=False, error=str(e), execution_time_ms=(_time.time()-start)*1000)
+
+
+@app.get("/agent/workspace/info")
+async def agent_workspace_info():
+    """Get workspace info for agents — recent files, git status, service ports."""
+    import os
+    import socket
+    from pathlib import Path as _Path
+
+    repo_root = _Path(__file__).resolve().parents[2]
+    info = {}
+
+    # Git info
+    try:
+        import subprocess
+        branch = subprocess.run(
+            ["git", "branch", "--show-current"], capture_output=True, text=True,
+            cwd=str(repo_root), timeout=5
+        ).stdout.strip()
+        last_commit = subprocess.run(
+            ["git", "log", "-1", "--oneline"], capture_output=True, text=True,
+            cwd=str(repo_root), timeout=5
+        ).stdout.strip()
+        info["git"] = {"branch": branch, "last_commit": last_commit}
+    except Exception:
+        info["git"] = {"error": "git not available"}
+
+    # Service ports
+    ports = {
+        "oce_backend": 8000, "oce_frontend": 3000,
+        "openclaw": 18790, "po_api": 8765,
+    }
+    port_states = {}
+    for name, port in ports.items():
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(0.5)
+        try:
+            s.connect(("127.0.0.1", port))
+            port_states[name] = "up"
+        except Exception:
+            port_states[name] = "down"
+        finally:
+            s.close()
+    info["services"] = port_states
+
+    # Recent progress files
+    try:
+        progress_dir = repo_root / "progress"
+        if progress_dir.exists():
+            files = sorted(progress_dir.iterdir(), key=lambda f: f.stat().st_mtime, reverse=True)[:5]
+            info["recent_progress"] = [f.name for f in files]
+    except Exception:
+        pass
+
+    return info
+
+
 @app.on_event("startup")
 async def startup_event():
-    """Initialize Event Fabric on startup."""
+    """Initialize Event Fabric and PO Idle Runtime on startup."""
     try:
         fabric = get_fabric()
         await fabric.ingest(
@@ -393,15 +858,21 @@ async def startup_event():
             source="oce-continuity-core",
             payload={"version": "1.0.0", "message": "OCE Continuity Core started"},
         )
-        logger.info("OCE Continuity Core started successfully")
+        # Start PO Idle Runtime (P3.4 — autonomous background tick)
+        idle = get_idle_runtime()
+        await idle.start()
+        logger.info("OCE Continuity Core started successfully (PO Idle Runtime active)")
     except Exception as e:
         logger.error(f"Startup error: {e}")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Emit shutdown event."""
+    """Stop PO Idle Runtime and emit shutdown event."""
     try:
+        # Stop PO Idle Runtime cleanly
+        idle = get_idle_runtime()
+        await idle.stop()
         fabric = get_fabric()
         await fabric.ingest(
             event_type="system.shutdown",
@@ -411,6 +882,45 @@ async def shutdown_event():
         logger.info("OCE Continuity Core shutting down")
     except Exception as e:
         logger.error(f"Shutdown error: {e}")
+
+
+# ─── PO Idle Runtime Endpoints (P3.4) ────────────────────────────────────────
+
+@app.get("/api/po/idle/status")
+async def po_idle_status():
+    """Get PO Idle Runtime status — tick count, uptime, session state, last tick."""
+    idle = get_idle_runtime()
+    last_report = idle.last_tick_report
+    return {
+        "running": idle.is_running,
+        "tick_count": idle.tick_count,
+        "uptime_seconds": round(idle.uptime_seconds, 1),
+        "session_state": idle._get_session_state().value if idle.is_running else "stopped",
+        "cadence_seconds": idle._compute_cadence() if idle.is_running else 0,
+        "last_tick": {
+            "ts": last_report.ts,
+            "cadence": last_report.cadence,
+            "session_state": last_report.session_state.value,
+            "vault_sync": {
+                "entries_indexed": last_report.vault_sync.entries_indexed,
+                "entries_pruned": last_report.vault_sync.entries_pruned,
+                "duration_ms": last_report.vault_sync.duration_ms,
+            } if last_report and last_report.vault_sync else None,
+            "memory_distill": {
+                "work_compressed": last_report.memory_distill.work_compressed,
+                "learned_created": last_report.memory_distill.learned_created,
+                "compression_ratio": last_report.memory_distill.compression_ratio,
+            } if last_report and last_report.memory_distill else None,
+        } if last_report else None,
+    }
+
+
+@app.post("/api/po/idle/notify")
+async def po_idle_notify():
+    """Notify PO Idle Runtime that a request was handled (resets active timer)."""
+    idle = get_idle_runtime()
+    idle.notify_request()
+    return {"status": "ok", "message": "Active timer reset"}
 
 
 # ─── WebSocket for Real-time Updates ──────────────────────────────────────────
@@ -864,6 +1374,64 @@ register_execution_endpoints(app)
 # Register Phase 8 Governance endpoints
 register_governance_endpoints(app)
 
+# Register V3 Phase 1 Resonance endpoints
+register_resonance_endpoints(app)
+
+# Register V3 Phase 2 Reconstruction endpoints
+register_reconstruction_endpoints(app)
+
+# Register V3 Phase 3 Topology endpoints
+register_topology_endpoints(app)
+
+# Register V3 Phase 4 Sovereign endpoints
+register_sovereign_endpoints(app)
+
+# Register O-6 Substrate endpoints
+from .substrate_api import register_substrate_endpoints
+register_substrate_endpoints(app)
+
+# Register O-7 Persistent Field endpoints
+from .persistent_field_api import register_persistent_field_endpoints
+register_persistent_field_endpoints(app)
+
+# Register O2C Phase 00 + Phase 01 Vault/Cognitive Mesh endpoints
+register_vault_endpoints(app)
+
+# Register CEREBUS ML API endpoints
+register_ml_endpoints(app)
+
+# Register O2C × MAD LABS Research Mesh endpoints
+from .research_api import register_research_endpoints
+register_research_endpoints(app)
+
+# Register RCE (Research Cognition Engine) API endpoints
+from .rce_api import router as rce_router
+app.include_router(rce_router)
+
+# Register PO Monitor (action tracker + learning log)
+from .po_monitor import router as po_monitor_router
+app.include_router(po_monitor_router)
+
+# Register PO API endpoints (PO × VTuber integration)
+app.include_router(po_router)
+
+# Register PO Tools API (all Copilot-equivalent capabilities)
+app.include_router(po_tools_router)
+
+# MCP proxy endpoint — forward tool calls to MCP servers
+@app.get("/api/po/mcp/tools")
+async def list_mcp_tools():
+    """List all tools from connected MCP servers."""
+    return {"tools": mcp_registry.list_all_tools(), "servers": list(mcp_registry._servers.keys())}
+
+
+@app.post("/api/po/mcp/call")
+async def call_mcp_tool(server: str, tool_name: str, arguments: Dict[str, Any] = {}):
+    """Call a tool on a specific MCP server."""
+    result = await mcp_registry.call_tool(server, tool_name, arguments)
+    return {"server": server, "tool": tool_name, "result": result}
+
+
 app.include_router(command_center_router)
 
 # ─── Phase 7: Evolution API ──────────────────────────────────────────────────
@@ -920,7 +1488,7 @@ async def evolution_recommendations(time_range_hours: int = Query(24, ge=1, le=1
 async def evolution_tune():
     """Trigger auto-tuning (combines DSPy optimizer + drift data)."""
     try:
-        from dspy_execution_optimizer import get_optimizer
+        from .dspy_execution_optimizer import get_optimizer
         engine = get_execution_engine()
         drift = get_drift_detector()
         history_stats = engine.history.get_stats()
@@ -1324,6 +1892,459 @@ async def economics_compress(request: dict):
         return engine.compress_layer(layer, data, target_ratio)
     except Exception as e:
         raise HTTPException(status_code=503, detail=str(e))
+
+
+# ─── O-2: Observer Consensus Endpoints ───────────────────────────────────────
+
+
+@app.get("/consensus/status")
+async def get_consensus_status():
+    """Get observer consensus statistics."""
+    try:
+        adapter = await get_adapter()
+        return adapter._observer_consensus.get_stats()
+    except Exception as e:
+        logger.error(f"Consensus status error: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@app.get("/consensus/history")
+async def get_consensus_history(limit: int = Query(50, ge=1, le=500)):
+    """Get recent consensus decisions."""
+    try:
+        adapter = await get_adapter()
+        return adapter._observer_consensus.get_consensus_history(limit)
+    except Exception as e:
+        logger.error(f"Consensus history error: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@app.get("/consensus/specializations")
+async def get_observer_specializations():
+    """Get observer specialization data."""
+    try:
+        adapter = await get_adapter()
+        return adapter._observer_specialization.get_specializations()
+    except Exception as e:
+        logger.error(f"Specializations error: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+# ─── O-3: Spawn Engine Endpoints ─────────────────────────────────────────────
+
+
+@app.get("/spawn/status")
+async def get_spawn_status():
+    """Get spawn engine status."""
+    try:
+        adapter = await get_adapter()
+        return {
+            "registry": adapter._spawn_registry.get_field_snapshot(),
+            "active": adapter._agent_spawner.get_active_spawns(),
+        }
+    except Exception as e:
+        logger.error(f"Spawn status error: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@app.get("/spawn/history")
+async def get_spawn_history(limit: int = Query(50, ge=1, le=500)):
+    """Get spawn history."""
+    try:
+        adapter = await get_adapter()
+        return adapter._spawn_registry.get_history(limit)
+    except Exception as e:
+        logger.error(f"Spawn history error: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@app.get("/spawn/traces")
+async def get_spawn_traces(
+    task_type: Optional[str] = None,
+    limit: int = Query(50, ge=1, le=500),
+):
+    """Get execution traces."""
+    try:
+        adapter = await get_adapter()
+        return adapter._trace_feedback.get_traces(task_type, limit)
+    except Exception as e:
+        logger.error(f"Traces error: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@app.get("/observer/health")
+async def get_observer_health():
+    """Get Primary Observer health status."""
+    try:
+        adapter = await get_adapter()
+        return adapter._primary_observer.health
+    except Exception as e:
+        logger.error(f"Observer health error: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+# ─── Browser Control Proxy (OC2 Sidecar) ─────────────────────────────────────
+
+OC2_BROWSER_URL = "http://127.0.0.1:18792"
+OC2_BROWSER_TOKEN = "oc2-68cdb0729953cce1aecaf09a9dffddac574c9a674f46aa77"
+
+
+@app.get("/browser")
+async def browser_proxy_get(path: str = ""):
+    """Proxy GET requests to OC2 browser control sidecar."""
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            url = f"{OC2_BROWSER_URL}/{path}" if path else OC2_BROWSER_URL
+            resp = await client.get(
+                url,
+                headers={"Authorization": OC2_BROWSER_TOKEN},
+            )
+            return JSONResponse(content=resp.json(), status_code=resp.status_code)
+    except Exception as e:
+        logger.error(f"Browser proxy GET error: {e}")
+        raise HTTPException(status_code=503, detail=f"Browser control unavailable: {str(e)}")
+
+
+@app.post("/browser")
+async def browser_proxy_post(request: dict):
+    """Proxy POST requests to OC2 browser control sidecar."""
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                OC2_BROWSER_URL,
+                json=request,
+                headers={"Authorization": OC2_BROWSER_TOKEN},
+            )
+            return JSONResponse(content=resp.json(), status_code=resp.status_code)
+    except Exception as e:
+        logger.error(f"Browser proxy POST error: {e}")
+        raise HTTPException(status_code=503, detail=f"Browser control unavailable: {str(e)}")
+
+
+@app.get("/browser/status")
+async def browser_status():
+    """Check OC2 browser control sidecar status."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(
+                f"{OC2_BROWSER_URL}/status",
+                headers={"Authorization": OC2_BROWSER_TOKEN},
+            )
+            return {"status": "available", "response": resp.json()}
+    except Exception as e:
+        return {"status": "unavailable", "error": str(e)}
+
+
+# ─── Frontend API Aliases (/api/* → existing endpoints) ──────────────────────
+# The Next.js frontend proxies /api/* → /api/* on the backend.
+# These aliases map frontend-expected paths to existing OCE endpoints.
+
+@app.get("/api/topology")
+async def api_topology():
+    """Frontend alias: /api/topology → topology graph with observer nodes."""
+    import math
+    try:
+        adapter = await get_adapter()
+        obs_status = await adapter.get_observer_status()
+        nodes = []
+        count = max(len(obs_status), 1)
+        for i, obs in enumerate(obs_status):
+            angle = (2 * math.pi * i) / count
+            radius = 150
+            nodes.append({
+                "id": obs.get("observer_id", f"obs-{i}"),
+                "label": obs.get("observer_id", f"obs-{i}"),
+                "type": "observer",
+                "status": obs.get("state", "active"),
+                "entropy": obs.get("entropy", 0.0),
+                "syncScore": 1.0 - obs.get("entropy", 0.0),
+                "repairState": "idle",
+                "x": 400 + radius * math.cos(angle),
+                "y": 300 + radius * math.sin(angle),
+            })
+        edges = []
+        for i in range(len(nodes) - 1):
+            edges.append({
+                "source": nodes[i]["id"],
+                "target": nodes[i + 1]["id"],
+                "strength": 0.5,
+                "type": "routing",
+            })
+        # If no observers from adapter, provide seed data for UI testing
+        if not nodes:
+            seed_observers = [
+                {"id": "CC", "label": "CC (Claude Code)", "type": "orchestrator", "status": "active", "entropy": 0.05},
+                {"id": "OC2", "label": "OC2 (OWL)", "type": "operator", "status": "active", "entropy": 0.08},
+                {"id": "AS", "label": "AS (Assistant)", "type": "quality", "status": "active", "entropy": 0.03},
+                {"id": "PM", "label": "PM (Polymorph)", "type": "debugger", "status": "active", "entropy": 0.12},
+                {"id": "PM2", "label": "PM2 (Polymorph 2)", "type": "experimental", "status": "synced", "entropy": 0.07},
+                {"id": "RL", "label": "RL (Researcher)", "type": "research", "status": "active", "entropy": 0.15},
+            ]
+            count = len(seed_observers)
+            for i, obs in enumerate(seed_observers):
+                angle = (2 * math.pi * i) / count
+                radius = 150
+                nodes.append({
+                    "id": obs["id"],
+                    "label": obs["label"],
+                    "type": obs["type"],
+                    "status": obs["status"],
+                    "entropy": obs["entropy"],
+                    "syncScore": 1.0 - obs["entropy"],
+                    "repairState": "idle",
+                    "x": 400 + radius * math.cos(angle),
+                    "y": 300 + radius * math.sin(angle),
+                })
+            # Create a ring of edges
+            for i in range(len(nodes)):
+                edges.append({
+                    "source": nodes[i]["id"],
+                    "target": nodes[(i + 1) % len(nodes)]["id"],
+                    "strength": 0.5 + (0.3 * (1 - nodes[i]["entropy"])),
+                    "type": "routing",
+                })
+            # Add cross-edges
+            if len(nodes) >= 4:
+                edges.append({"source": nodes[0]["id"], "target": nodes[3]["id"], "strength": 0.3, "type": "sync"})
+                edges.append({"source": nodes[1]["id"], "target": nodes[4]["id"], "strength": 0.3, "type": "sync"})
+        try:
+            router = get_router()
+            stats = router.get_topology_stats()
+        except Exception:
+            stats = {"observers": len(nodes), "edges": len(edges), "avg_coupling": 0.5, "density": round(len(edges) / max(len(nodes) * (len(nodes) - 1) / 2, 1), 2)}
+        return {"nodes": nodes, "edges": edges, "stats": stats}
+    except Exception as e:
+        logger.error(f"API topology error: {e}")
+        return {"nodes": [], "edges": [], "stats": {}}
+
+
+@app.get("/api/health")
+async def api_health():
+    """Frontend alias: /api/health."""
+    return {"status": "healthy", "service": "oce-continuity-core"}
+
+
+@app.get("/api/chat/sessions")
+async def api_chat_sessions():
+    """Frontend alias: /api/chat/sessions."""
+    try:
+        adapter = await get_adapter()
+        sessions = await adapter.get_chat_sessions()
+        return {"sessions": sessions}
+    except Exception:
+        return {"sessions": []}
+
+
+@app.post("/api/chat")
+async def api_chat(request: dict):
+    """Frontend alias: /api/chat → /chat."""
+    try:
+        adapter = await get_adapter()
+        message = request.get("message", "")
+        result = await adapter.process_continuity_message(message, request.get("context"))
+        return {
+            "response": result.get("response", "No response"),
+            "session_id": request.get("session_id", "new_session"),
+            "continuity_preserved": True,
+            "observer": result.get("observer", {}),
+            "system": result.get("system", {}),
+            "confidence": result.get("confidence", 0),
+        }
+    except Exception as e:
+        logger.error(f"API chat error: {e}")
+        raise HTTPException(status_code=503, detail=f"Chat unavailable: {str(e)}")
+
+
+@app.post("/api/chat/stream")
+async def api_chat_stream(request: dict):
+    """Frontend streaming alias: /api/chat/stream with SSE."""
+    try:
+        adapter = await get_adapter()
+        message = request.get("message", "")
+        context = request.get("context")
+
+        # Collect progress events thread-safely
+        progress_queue = asyncio.Queue()
+        loop = asyncio.get_event_loop()
+
+        def on_progress(event_type: str, data: dict):
+            """Thread-safe: called from thread pool, puts into async queue."""
+            try:
+                evt = {"type": event_type, "data": data}
+                loop.call_soon_threadsafe(progress_queue.put_nowait, evt)
+            except Exception:
+                pass
+
+        async def event_generator():
+            import concurrent.futures
+            executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+            def run_sync_agent():
+                from core.observer.po_agent import POAgent
+                agent = POAgent()
+                return agent.chat(
+                    message,
+                    sovereign_context="",
+                    max_tool_rounds=8,
+                    progress_callback=on_progress,
+                )
+
+            future = loop.run_in_executor(executor, run_sync_agent)
+
+            # Stream progress events and keepalive
+            while not future.done():
+                while not progress_queue.empty():
+                    try:
+                        evt = progress_queue.get_nowait()
+                        yield f"data: {json.dumps(evt, default=str)}\n\n"
+                    except asyncio.QueueEmpty:
+                        break
+                yield ": keepalive\n\n"
+                await asyncio.sleep(0.3)
+
+            # Drain remaining events
+            await asyncio.sleep(0.2)
+            while not progress_queue.empty():
+                try:
+                    evt = progress_queue.get_nowait()
+                    yield f"data: {json.dumps(evt, default=str)}\n\n"
+                except asyncio.QueueEmpty:
+                    break
+
+            response_text = await asyncio.wait_for(future, timeout=300)
+
+            final_response = {
+                "type": "final",
+                "data": {
+                    "response": response_text,
+                    "session_id": request.get("session_id", ""),
+                    "observer": {"task_domain": "chat", "complexity": "simple"},
+                    "system": {},
+                    "confidence": 1.0,
+                }
+            }
+            yield f"data: {json.dumps(final_response, default=str)}\n\n"
+            executor.shutdown(wait=False)
+
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
+    except Exception as e:
+        logger.error(f"API stream error: {e}")
+        raise HTTPException(status_code=503, detail=f"Stream unavailable: {str(e)}")
+
+
+@app.post("/api/chat/sessions")
+async def api_create_chat_session(request: dict):
+    """Frontend alias: create new chat session."""
+    return {"session_id": f"session-{datetime.now(timezone.utc).timestamp()}", "created": True}
+
+
+@app.get("/api/entropy/timeseries")
+async def api_entropy_timeseries():
+    """Frontend alias: /api/entropy/timeseries."""
+    try:
+        fabric = get_fabric()
+        events = fabric.get_history(event_type="entropy", limit=100)
+        timeseries = []
+        for e in events:
+            payload = e.payload if hasattr(e, 'payload') else {}
+            timeseries.append({
+                "timestamp": e.timestamp if hasattr(e, 'timestamp') else "",
+                "entropy_before": payload.get("entropy_before", 0),
+                "entropy_after": payload.get("entropy_after", 0),
+                "delta": payload.get("delta", 0),
+            })
+        return {"timeseries": timeseries}
+    except Exception:
+        return {"timeseries": []}
+
+
+@app.get("/api/repair/state")
+async def api_repair_state():
+    """Frontend alias: /api/repair/state."""
+    try:
+        healing = get_self_healing_engine()
+        stats = healing.get_stats()
+        return {
+            "active": stats.get("active_repairs", []),
+            "completed": stats.get("completed_repairs", []),
+            "failed": stats.get("failed_repairs", []),
+            "saturation": stats.get("saturation", 0.0),
+        }
+    except Exception:
+        return {"active": [], "completed": [], "failed": [], "saturation": 0.0}
+
+
+@app.get("/api/temporal/timeline")
+async def api_temporal_timeline():
+    """Frontend alias: /api/temporal/timeline."""
+    try:
+        fabric = get_fabric()
+        events = fabric.get_history(limit=200)
+        frames = []
+        for i, e in enumerate(events):
+            frames.append({
+                "frameId": f"frame_{i}",
+                "timestamp": e.timestamp if hasattr(e, 'timestamp') else i * 1000,
+                "topologySnapshot": {"nodes": [], "edges": []},
+                "entropySnapshot": {"local": 0, "cluster": 0, "global": 0},
+                "repairSnapshot": {"active": [], "completed": []},
+                "events": [{"type": e.event_type if hasattr(e, 'event_type') else "unknown"}],
+                "observerStates": {},
+            })
+        return {"frames": frames}
+    except Exception:
+        return {"frames": []}
+
+
+@app.get("/api/sessions")
+async def api_sessions():
+    """Frontend alias: /api/sessions."""
+    try:
+        adapter = await get_adapter()
+        sessions = await adapter.get_chat_sessions()
+        return {"sessions": sessions}
+    except Exception:
+        return {"sessions": []}
+
+
+@app.get("/api/observers")
+async def api_observers():
+    """Frontend alias: /api/observers → /observers."""
+    try:
+        adapter = await get_adapter()
+        obs_status = await adapter.get_observer_status()
+        return {"observers": obs_status}
+    except Exception:
+        return {"observers": []}
+
+
+@app.get("/api/events")
+async def api_events(limit: int = Query(50, ge=1, le=1000)):
+    """Frontend alias: /api/events → /events."""
+    try:
+        fabric = get_fabric()
+        events = fabric.get_history(limit=limit)
+        return {"events": [
+            {
+                "event_id": e.event_id if hasattr(e, 'event_id') else str(i),
+                "event_type": e.event_type if hasattr(e, 'event_type') else "unknown",
+                "timestamp": e.timestamp if hasattr(e, 'timestamp') else "",
+                "source": e.source if hasattr(e, 'source') else "system",
+                "priority": e.priority if hasattr(e, 'priority') else 0,
+                "payload": e.payload if hasattr(e, 'payload') else {},
+            }
+            for i, e in enumerate(events)
+        ]}
+    except Exception:
+        return {"events": []}
 
 
 if __name__ == "__main__":

@@ -1,633 +1,310 @@
-#!/usr/bin/env python3
 """
-Progress File → Memory Auto-Sync v2
-====================================
-Watches sub-progress files per agent. Every N updates:
-  1. Syncs agent sub-progress → PROJECT_PROGRESS_CLEAN.md (agent's section)
-  2. Syncs agent sub-progress → agent's local memory file
-  3. Updates repo memory (/memories/repo/workspace-state.md)
+Workspace Progress Sync Agent
+Syncs agent progress files -> working memory -> repo memory.
+Runs as a daemon or one-shot.
 
-Agent sub-progress files:
-  progress/claude-code-progress.md  → CC section in main + claude-code-memory.md
-  progress/openclaw-progress.md     → OC section in main + .openclaw/MEMORY.md
-  progress/hermes-progress.md       → HR section in main + .hermes/MEMORY.md
-
-Usage:
-  python tools/progress-sync.py            # Check counts, sync if threshold met
-  python tools/progress-sync.py --force    # Force sync regardless of count
-  python tools/progress-sync.py --reset    # Reset all counters
-  python tools/progress-sync.py --status   # Show current counts and last sync
-  python tools/progress-sync.py --agent CC # Sync specific agent only
+Rules:
+- Every 7 progress file updates -> sync to working memory
+- Every 20 entries in a progress file -> LLM summarization trigger
+- Every 5 team-chat messages -> sync to agent memory
 """
 
-import argparse
-import json
 import os
-import re
 import sys
-from datetime import datetime, timezone
+import time
+import json
+import hashlib
 from pathlib import Path
+from datetime import datetime, timedelta
 
-# Fix Windows console encoding for emoji output
-if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+# Configuration
+WORKSPACE_ROOT = Path(__file__).parent.parent
+PROGRESS_DIR = WORKSPACE_ROOT / "progress"
+MEMORY_DIR = WORKSPACE_ROOT / "memory"
+TEAM_CHAT = WORKSPACE_ROOT / "shared-conversations" / "team-chat.md"
+REPO_MEMORY = WORKSPACE_ROOT / "progress" / "workspace-state.md"
 
-# ── Configuration ────────────────────────────────────────────────────────────
+SYNC_INTERVAL_SECONDS = 120  # 2 minutes — more frequent context updates
+PROGRESS_SYNC_THRESHOLD = 7  # updates before memory sync
+CHAT_SYNC_THRESHOLD = 5  # messages before agent memory sync
+SUMMARIZE_THRESHOLD = 20  # entries before LLM summarization
 
-LAB_ROOT = Path(__file__).resolve().parent.parent
-COUNTER_FILE = LAB_ROOT / ".progress-sync-counters.json"
-REPO_MEMORY_FILE = Path("/memories/repo/workspace-state.md")
-UPDATE_LOG_FILE = LAB_ROOT.parent / "larger-db" / "update_log.jsonl"
-COMPACT_SUMMARY_FILE = LAB_ROOT.parent / "larger-db" / "compact_summary.json"
-
-# Max log entries before archiving to USB
-MAX_LOG_ENTRIES = 100
-
-# Agent registry: tag → {progress_file, memory_file, section_header}
+# Agent file mapping
 AGENTS = {
-    "CC": {
-        "tag": "CC",
-        "name": "Claude Code",
-        "emoji": "🔵",
-        "progress_file": "progress/claude-code-progress.md",
-        "memory_file": "progress/claude-code-memory.md",
-        "section_header": "🔵 [CC] Claude Code",
-    },
-    "OC": {
-        "tag": "OC",
-        "name": "OpenClaw",
-        "emoji": "🟣",
-        "progress_file": "progress/openclaw-progress.md",
-        "memory_file": "progress/openclaw-memory.md",
-        "section_header": "🟣 [OC] OpenClaw",
-    },
-    "OC2": {
-        "tag": "OC2",
-        "name": "OpenClaw 2",
-        "emoji": "🟠",
-        "progress_file": "progress/openclaw-2-progress.md",
-        "memory_file": "progress/openclaw-2-memory.md",
-        "section_header": "🟠 [OC2] OpenClaw 2",
-    },
-    "PM": {
-        "tag": "PM",
-        "name": "Polymorph",
-        "emoji": "🔴",
-        "progress_file": "progress/polymorph-progress.md",
-        "memory_file": "progress/polymorph-memory.md",
-        "section_header": "🔴 [PM] Polymorph",
-    },
-    "AS": {
-        "tag": "AS",
-        "name": "Assistant Manager",
-        "emoji": "🟡",
-        "progress_file": "progress/assistant-progress.md",
-        "memory_file": "progress/assistant-memory.md",
-        "section_header": "🟡 [AS] Assistant Manager",
-    },
-    "RL": {
-        "tag": "RL",
-        "name": "OWL",
-        "emoji": "🦉",
-        "progress_file": "progress/rl-progress.md",
-        "memory_file": "progress/rl-memory.md",
-        "section_header": "🦉 [RL] OWL",
-    },
+    "CC": {"progress": "claude-code-progress.md", "memory": "claude-code-memory.md"},
+    "OC2": {"progress": "openclaw-2-progress.md", "memory": "openclaw-2-memory.md"},
+    "AS": {"progress": "assistant-progress.md", "memory": "assistant-memory.md"},
+    "PM": {"progress": "polymorph-progress.md", "memory": "polymorph-memory.md"},
+    "PM2": {"progress": "PM2-progress.md", "memory": "PM2-memory.md"},
+    "RL": {"progress": "rl-progress.md", "memory": "rl-memory.md"},
+    "Copilot": {"progress": "copilot-progress.md", "memory": "copilot-memory.md"},
+    "CC2": {"progress": "copilot-progress.md", "memory": "copilot-memory.md"},
 }
 
-# Legacy progress files (still tracked but not agent-specific)
-LEGACY_FILES = [
-    "docs/PROJECT_PROGRESS.md",
-    "docs/research-agents-progress.md",
-    "docs/p90-conversion-progress.md",
-    "docs/xhaak-kulu-bridge-progress.md",
-]
-
-SYNC_THRESHOLD = 7  # Sync every 7 updates per agent
-
-# ── Counter Management ───────────────────────────────────────────────────────
+# Shared workspace notes files (synced to all agents)
+SHARED_NOTES = {
+    "build_notes": "BUILD-NOTES.md",
+    "team_notes": "TEAM-NOTES.md",
+    "phase_status": "phase-11-status.md",
+}
 
 
-def load_counters() -> dict:
-    """Load update counters from disk."""
-    if COUNTER_FILE.exists():
+class ProgressSyncAgent:
+    """Syncs agent progress files to memory and team chat."""
+
+    def __init__(self):
+        self.update_counts = {agent: 0 for agent in AGENTS}
+        self.last_chat_lines = 0
+        self.last_progress_hashes = {agent: "" for agent in AGENTS}
+        self._load_state()
+
+    def _load_state(self):
+        """Load sync state from disk."""
+        state_file = WORKSPACE_ROOT / "tools" / ".sync-state.json"
+        if state_file.exists():
+            try:
+                state = json.loads(state_file.read_text())
+                self.update_counts = state.get("update_counts", self.update_counts)
+                self.last_chat_lines = state.get("last_chat_lines", 0)
+                self.last_progress_hashes = state.get("last_progress_hashes", self.last_progress_hashes)
+            except Exception:
+                pass
+
+    def _save_state(self):
+        """Persist sync state to disk."""
+        state_file = WORKSPACE_ROOT / "tools" / ".sync-state.json"
+        state = {
+            "update_counts": self.update_counts,
+            "last_chat_lines": self.last_chat_lines,
+            "last_progress_hashes": self.last_progress_hashes,
+            "last_sync": datetime.now().isoformat(),
+        }
+        state_file.write_text(json.dumps(state, indent=2))
+
+    def _file_hash(self, path: Path) -> str:
+        """Get MD5 hash of file content."""
+        if not path.exists():
+            return ""
+        content = path.read_text(encoding="utf-8", errors="replace")
+        return hashlib.md5(content.encode()).hexdigest()
+
+    def _count_entries(self, path: Path) -> int:
+        """Count update entries in a progress file (lines starting with ## or ###)."""
+        if not path.exists():
+            return 0
+        content = path.read_text(encoding="utf-8", errors="replace")
+        return sum(1 for line in content.splitlines() if line.strip().startswith("##"))
+
+    def check_progress_changes(self):
+        """Check all agent progress files for changes."""
+        changes = {}
+        for agent, files in AGENTS.items():
+            prog_path = PROGRESS_DIR / files["progress"]
+            current_hash = self._file_hash(prog_path)
+            if current_hash != self.last_progress_hashes.get(agent, ""):
+                entries = self._count_entries(prog_path)
+                changes[agent] = {
+                    "path": str(prog_path),
+                    "entries": entries,
+                    "changed": prog_path.exists(),
+                }
+                self.last_progress_hashes[agent] = current_hash
+                if prog_path.exists():
+                    self.update_counts[agent] = self.update_counts.get(agent, 0) + 1
+        return changes
+
+    def sync_agent_to_memory(self, agent: str):
+        """Sync agent progress highlights to their working memory."""
+        files = AGENTS.get(agent)
+        if not files:
+            return
+
+        prog_path = PROGRESS_DIR / files["progress"]
+        mem_path = PROGRESS_DIR / files["memory"]
+
+        if not prog_path.exists():
+            return
+
+        # Read last few entries from progress
+        content = prog_path.read_text(encoding="utf-8", errors="replace")
+        lines = content.splitlines()
+
+        # Find the last status update section
+        last_status_lines = []
+        in_status = False
+        for line in reversed(lines):
+            if line.strip().startswith("## Status:"):
+                in_status = True
+                last_status_lines.insert(0, line)
+                break
+            if in_status:
+                last_status_lines.insert(0, line)
+
+        if not last_status_lines:
+            return
+
+        # Append to memory file
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+        sync_entry = f"\n---\n## Sync: {timestamp}\n"
+        sync_entry += "\n".join(last_status_lines[-10:])  # Last 10 lines of status
+
+        existing = ""
+        if mem_path.exists():
+            existing = mem_path.read_text(encoding="utf-8", errors="replace")
+
+        # Avoid duplicate syncs
+        if sync_entry.strip() not in existing:
+            mem_path.write_text(existing + sync_entry, encoding="utf-8")
+            print(f"[SYNC] {agent}: progress -> memory synced")
+
+    def check_team_chat(self):
+        """Check team chat for new messages."""
+        if not TEAM_CHAT.exists():
+            return 0
+
+        content = TEAM_CHAT.read_text(encoding="utf-8", errors="replace")
+        current_lines = len(content.splitlines())
+
+        new_lines = current_lines - self.last_chat_lines
+        self.last_chat_lines = current_lines
+        return new_lines
+
+    def check_stale_agents(self, threshold_hours: int = 6):
+        """Find agents that haven't updated progress recently."""
+        stale = []
+        now = datetime.now()
+        for agent, files in AGENTS.items():
+            prog_path = PROGRESS_DIR / files["progress"]
+            if prog_path.exists():
+                mtime = datetime.fromtimestamp(prog_path.stat().st_mtime)
+                age_hours = (now - mtime).total_seconds() / 3600
+                if age_hours > threshold_hours:
+                    stale.append((agent, round(age_hours, 1)))
+            else:
+                stale.append((agent, -1))  # Missing file
+        return stale
+
+    def sync_shared_notes(self):
+        """Sync shared notes references to all agent memory files.
+        
+        Instead of duplicating full content, inject a compact reference.
+        Replaces any existing injection from the same note to prevent bloat.
+        """
+        for note_name, note_file in SHARED_NOTES.items():
+            note_path = PROGRESS_DIR / note_file
+            if not note_path.exists():
+                continue
+            note_hash = self._file_hash(note_path)
+            last_hash = self.last_progress_hashes.get(f"note_{note_name}", "")
+            if note_hash == last_hash:
+                continue
+            # Notes changed — update reference in all agent memory files
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+            marker = f"## [{note_name.upper()}] Updated:"
+            ref_line = f"- {note_name}: `progress/{note_file}` (updated {timestamp})\n"
+            for agent, files in AGENTS.items():
+                mem_path = PROGRESS_DIR / files["memory"]
+                if not mem_path.exists():
+                    continue
+                existing = mem_path.read_text(encoding="utf-8", errors="replace")
+                # Remove all previous injections of this note
+                lines = existing.splitlines(keepends=True)
+                new_lines = []
+                skip = False
+                for line in lines:
+                    if line.strip().startswith(marker):
+                        skip = True
+                        continue
+                    if skip and line.strip().startswith("- "):
+                        skip = False
+                        continue
+                    if not skip:
+                        new_lines.append(line)
+                existing = "".join(new_lines)
+                # Add compact reference at end
+                existing = existing.rstrip() + "\n" + ref_line
+                mem_path.write_text(existing, encoding="utf-8")
+            self.last_progress_hashes[f"note_{note_name}"] = note_hash
+            print(f"  [NOTES] {note_name} -> all agent memory updated (compact ref)")
+
+    def run_sync_cycle(self):
+        """Run one sync cycle."""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] === SYNC CYCLE ===")
+
+        # 1. Check progress changes
+        changes = self.check_progress_changes()
+        if changes:
+            for agent, info in changes.items():
+                print(f"  [CHANGE] {agent}: {info['entries']} entries")
+                if self.update_counts.get(agent, 0) >= PROGRESS_SYNC_THRESHOLD:
+                    self.sync_agent_to_memory(agent)
+                    self.update_counts[agent] = 0
+
+        # 2. Check team chat
+        new_chat_lines = self.check_team_chat()
+        if new_chat_lines > 0:
+            print(f"  [CHAT] {new_chat_lines} new lines")
+
+        # 3. Sync shared notes to all agent memory
+        self.sync_shared_notes()
+
+        # 4. Check stale agents
+        stale = self.check_stale_agents()
+        if stale:
+            for agent, age in stale:
+                age_str = f"{age}h ago" if age >= 0 else "MISSING"
+                print(f"  [STALE] {agent}: {age_str}")
+
+        # 5. Save state
+        self._save_state()
+
+        return changes, stale
+
+    def run_daemon(self):
+        """Run as a continuous daemon."""
+        print("=" * 50)
+        print("  WORKSPACE SYNC DAEMON")
+        print("=" * 50)
+        print(f"  Interval: {SYNC_INTERVAL_SECONDS}s")
+        print(f"  Progress dir: {PROGRESS_DIR}")
+        print(f"  Team chat: {TEAM_CHAT}")
+        print(f"  Started: {datetime.now().isoformat()}")
+        print("=" * 50)
+
         try:
-            with open(COUNTER_FILE) as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError):
-            pass
-    return {
-        "agents": {},
-        "files": {},
-        "total_updates": 0,
-        "last_sync_count": 0,
-        "last_sync_time": None,
-    }
-
-
-def save_counters(counters: dict):
-    """Persist update counters to disk."""
-    with open(COUNTER_FILE, "w") as f:
-        json.dump(counters, f, indent=2)
-
-
-def get_file_fingerprint(filepath: Path) -> str:
-    """Get a fingerprint (mtime + size) for change detection."""
-    if not filepath.exists():
-        return ""
-    stat = filepath.stat()
-    return f"{stat.st_mtime}:{stat.st_size}"
-
-
-def scan_agent_updates(counters: dict, agent_tag: str) -> bool:
-    """Scan an agent's sub-progress file for changes. Returns True if changed."""
-    agent = AGENTS[agent_tag]
-    fpath = LAB_ROOT / agent["progress_file"]
-    current_fp = get_file_fingerprint(fpath)
-
-    agents_state = counters.setdefault("agents", {})
-    agent_state = agents_state.get(agent_tag, {})
-    previous_fp = agent_state.get("fingerprint", "")
-
-    changed = (current_fp != previous_fp) and (current_fp != "")
-
-    if changed:
-        agent_state["fingerprint"] = current_fp
-        agent_state["last_changed"] = datetime.now(timezone.utc).isoformat()
-        agent_state["update_count"] = agent_state.get("update_count", 0) + 1
-        agents_state[agent_tag] = agent_state
-
-    return changed
-
-
-def scan_legacy_updates(counters: dict) -> dict:
-    """Scan legacy progress files for changes."""
-    changes = {}
-    files_state = counters.get("files", {})
-
-    for fname in LEGACY_FILES:
-        fpath = LAB_ROOT / fname
-        current_fp = get_file_fingerprint(fpath)
-        previous_fp = files_state.get(fname, {}).get("fingerprint", "")
-
-        changed = (current_fp != previous_fp) and (current_fp != "")
-        changes[fname] = changed
-
-        if changed:
-            files_state[fname] = {
-                "fingerprint": current_fp,
-                "last_changed": datetime.now(timezone.utc).isoformat(),
-                "update_count": files_state.get(fname, {}).get("update_count", 0) + 1,
-            }
-
-    counters["files"] = files_state
-    return changes
-
-
-def should_sync_agent(counters: dict, agent_tag: str) -> bool:
-    """Check if an agent has hit the sync threshold since last sync."""
-    agents_state = counters.get("agents", {})
-    agent_state = agents_state.get(agent_tag, {})
-    total = agent_state.get("update_count", 0)
-    last_sync = agent_state.get("last_sync_count", 0)
-    return (total - last_sync) >= SYNC_THRESHOLD
-
-
-# ── Sync Operations ──────────────────────────────────────────────────────────
-
-
-def extract_recent_entries(filepath: Path, max_entries: int = 5) -> str:
-    """Extract recent entries from an agent's sub-progress file."""
-    if not filepath.exists():
-        return "*No entries yet*\n"
-
-    with open(filepath, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    entries = []
-    current_entry = []
-    in_entry = False
-
-    for line in content.split("\n"):
-        if line.startswith("#### "):
-            if current_entry:
-                entries.append("\n".join(current_entry))
-            current_entry = [line]
-            in_entry = True
-        elif in_entry and line.strip():
-            current_entry.append(line)
-        elif in_entry and not line.strip():
-            if current_entry:
-                entries.append("\n".join(current_entry))
-            current_entry = []
-            in_entry = False
-
-    if current_entry:
-        entries.append("\n".join(current_entry))
-
-    recent = entries[-max_entries:] if entries else ["*No entries yet*"]
-    return "\n\n".join(recent)
-
-
-def sync_agent_to_main_progress(agent_tag: str):
-    """Sync an agent's sub-progress into their section of PROJECT_PROGRESS_CLEAN.md."""
-    agent = AGENTS[agent_tag]
-    progress_path = LAB_ROOT / agent["progress_file"]
-    main_path = LAB_ROOT / "docs" / "PROJECT_PROGRESS_CLEAN.md"
-
-    if not progress_path.exists():
-        return
-
-    recent = extract_recent_entries(progress_path)
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-
-    section_lines = [
-        f"## {agent['section_header']} — Last Sync: {now}",
-        "",
-        f"*Auto-synced from `{agent['progress_file']}`*",
-        "",
-        recent,
-        "",
-        "---",
-        "",
-    ]
-    section_text = "\n".join(section_lines)
-
-    if main_path.exists():
-        with open(main_path, "r", encoding="utf-8") as f:
-            main_content = f.read()
-    else:
-        main_content = "# Project Progress & Context\n"
-
-    section_pattern = rf"## {re.escape(agent['section_header'])}.*?---\n"
-    if re.search(section_pattern, main_content, re.DOTALL):
-        main_content = re.sub(section_pattern, lambda m: section_text, main_content, flags=re.DOTALL)
-    else:
-        insert_marker = "---\n\n## "
-        if insert_marker in main_content:
-            parts = main_content.split(insert_marker, 1)
-            main_content = parts[0] + "---\n\n" + section_text + "## " + parts[1]
-        else:
-            main_content += "\n" + section_text
-
-    with open(main_path, "w", encoding="utf-8") as f:
-        f.write(main_content)
-
-    print(f"  ✅ {agent['name']} → PROJECT_PROGRESS_CLEAN.md")
-
-
-def sync_agent_memory(agent_tag: str):
-    """Sync an agent's sub-progress into their local working memory file."""
-    agent = AGENTS[agent_tag]
-    progress_path = LAB_ROOT / agent["progress_file"]
-    memory_path = LAB_ROOT / agent["memory_file"]
-
-    if not progress_path.exists():
-        return
-
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-
-    with open(progress_path, "r", encoding="utf-8") as f:
-        progress_content = f.read()
-
-    status_match = re.search(r"## Status: (.+)", progress_content)
-    status = status_match.group(1).strip() if status_match else "Unknown"
-
-    phase_match = re.search(r"### Current Phase\n(.+)", progress_content)
-    phase = phase_match.group(1).strip() if phase_match else "None"
-
-    tasks = re.findall(r"- \[ \] (.+)", progress_content)
-    tasks_text = "\n".join(f"- {t}" for t in tasks[:10]) if tasks else "- None"
-
-    entries = extract_recent_entries(progress_path, max_entries=3)
-
-    memory_content = f"""# {agent['emoji']} {agent['name']} — Working Memory
-
-> **Auto-synced** from `{agent['progress_file']}` on every {SYNC_THRESHOLD}th update.
-> This is working memory — compact, current, task-focused.
-> Max ~2,000 chars. Prune old entries when full.
-
----
-
-## Current Context ({now})
-
-### Status
-{status}
-
-### Active Phase
-{phase}
-
-### Pending Tasks
-{tasks_text}
-
-### Recent Activity
-{entries}
-
----
-
-## Sync Metadata
-- **Last Sync:** {now}
-- **Progress File:** `{agent['progress_file']}`
-- **Working Memory:** `{agent['memory_file']}`
-- **Sync Threshold:** {SYNC_THRESHOLD} updates
-"""
-
-    memory_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(memory_path, "w", encoding="utf-8") as f:
-        f.write(memory_content)
-
-    print(f"  ✅ {agent['name']} working memory → {agent['memory_file']}")
-
-
-def append_to_persistent_memory(agent_tag: str):
-    """Append a summary line to the agent's persistent MEMORY.md (without overwriting)."""
-    agent = AGENTS[agent_tag]
-    progress_path = LAB_ROOT / agent["progress_file"]
-
-    if not progress_path.exists():
-        return
-
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-
-    with open(progress_path, "r", encoding="utf-8") as f:
-        progress_content = f.read()
-
-    phase_match = re.search(r"### Current Phase\n(.+)", progress_content)
-    phase = phase_match.group(1).strip() if phase_match else "None"
-
-    status_match = re.search(r"## Status: (.+)", progress_content)
-    status = status_match.group(1).strip() if status_match else "Unknown"
-
-    # Persistent memory file paths (hand-managed, contains credentials etc.)
-    persistent_map = {
-        "OC": ".openclaw/MEMORY.md",
-        "OC2": ".openclaw-2/MEMORY.md",
-        "CC": "",  # Claude Code doesn't have a separate persistent file
-        "AS": "progress/assistant-memory.md",
-        "PM": "progress/polymorph-memory.md",
-    }
-
-    persistent_rel = persistent_map.get(agent_tag, "")
-    if not persistent_rel:
-        return
-    persistent_path = LAB_ROOT / persistent_rel
-    if not persistent_path.exists():
-        return
-
-    # Read existing persistent memory
-    with open(persistent_path, "r", encoding="utf-8") as f:
-        existing = f.read()
-
-    # Check if there's a sync summary section
-    sync_marker = f"## Progress Sync Summary ({agent['tag']})"
-    summary_line = (
-        f"\n## Progress Sync Summary ({agent['tag']})\n"
-        f"> **Last Sync:** {now}\n"
-        f"> **Status:** {status}\n"
-        f"> **Active Phase:** {phase}\n"
-        f"> **Working Memory:** `{agent['memory_file']}`\n"
-    )
-
-    if sync_marker in existing:
-        # Replace existing summary section
-        pattern = rf"## Progress Sync Summary \({agent['tag']}\).*?(?=\n## |\Z)"
-        existing = re.sub(pattern, summary_line.strip(), existing, flags=re.DOTALL)
-    else:
-        # Append at end
-        existing = existing.rstrip() + "\n" + summary_line
-
-    with open(persistent_path, "w", encoding="utf-8") as f:
-        f.write(existing)
-
-    print(f"  ✅ {agent['name']} persistent memory ← sync summary appended")
-
-
-def sync_repo_memory(counters: dict):
-    """Sync overall state to repo memory."""
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-
-    sections = [
-        f"# Workspace State — Repo Memory\n",
-        f"> **Last Synced:** {now}",
-        f"> **Source:** Auto-sync from agent sub-progress files",
-        f"> **Sync Threshold:** {SYNC_THRESHOLD} updates per agent",
-        "",
-        "---",
-        "",
-    ]
-
-    for tag, agent in AGENTS.items():
-        progress_path = LAB_ROOT / agent["progress_file"]
-        if progress_path.exists():
-            sections.append(f"## {agent['section_header']}")
-            sections.append("")
-            recent = extract_recent_entries(progress_path, max_entries=3)
-            sections.append(recent)
-            sections.append("")
-            sections.append("---")
-            sections.append("")
-
-    total = sum(
-        counters.get("agents", {}).get(tag, {}).get("update_count", 0)
-        for tag in AGENTS
-    )
-    counters["last_sync_count"] = total
-    counters["last_sync_time"] = datetime.now(timezone.utc).isoformat()
-    save_counters(counters)
-
-    REPO_MEMORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(REPO_MEMORY_FILE, "w", encoding="utf-8") as f:
-        f.write("\n".join(sections))
-
-    print(f"  ✅ Repo memory → /memories/repo/workspace-state.md")
-
-
-def sync_agent(counters: dict, agent_tag: str, force: bool = False):
-    """Full sync for one agent: main progress + local memory + repo memory."""
-    agent = AGENTS[agent_tag]
-    print(f"\n🔄 Syncing {agent['name']} ({agent_tag})...")
-
-    if force or should_sync_agent(counters, agent_tag):
-        sync_agent_to_main_progress(agent_tag)
-        sync_agent_memory(agent_tag)
-        append_to_persistent_memory(agent_tag)
-
-        agents_state = counters.setdefault("agents", {})
-        agent_state = agents_state.get(agent_tag, {})
-        agent_state["last_sync_count"] = agent_state.get("update_count", 0)
-        agent_state["last_sync_time"] = datetime.now(timezone.utc).isoformat()
-        agents_state[agent_tag] = agent_state
-        save_counters(counters)
-
-        return True
-    else:
-        agents_state = counters.get("agents", {})
-        agent_state = agents_state.get(agent_tag, {})
-        total = agent_state.get("update_count", 0)
-        last_sync = agent_state.get("last_sync_count", 0)
-        remaining = SYNC_THRESHOLD - (total - last_sync)
-        print(f"  ⏳ {agent['name']}: {remaining} more update(s) before sync.")
-        return False
-
-
-# ── CLI ──────────────────────────────────────────────────────────────────────
+            while True:
+                self.run_sync_cycle()
+                time.sleep(SYNC_INTERVAL_SECONDS)
+        except KeyboardInterrupt:
+            self._save_state()
+            print("\n[SYNC] Daemon stopped. State saved.")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Progress File → Memory Auto-Sync v2")
-    parser.add_argument("--force", action="store_true", help="Force sync regardless of count")
-    parser.add_argument("--reset", action="store_true", help="Reset all counters")
-    parser.add_argument("--status", action="store_true", help="Show current counts and last sync")
-    parser.add_argument("--agent", choices=["CC", "OC", "OC2", "PM", "AS", "RL"], help="Sync specific agent only")
+    """Entry point."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Workspace Progress Sync")
+    parser.add_argument("--daemon", action="store_true", help="Run as daemon")
+    parser.add_argument("--once", action="store_true", help="Run one sync cycle")
+    parser.add_argument("--interval", type=int, default=SYNC_INTERVAL_SECONDS,
+                        help=f"Sync interval in seconds (default: {SYNC_INTERVAL_SECONDS})")
     args = parser.parse_args()
 
-    counters = load_counters()
+    agent = ProgressSyncAgent()
 
-    if args.reset:
-        counters = {
-            "agents": {},
-            "files": {},
-            "total_updates": 0,
-            "last_sync_count": 0,
-            "last_sync_time": None,
-        }
-        save_counters(counters)
-        print("🔄 Counters reset.")
-        return
-
-    if args.status:
-        print(f"📊 Progress Sync Status (v2)")
-        print(f"   Sync threshold: {SYNC_THRESHOLD} updates per agent")
-        print(f"   Last global sync: {counters.get('last_sync_time', 'never')}")
-        print()
-
-        for tag, agent in AGENTS.items():
-            agents_state = counters.get("agents", {})
-            agent_state = agents_state.get(tag, {})
-            count = agent_state.get("update_count", 0)
-            last_sync = agent_state.get("last_sync_count", 0)
-            last_changed = agent_state.get("last_changed", "never")
-            progress_exists = (LAB_ROOT / agent["progress_file"]).exists()
-            memory_exists = (LAB_ROOT / agent["memory_file"]).exists()
-            remaining = max(0, SYNC_THRESHOLD - (count - last_sync))
-
-            print(f"   {agent['emoji']} {agent['name']} ({tag})")
-            print(f"      Updates: {count} | Last sync: {last_sync} | Next in: {remaining}")
-            print(f"      Progress: {'✅' if progress_exists else '❌'} | Memory: {'✅' if memory_exists else '❌'}")
-            print(f"      Last changed: {last_changed}")
-            print()
-
-        print(f"   Legacy files:")
-        for fname in LEGACY_FILES:
-            fstate = counters.get("files", {}).get(fname, {})
-            count = fstate.get("update_count", 0)
-            exists = (LAB_ROOT / fname).exists()
-            print(f"      {fname}: {count} updates [{'exists' if exists else 'MISSING'}]")
-        return
-
-    # Determine which agents to sync
-    if args.agent:
-        agent_tags = [args.agent]
+    if args.once:
+        changes, stale = agent.run_sync_cycle()
+        if not changes and not stale:
+            print("  No changes detected.")
+    elif args.daemon:
+        agent.run_daemon()
     else:
-        agent_tags = list(AGENTS.keys())
-
-    # Scan for updates first
-    print("🔍 Scanning for updates...")
-    for tag in agent_tags:
-        changed = scan_agent_updates(counters, tag)
-        agent = AGENTS[tag]
-        if changed:
-            print(f"  📝 {agent['name']}: change detected")
-        else:
-            agents_state = counters.get("agents", {})
-            count = agents_state.get(tag, {}).get("update_count", 0)
-            print(f"  ➖ {agent['name']}: no changes (total: {count})")
-
-    legacy_changes = scan_legacy_updates(counters)
-    for fname, changed in legacy_changes.items():
-        if changed:
-            print(f"  📝 {fname}: change detected")
-
-    save_counters(counters)
-
-    # Run syncs
-    any_synced = False
-    for tag in agent_tags:
-        if sync_agent(counters, tag, force=args.force):
-            any_synced = True
-
-    if any_synced or args.force:
-        print("\n🔄 Syncing repo memory...")
-        sync_repo_memory(counters)
-
-    # ── Chat → Agent Memory Sync ──────────────────────────────────────────
-    # Every progress-sync run, also check for new team-chat messages
-    # and distribute context updates to agent memory files.
-    print("\n🔄 Checking team-chat for new messages...")
-    try:
-        from tools.chat_sync import run_sync as run_chat_sync
-        run_chat_sync(force=args.force)
-    except ImportError:
-        # Chat sync is optional — skip if not available
-        pass
-    except Exception as e:
-        print(f"  ⚠️ Chat sync error: {e}")
-
-    print("\n✅ Sync complete.")
-
-    # Append to update log (preserves full history)
-    append_update_log(counters, agent_tags)
-
-
-def append_update_log(counters: dict, synced_tags: list):
-    """Append a log entry to the update log (append-only, never overwrites)."""
-    UPDATE_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-    now = datetime.now(timezone.utc).isoformat()
-
-    # Build compact log entry
-    entry = {
-        "timestamp": now,
-        "synced_agents": synced_tags,
-        "agent_updates": {
-            tag: counters.get("agents", {}).get(tag, {}).get("update_count", 0)
-            for tag in synced_tags
-        },
-        "total_updates": counters.get("last_sync_count", 0),
-        "phase": get_current_phase(),
-    }
-
-    # Append to JSONL file
-    with open(UPDATE_LOG_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(entry) + "\n")
-
-    # Check if we should warn about log size
-    if UPDATE_LOG_FILE.exists():
-        line_count = sum(1 for _ in open(UPDATE_LOG_FILE, "r", encoding="utf-8"))
-        if line_count >= MAX_LOG_ENTRIES:
-            print(f"  ⚠ Update log has {line_count} entries. Consider archiving to USB.")
-            print(f"  📁 Log file: {UPDATE_LOG_FILE}")
-
-    # Update compact summary (small file, always current)
-    summary = {
-        "last_sync": now,
-        "total_agents": len(synced_tags),
-        "agent_updates": entry["agent_updates"],
-        "phase": entry["phase"],
-        "log_entries": line_count if UPDATE_LOG_FILE.exists() else 0,
-    }
-    with open(COMPACT_SUMMARY_FILE, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
-
-
-def get_current_phase() -> str:
-    """Get current phase from phase state file."""
-    phase_file = LAB_ROOT / ".phase-state.json"
-    if phase_file.exists():
-        with open(phase_file) as f:
-            return json.load(f).get("current_phase", "UNKNOWN")
-    return "UNKNOWN"
+        # Default: run once
+        changes, stale = agent.run_sync_cycle()
+        if not changes and not stale:
+            print("  No changes detected.")
 
 
 if __name__ == "__main__":

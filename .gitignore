@@ -26,25 +26,70 @@ gmail-credentials.json
 token.json
 credentials.json
 
-# Large directories
+# Credentials directory - NEVER commit
+credentials/
+*.credentials.json
 memory-bank/
-artifacts/
-progress/
 
-# Python cache
+# Sensitive files
+github_pat_*.txt
+
+# OpenClaw runtime state
+.openclaw-2/.openclaw/agents/
+.openclaw-2/.openclaw/telegram/
+.openclaw-2/.openclaw/flows/
+.openclaw-2/.openclaw/tasks/
+.openclaw-2/.openclaw/logs/
+.openclaw-2/.openclaw/subagents/
+.openclaw/.openclaw/agents/
+.openclaw/.openclaw/telegram/
+.openclaw/.openclaw/flows/
+.openclaw/.openclaw/tasks/
+.openclaw/.openclaw/logs/
+.openclaw/.openclaw/subagents/
+
+# Nested git repos
+Spider_XHS/
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
-.Python
-*.so
+*.egg-info/
 
-# Database files
-*.db
+# Databases
 *.sqlite
-*.sqlite3
+*.sqlite-shm
+*.sqlite-wal
+*.db
 
-# Data files
-data/*.db
-data/*.sqlite
-data/*.sqlite3
+# Node / Frontend
+node_modules/
+.next/
+package-lock.json
+
+# Temp & logs
+temp/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OCE data directories
+oce/backend/data/
+
+# Hyperliquid generated data & reports
+quant-lab/data/*USD_M5.csv
+quant-lab/data/*USD_*.csv
+quant-lab/data/hyperliquid_*.csv
+quant-lab/reports/hyperliquid/
+quant-lab/reports/hyperliquid_nautilus/
+oce/data/
+
+# Build artifacts
+dist/
+build/
+
+argo-ref/
+.worktrees/

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Phase 0 Book 1 repository fingerprint and core component inventory.
 
 This module intentionally uses only the Python standard library. It observes

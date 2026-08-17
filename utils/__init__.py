@@ -1,1 +1,0 @@
-# Quant Lab Utilities

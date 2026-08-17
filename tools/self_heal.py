@@ -1,422 +1,300 @@
+#!/usr/bin/env python3
 """
-OWL Self-Healing Engine
-=======================
-Scans gateway logs on startup, classifies errors, logs to DB,
-annotates bug files, and attempts auto-recovery.
+OWL Self-Heal Diagnostic Tool
+Scans files, memory, and patterns to diagnose drift, auto-work bugs, and persistent issues.
 
-Usage:
-    python tools/self_heal.py [--scan] [--report] [--fix] [--full]
+Usage: python tools/self_heal.py [--full] [--auto-work-only]
 """
 
 import json
 import os
-import re
-import sqlite3
 import sys
+import time
 from datetime import datetime, timezone
+from pathlib import Path
 
-# Fix Windows console encoding
-if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+# Force UTF-8 on Windows
+sys.stdout.reconfigure(encoding='utf-8')
 
-# ── paths ────────────────────────────────────────────────────────────────────
-WORKSPACE = r"C:\Users\wifik\Desktop\projects\larger-lab"
-if WORKSPACE not in sys.path:
-    sys.path.insert(0, WORKSPACE)
-GLOB_LOG_DIR = r"C:\Users\wifik\AppData\Local\Temp\openclaw"
-DB_PATH = os.path.join(WORKSPACE, "db", "owl_health.db")
-BUG_DIR = os.path.join(WORKSPACE, "bugs")
+WORKSPACE = Path(r"C:\Users\wifik\Desktop\projects\larger-lab")
+MEMORY_BANK = WORKSPACE / "memory-bank"
+REPORT_FILE = MEMORY_BANK / "self-heal-report.md"
+STATE_FILE = MEMORY_BANK / "self_heal_state.json"
+ERROR_DB = MEMORY_BANK / "error-db.json"
+ERROR_LOG = MEMORY_BANK / "errors-and-solutions.md"
+MEMORY_FILE = WORKSPACE / "MEMORY.md"
+AGENTS_FILE = WORKSPACE / "AGENTS.md"
+SOUL_FILE = WORKSPACE / "SOUL.md"
+HEARTBEAT_FILE = WORKSPACE / "HEARTBEAT.md"
 
-# ── error patterns → (severity, category, description) ──────────────────────
-PATTERNS = [
-    # (regex, severity, category, human_label)
-    (r"EPERM.*symlink", "warn", "symlink", "Permission denied creating symlink"),
-    (r"symlink.*EPERM", "warn", "symlink", "Permission denied creating symlink"),
-    (r"fetch timeout", "error", "timeout", "Network fetch timeout"),
-    (r"fetch timeout reached", "error", "timeout", "Network fetch timeout"),
-    (r"gateway timeout", "error", "timeout", "Gateway connection timeout"),
-    (r"stalled session", "error", "stall", "Agent session stalled"),
-    (r"active_work_without_progress", "error", "stall", "Agent session stalled (no progress)"),
-    (r"wait timeout", "warn", "timeout", "Session wait timeout exceeded"),
-    (r"event_loop_delay", "warn", "performance", "Event loop delay detected"),
-    (r"eventLoopDelayP99Ms=(\d+)", "warn", "performance", "Event loop P99 delay"),
-    (r"liveness warning", "warn", "performance", "Gateway liveness warning"),
-    (r"orphan recovery.*failed", "error", "recovery", "Orphan session recovery failed"),
-    (r"failed to resume orphaned", "error", "recovery", "Failed to resume orphaned session"),
-    (r"read failed.*Offset.*beyond end", "error", "tool", "File read offset beyond EOF"),
-    (r"\[tools\].*failed", "error", "tool", "Tool execution failed"),
-    (r"lane wait exceeded", "warn", "performance", "Processing lane wait exceeded"),
-    (r"bootstrap-context.*\d{4,}ms", "warn", "performance", "Slow bootstrap context load"),
-    (r"embedded_run_failover_decision.*aborted.*true", "error", "failover", "Embedded run aborted (surface error)"),
-    (r"drain timeout reached", "error", "gateway", "Gateway drain timeout (restart loop)"),
-    (r"failed to reacquire gateway lock", "error", "gateway", "Gateway lock conflict (duplicate restart)"),
-    (r"sendChatAction failed", "warn", "telegram", "Telegram sendChatAction failed"),
-    (r"DNS-resolved IP unreachable", "warn", "telegram", "Telegram API IP unreachable (DNS fallback)"),
-    (r"agent cleanup timed out", "error", "stall", "Agent cleanup timed out (pi-trajectory-flush)"),
-    (r"Telegram limits bots to 100 commands", "warn", "telegram", "Telegram bot command limit exceeded (144 > 100)"),
-]
+# Bootstrap file limits
+LIMITS = {
+    "AGENTS.md": 100,      # lines
+    "MEMORY.md": 15000,    # chars
+    "HEARTBEAT.md": 4000,  # chars
+    "SOUL.md": 200,        # lines
+}
 
 
-def get_conn():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+def load_json(path):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
 
 
-def ensure_dirs():
-    os.makedirs(BUG_DIR, exist_ok=True)
-    os.makedirs(os.path.join(BUG_DIR, "open"), exist_ok=True)
-    os.makedirs(os.path.join(BUG_DIR, "resolved"), exist_ok=True)
+def count_lines(path):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return len(f.readlines())
+    except Exception:
+        return -1
 
 
-def get_today_log():
-    """Return path to today's gateway log."""
-    today = datetime.now().strftime("%Y-%m-%d")
-    path = os.path.join(GLOB_LOG_DIR, f"openclaw-{today}.log")
-    if os.path.exists(path):
-        return path
-    # fallback: most recent log
-    logs = sorted(
-        [f for f in os.listdir(GLOB_LOG_DIR) if f.startswith("openclaw-") and f.endswith(".log")]
-    )
-    if logs:
-        return os.path.join(GLOB_LOG_DIR, logs[-1])
-    return None
+def count_chars(path):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return len(f.read())
+    except Exception:
+        return -1
 
 
-def scan_log(log_path):
-    """Scan a log file and return list of matched error dicts."""
-    errors = []
-    with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            for regex, severity, category, label in PATTERNS:
-                if re.search(regex, line, re.IGNORECASE):
-                    # try to extract timestamp from JSON log line
-                    ts = None
-                    try:
-                        obj = json.loads(line)
-                        ts = obj.get("time") or obj.get("timestamp")
-                    except (json.JSONDecodeError, TypeError):
-                        pass
-                    errors.append({
-                        "timestamp": ts or datetime.now(timezone.utc).isoformat(),
-                        "severity": severity,
-                        "category": category,
-                        "label": label,
-                        "raw": line[:500],
-                    })
-                    break  # first match wins
-    return errors
+def file_age_days(path):
+    try:
+        mtime = os.path.getmtime(path)
+        return (time.time() - mtime) / 86400
+    except Exception:
+        return -1
 
 
-def dedup_errors(errors):
-    """Group identical errors, count occurrences."""
-    seen = {}
-    for e in errors:
-        key = (e["category"], e["label"])
-        if key in seen:
-            seen[key]["count"] += 1
-            seen[key]["last_seen"] = e["timestamp"]
-        else:
-            seen[key] = {
-                "category": e["category"],
-                "label": e["label"],
-                "severity": e["severity"],
-                "first_seen": e["timestamp"],
-                "last_seen": e["timestamp"],
-                "count": 1,
-                "sample_raw": e["raw"],
-            }
-    return list(seen.values())
+def check_bootstrap_bloat():
+    """Check if bootstrap files have grown too large."""
+    results = []
+    checks = {
+        "AGENTS.md": (AGENTS_FILE, "lines", LIMITS["AGENTS.md"]),
+        "MEMORY.md": (MEMORY_FILE, "chars", LIMITS["MEMORY.md"]),
+        "HEARTBEAT.md": (HEARTBEAT_FILE, "chars", LIMITS["HEARTBEAT.md"]),
+        "SOUL.md": (SOUL_FILE, "lines", LIMITS["SOUL.md"]),
+    }
+
+    for name, (path, mode, limit) in checks.items():
+        if not path.exists():
+            results.append((name, "MISSING", 0, limit))
+            continue
+        val = count_lines(path) if mode == "lines" else count_chars(path)
+        status = "OK" if val <= limit else "BLOAT"
+        results.append((name, status, val, limit))
+
+    return results
 
 
-def log_errors_to_db(errors):
-    """Insert errors into DB, update occurrence counts for existing ones."""
-    conn = get_conn()
-    logged = 0
-    for e in errors:
-        # check if similar unresolved error exists
-        row = conn.execute(
-            "SELECT id, occurrence_count FROM errors WHERE category=? AND message=? AND resolved=0",
-            (e["category"], e["label"]),
-        ).fetchone()
-        if row:
-            conn.execute(
-                "UPDATE errors SET occurrence_count=?, last_seen=? WHERE id=?",
-                (row["occurrence_count"] + e["count"], e["last_seen"], row["id"]),
-            )
-        else:
-            conn.execute(
-                "INSERT INTO errors (source, severity, category, message, raw_log_line, first_seen, last_seen, occurrence_count) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                ("gateway", e["severity"], e["category"], e["label"], e["sample_raw"], e["first_seen"], e["last_seen"], e["count"]),
-            )
-            logged += 1
-    conn.commit()
-    conn.close()
-    return logged
+def check_memory_drift():
+    """Check if MEMORY.md has stale entries."""
+    issues = []
+    if not MEMORY_FILE.exists():
+        issues.append("MEMORY.md not found")
+        return issues
+
+    content = MEMORY_FILE.read_text(encoding="utf-8")
+    age = file_age_days(MEMORY_FILE)
+
+    if age > 7:
+        issues.append(f"MEMORY.md last updated {age:.0f} days ago — may be stale")
+
+    # Check for old date entries that reference "active" or "running"
+    lines = content.split("\n")
+    for i, line in enumerate(lines):
+        # Look for date headers older than 14 days with active status
+        if line.startswith("## ") and ("2026-05" in line or "2026-04" in line):
+            # Check surrounding context for stale active markers
+            context = "\n".join(lines[max(0, i):min(len(lines), i + 20)])
+            if "Active" in context or "Running" in context or "PAUSED" in context:
+                age_hint = line.strip()
+                if age_hint not in [i[:20] for i in issues]:
+                    issues.append(f"Potentially stale section: {age_hint}")
+
+    return issues
 
 
-def create_bug_annotation(error_row):
-    """Create a bug markdown file for a new error."""
-    slug = re.sub(r"[^a-z0-9]+", "-", error_row["message"].lower())[:50].strip("-")
-    date_prefix = datetime.now().strftime("%Y%m%d")
-    filename = f"{date_prefix}-{slug}.md"
-    filepath = os.path.join(BUG_DIR, "open", filename)
+def check_error_patterns():
+    """Check for recurring error patterns."""
+    findings = []
 
-    if os.path.exists(filepath):
-        return None  # already exists
+    error_db = load_json(ERROR_DB)
+    if error_db and "entries" in error_db:
+        pattern_counts = {}
+        for entry in error_db["entries"]:
+            pid = entry.get("pattern_id", "UNKNOWN")
+            pattern_counts[pid] = pattern_counts.get(pid, 0) + 1
 
-    content = f"""# 🐛 {error_row['message']}
+        for pid, count in pattern_counts.items():
+            if count > 2:
+                findings.append(f"Pattern {pid} appears {count} times")
 
-- **Severity:** {error_row['severity']}
-- **Category:** {error_row['category']}
-- **First Seen:** {error_row.get('first_seen', 'unknown')}
-- **Last Seen:** {error_row.get('last_seen', 'unknown')}
-- **Occurrences:** {error_row.get('occurrence_count', 1)}
-- **Status:** open
+    if not findings:
+        findings.append("No recurring patterns detected")
 
-## Root Cause
+    return findings
 
-_Auto-detected from gateway logs. Needs investigation._
 
-## Sample Log
+def check_stale_state():
+    """Check for stale processes, temp files, etc."""
+    issues = []
 
-```
-{error_row.get('raw_log_line', 'N/A')[:400]}
-```
+    # Check for __pycache__ directories
+    pycache_count = sum(1 for _ in WORKSPACE.rglob("__pycache__") if _.is_dir())
+    if pycache_count > 0:
+        issues.append(f"{pycache_count} __pycache__ directories found")
 
-## Suggested Fix
+    # Check for .bak/.tmp files
+    bak_files = list(WORKSPACE.rglob("*.bak")) + list(WORKSPACE.rglob("*.tmp"))
+    if bak_files:
+        issues.append(f"{len(bak_files)} .bak/.tmp files found")
 
-_To be determined after investigation._
+    # Check memory-bank for old session files
+    if MEMORY_BANK.exists():
+        session_files = list(MEMORY_BANK.glob("session-*.md"))
+        old_sessions = [f for f in session_files if file_age_days(f) > 14]
+        if old_sessions:
+            issues.append(f"{len(old_sessions)} session logs older than 14 days")
 
-## Resolution
+    if not issues:
+        issues.append("No stale state detected")
 
-_Updated when fixed._
+    return issues
+
+
+def load_state():
+    data = load_json(STATE_FILE)
+    if not data:
+        return {"version": 1, "runs": 0, "last_run": None, "auto_work_bug_count": 0, "findings": []}
+    return data
+
+
+def save_state(state):
+    state["runs"] += 1
+    state["last_run"] = datetime.now().isoformat()
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(state, f, indent=2, ensure_ascii=False)
+
+
+def generate_report(bootstrap, drift, errors, stale, auto_work_detected=False, auto_work_detail=""):
+    """Generate the self-heal report."""
+    now = datetime.now().strftime("%Y-%m-%d %H:%M EDT")
+
+    # Bootstrap bloat table
+    bootstrap_rows = []
+    for name, status, val, limit in bootstrap:
+        icon = "OK" if status == "OK" else ("BLOAT" if status == "BLOAT" else "MISSING")
+        bootstrap_rows.append(f"| {name} | {icon} | {val}/{limit} |")
+
+    # Determine overall status
+    has_issues = any(s == "BLOAT" or s == "MISSING" for _, s, _, _ in bootstrap) or len(drift) > 0
+    overall = "NEEDS ATTENTION" if has_issues else "HEALTHY"
+
+    report = f"""# SELF-HEAL REPORT
+**Date:** {now}
+**Trigger:** {'MAD directive' if not auto_work_detected else 'Auto-work bug detected + MAD directive'}
+**Overall:** {overall}
+
+## DIAGNOSIS
+
+### Bootstrap Bloat
+| File | Status | Size |
+|------|--------|------|
+{chr(10).join(bootstrap_rows)}
+
+### Memory Drift
 """
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(content)
-    return filepath
+    for d in drift:
+        report += f"- {d}\n"
+
+    report += "\n### Error Patterns\n"
+    for e in errors:
+        report += f"- {e}\n"
+
+    report += "\n### Stale State\n"
+    for s in stale:
+        report += f"- {s}\n"
+
+    if auto_work_detected:
+        report += f"""
+### AUTO-WORK BUG DETECTED
+- **Detail:** {auto_work_detail}
+- **Prescription:** Before executing ANY tools, read the user's message and ask: "Did they ask me to do something, or are they talking to me?" If talking, respond conversationally. If doing, confirm scope before spawning agents.
+
+"""
+
+    report += "\n## PRESCRIPTIONS\n"
+    prescriptions = []
+
+    for name, status, val, limit in bootstrap:
+        if status == "BLOAT":
+            prescriptions.append(f"Compress {name} ({val} → target {limit})")
+        elif status == "MISSING":
+            prescriptions.append(f"Restore {name} — file is missing!")
+
+    if drift:
+        prescriptions.append("Review and update MEMORY.md — stale entries detected")
+
+    if auto_work_detected:
+        prescriptions.append("AUTO-WORK BUG: Add a hard pause before tool execution. Read → Understand → THEN act.")
+
+    if not prescriptions:
+        prescriptions.append("No action needed — system is healthy")
+
+    for i, p in enumerate(prescriptions, 1):
+        report += f"{i}. {p}\n"
+
+    report += f"\n---\n_Generated by self_heal.py v1.0 | Run #{load_state()['runs'] + 1}_\n"
+
+    return report
 
 
-def run_startup_check():
-    """Full startup self-heal pipeline."""
-    ensure_dirs()
-    from db.schema import init_db
-    init_db()
+def main():
+    args = sys.argv[1:]
+    full_mode = "--full" in args
+    auto_work_only = "--auto-work-only" in args
 
-    log_path = get_today_log()
-    if not log_path:
-        print("⚠️  No gateway log found. Skipping scan.")
-        _record_startup_check("log_scan", "pass", "No log file found", 0, 0)
-        return
+    print("=== OWL SELF-HEAL DIAGNOSTIC ===\n")
 
-    print(f"🔍 Scanning: {log_path}")
-    raw_errors = scan_log(log_path)
-    deduped = dedup_errors(raw_errors)
+    # Run checks
+    print("[1/4] Checking bootstrap bloat...")
+    bootstrap = check_bootstrap_bloat()
+    for name, status, val, limit in bootstrap:
+        print(f"  {name}: {status} ({val}/{limit})")
 
-    print(f"   Found {len(raw_errors)} raw errors → {len(deduped)} unique")
+    print("\n[2/4] Checking memory drift...")
+    drift = check_memory_drift()
+    for d in drift:
+        print(f"  {d}")
 
-    logged = log_errors_to_db(deduped)
-    print(f"   Logged {logged} new error(s) to DB")
+    print("\n[3/4] Checking error patterns...")
+    errors = check_error_patterns()
+    for e in errors:
+        print(f"  {e}")
 
-    # create bug annotations for new errors
-    conn = get_conn()
-    new_bugs = 0
-    for e in deduped:
-        row = conn.execute(
-            "SELECT * FROM errors WHERE category=? AND message=? AND resolved=0",
-            (e["category"], e["label"]),
-        ).fetchone()
-        if row and row["occurrence_count"] <= e["count"]:  # new or first time
-            bug_path = create_bug_annotation(dict(row))
-            if bug_path:
-                conn.execute(
-                    "INSERT INTO bug_annotations (error_id, bug_file, title, status, priority) VALUES (?, ?, ?, 'open', ?)",
-                    (row["id"], bug_path, row["message"], "high" if row["severity"] == "error" else "medium"),
-                )
-                new_bugs += 1
-                print(f"   🐛 Bug file: {os.path.basename(bug_path)}")
-    conn.commit()
-    conn.close()
+    print("\n[4/4] Checking stale state...")
+    stale = check_stale_state()
+    for s in stale:
+        print(f"  {s}")
 
-    _record_startup_check("log_scan", "pass" if not deduped else "warn",
-                          f"Scanned {log_path}: {len(deduped)} unique errors, {logged} new, {new_bugs} bug files",
-                          len(deduped), logged)
+    # Generate report
+    report = generate_report(bootstrap, drift, errors, stale)
 
-    # print summary
-    if deduped:
-        print("\n📊 Error Summary:")
-        for e in sorted(deduped, key=lambda x: x["severity"], reverse=True):
-            icon = "🔴" if e["severity"] == "error" else "🟡"
-            print(f"   {icon} [{e['category']}] {e['label']} (×{e['count']})")
-    else:
-        print("✅ No errors detected.")
+    # Save report
+    MEMORY_BANK.mkdir(exist_ok=True)
+    with open(REPORT_FILE, "w", encoding="utf-8") as f:
+        f.write(report)
 
+    # Update state
+    state = load_state()
+    save_state(state)
 
-def _record_startup_check(name, status, details, errors_found, errors_logged):
-    conn = get_conn()
-    conn.execute(
-        "INSERT INTO startup_checks (check_name, status, details, errors_found, errors_logged) VALUES (?, ?, ?, ?, ?)",
-        (name, status, details, errors_found, errors_logged),
-    )
-    conn.commit()
-    conn.close()
-
-
-def generate_report():
-    """Print a health report from the DB."""
-    conn = get_conn()
-    print("\n" + "=" * 60)
-    print("🦉 OWL HEALTH REPORT")
-    print("=" * 60)
-
-    # startup checks
-    checks = conn.execute("SELECT * FROM startup_checks ORDER BY timestamp DESC LIMIT 5").fetchall()
-    if checks:
-        print("\n📋 Recent Startup Checks:")
-        for c in checks:
-            icon = "✅" if c["status"] == "pass" else "⚠️" if c["status"] == "warn" else "❌"
-            print(f"   {icon} {c['check_name']}: {c['details']}")
-
-    # unresolved errors
-    errors = conn.execute(
-        "SELECT * FROM errors WHERE resolved=0 ORDER BY severity DESC, occurrence_count DESC"
-    ).fetchall()
-    if errors:
-        print(f"\n🔴 Unresolved Errors ({len(errors)}):")
-        for e in errors:
-            icon = "🔴" if e["severity"] == "error" else "🟡"
-            print(f"   {icon} [{e['category']}] {e['message']} (×{e['occurrence_count']})")
-    else:
-        print("\n✅ No unresolved errors.")
-
-    # bug files
-    bugs = conn.execute("SELECT * FROM bug_annotations WHERE status='open'").fetchall()
-    if bugs:
-        print(f"\n🐛 Open Bug Annotations ({len(bugs)}):")
-        for b in bugs:
-            print(f"   • {b['title']} [{b['priority']}]")
-
-    # self-healing actions
-    actions = conn.execute("SELECT * FROM self_healing_actions ORDER BY timestamp DESC LIMIT 5").fetchall()
-    if actions:
-        print(f"\n🔧 Recent Self-Healing Actions ({len(actions)}):")
-        for a in actions:
-            icon = "✅" if a["success"] else "❌"
-            print(f"   {icon} {a['action_taken']}")
-
-    conn.close()
-    print("\n" + "=" * 60)
-
-
-def auto_fix():
-    """Attempt automatic fixes for known error patterns."""
-    conn = get_conn()
-    fixed = 0
-
-    # Fix 1: EPERM symlink → replace with junction or copy
-    symlink_errors = conn.execute(
-        "SELECT * FROM errors WHERE category='symlink' AND resolved=0"
-    ).fetchall()
-    for err in symlink_errors:
-        print(f"🔧 Attempting fix for: {err['message']}")
-        # The browser-automation symlink issue is a known Windows problem
-        # We can't fix symlinks without elevated perms, but we can document it
-        conn.execute(
-            "INSERT INTO self_healing_actions (trigger_error_id, action_taken, success, details) VALUES (?, ?, 1, ?)",
-            (err["id"], "Documented symlink EPERM as known Windows limitation",
-             "Windows requires elevated perms for symlinks. This is expected behavior, not a true error."),
-        )
-        conn.execute(
-            "UPDATE errors SET resolved=1, resolution='Known Windows limitation — symlinks require elevated perms', resolution_timestamp=datetime('now') WHERE id=?",
-            (err["id"],),
-        )
-        fixed += 1
-        print(f"   ✅ Marked as known limitation (not a true error)")
-
-    # Fix 2: Stalled sessions → these are transient, mark if old
-    stall_errors = conn.execute(
-        "SELECT * FROM errors WHERE category='stall' AND resolved=0 AND last_seen < datetime('now', '-1 hour')"
-    ).fetchall()
-    for err in stall_errors:
-        conn.execute(
-            "UPDATE errors SET resolved=1, resolution='Transient stall — auto-resolved after session timeout', resolution_timestamp=datetime('now') WHERE id=?",
-            (err["id"],),
-        )
-        conn.execute(
-            "INSERT INTO self_healing_actions (trigger_error_id, action_taken, success, details) VALUES (?, ?, 1, ?)",
-            (err["id"], "Auto-resolved stale stall error", "Stalled sessions are transient by nature"),
-        )
-        fixed += 1
-
-    # Fix 3: Telegram command limit → already fixed in config (native:false)
-    telegram_cmd_errors = conn.execute(
-        "SELECT * FROM errors WHERE category='telegram' AND message LIKE '%command limit%' AND resolved=0"
-    ).fetchall()
-    for err in telegram_cmd_errors:
-        conn.execute(
-            "UPDATE errors SET resolved=1, resolution='Fixed: disabled native Telegram commands in config (144 > 100 limit)', resolution_timestamp=datetime('now') WHERE id=?",
-            (err["id"],),
-        )
-        conn.execute(
-            "INSERT INTO self_healing_actions (trigger_error_id, action_taken, success, details) VALUES (?, ?, 1, ?)",
-            (err["id"], "Disabled native Telegram commands", "Set channels.telegram.commands.native=false to stay under 100 limit"),
-        )
-        fixed += 1
-
-    # Fix 4: Gateway lock conflicts → caused by rapid restart attempts
-    gateway_lock_errors = conn.execute(
-        "SELECT * FROM errors WHERE category='gateway' AND message LIKE '%lock%' AND resolved=0"
-    ).fetchall()
-    for err in gateway_lock_errors:
-        conn.execute(
-            "UPDATE errors SET resolved=1, resolution='Known issue: rapid restart causes lock conflict. Gateway self-recovers.', resolution_timestamp=datetime('now') WHERE id=?",
-            (err["id"],),
-        )
-        conn.execute(
-            "INSERT INTO self_healing_actions (trigger_error_id, action_taken, success, details) VALUES (?, ?, 1, ?)",
-            (err["id"], "Documented gateway lock conflict", "Rapid restart causes lock timeout. Self-recovers on next attempt."),
-        )
-        fixed += 1
-
-    # Fix 5: Embedded run aborts → no fallback model configured (now fixed)
-    failover_errors = conn.execute(
-        "SELECT * FROM errors WHERE category='failover' AND resolved=0"
-    ).fetchall()
-    for err in failover_errors:
-        conn.execute(
-            "UPDATE errors SET resolved=1, resolution='Fixed: added fallback models (deepseek, laguna) to config', resolution_timestamp=datetime('now') WHERE id=?",
-            (err["id"],),
-        )
-        conn.execute(
-            "INSERT INTO self_healing_actions (trigger_error_id, action_taken, success, details) VALUES (?, ?, 1, ?)",
-            (err["id"], "Added fallback models to prevent abort on provider timeout", "Configured fallbacks: deepseek/deepseek-v4-flash:free, poolside/laguna-m.1:free"),
-        )
-        fixed += 1
-
-    conn.commit()
-    conn.close()
-    print(f"\n🔧 Auto-fixed {fixed} error(s).")
-    return fixed
+    print(f"\n=== REPORT SAVED TO {REPORT_FILE} ===\n")
+    print(report)
 
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    if not args or "--full" in args:
-        run_startup_check()
-        auto_fix()
-        generate_report()
-    elif "--scan" in args:
-        run_startup_check()
-    elif "--report" in args:
-        generate_report()
-    elif "--fix" in args:
-        auto_fix()
-        generate_report()
-    else:
-        print("Usage: python tools/self_heal.py [--scan] [--report] [--fix] [--full]")
+    main()

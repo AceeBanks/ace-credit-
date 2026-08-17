@@ -1,16 +1,30 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import TopNav from "@/components/layout/TopNav";
+import StatusBar from "@/components/layout/StatusBar";
+import RightPanel from "@/components/layout/RightPanel";
+import LiveDataProvider from "@/components/LiveDataProvider";
 
 export const metadata: Metadata = {
   title: "OCE — Operator Continuity Engine",
-  description: "System observability dashboard for the Operator Continuity Engine",
+  description: "Operational cockpit for the Operator Continuity Engine",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-[#0a0a0f] text-gray-100 antialiased min-h-screen">
-        {children}
+      <body className="h-screen max-h-[100dvh] overflow-hidden antialiased bg-[var(--bg-primary)] text-[var(--text-primary)]">
+        <LiveDataProvider />
+        <div className="flex flex-col h-full">
+          <TopNav />
+          <div className="flex flex-1 overflow-hidden">
+            <main className="flex-1 overflow-y-auto">
+              {children}
+            </main>
+            <RightPanel />
+          </div>
+          <StatusBar />
+        </div>
       </body>
     </html>
   );
