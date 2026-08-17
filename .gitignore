@@ -71,6 +71,11 @@ package-lock.json
 # Temp & logs
 temp/
 *.log
+*.pid
+*.pids
+*.status.json
+*.state.json
+*.counters.json
 
 # IDE
 .vscode/
@@ -93,3 +98,16 @@ build/
 
 argo-ref/
 .worktrees/
+
+# PID & status files
+*.pids
+*.pid
+*.status.json
+*.state.json
+*.counters.json
+.cerebus_*.pids
+.scanner_pids.*
+.start_all.pids
+.po_heartbeat_state.json
+.memory-sync-daemon.status.json
+.git_commit_msg.txt
