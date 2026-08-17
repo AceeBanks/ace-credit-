@@ -6,9 +6,10 @@ This directory is the canonical planning and governance entrypoint for the OCE G
 
 1. **OCE Golden System Architecture Constitution 1.1** — mission, philosophy, authority, invariants, truth rules, cloud doctrine, and amendment process.
 2. **OCE Master Program Atlas 1.0** — complete Block → Chapter → Section map and deep-planning protocol.
-3. **Current Block Charter** — the active block's boundaries, dependencies, questions, artifacts, and gate.
-4. **Current Chapter and Section Dossiers** — ratified step-by-step design.
-5. **Current Block Gate Report and Build Learning Ledger** — evidence, failures, lessons, unresolved matters, and operator decision.
+3. **Block 0 Constitutional Control Plan 1.0** — ratified mission, authority, truth, program-control, and build-intelligence contracts.
+4. **Current Block Charter** — the active block's boundaries, dependencies, questions, artifacts, and gate.
+5. **Current Chapter and Section Dossiers** — ratified step-by-step design.
+6. **Current Block Gate Report and Build Learning Ledger** — evidence, failures, lessons, unresolved matters, and operator decision.
 
 No builder or agent should begin implementation from a section title alone.
 
@@ -16,8 +17,8 @@ No builder or agent should begin implementation from a section title alone.
 
 | Block | Name | Current status |
 |---|---|---|
-| B0 | Constitutional Control | ARTICULATING |
-| B1 | Cloud Ground | MAPPED |
+| B0 | Constitutional Control | GATED_COMPLETE |
+| B1 | Cloud Ground | ARTICULATING |
 | B2 | OCE Reality Seal | MAPPED |
 | B3 | OCE Constitutional Spine | MAPPED |
 | B4 | PO Governed Builder | MAPPED |
@@ -62,9 +63,10 @@ Every build produces both a product artifact and process knowledge. Meaningful a
 
 ## Current Checkpoint
 
-**Checkpoint:** Program Baseline  
+**Checkpoint:** Block 0 — Constitutional Control  
 **Constitution:** 1.1, ratified  
 **Atlas:** 1.0, ratified  
-**Active planning unit:** Block 0 — Constitutional Control  
+**Block 0:** 1.0, ratified and gated complete  
+**Active planning unit:** Block 1 — Cloud Ground  
 **Build authorization:** None  
-**Next artifact:** Block 0 Charter
+**Next artifact:** Block 1 Charter

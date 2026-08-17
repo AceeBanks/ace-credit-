@@ -3,7 +3,7 @@
 
 **Document ID:** OCE-ATLAS-001  
 **Version:** 1.0  
-**Status:** Ratified program map; Block 0 articulation active  
+**Status:** Ratified program map; Block 0 gated complete; Block 1 articulation active  
 **Constitutional dependency:** OCE Constitution 1.1  
 **Owner and final authority:** Operator  
 **Effective date:** 2026-08-17
@@ -229,7 +229,7 @@ Artifacts may contain multiple records, but their identities and relationships r
 
 **Purpose:** Establish the laws, planning language, canonical records, and authority under which all later work proceeds.  
 **Dependency:** None.  
-**Exit gate:** Constitution 1.1 and Atlas 1.0 ratified; canonical location and amendment process established.
+**Exit gate:** Constitution 1.1, Atlas 1.0, and Block 0 Constitutional Control Plan 1.0 ratified; twenty-five sections approved; contradiction and adversarial reviews passed; canonical location and amendment process established. **Gate result: ADVANCE / GATED_COMPLETE.**
 
 | Chapter | Section 1 | Section 2 | Section 3 | Section 4 | Section 5 |
 |---|---|---|---|---|---|
@@ -425,11 +425,11 @@ The sequence governs dependency promotion, not curiosity. Research and note-taki
 
 | Unit | Status | Meaning |
 |---|---|---|
-| Block 0 | ARTICULATING | Baselines ratified; detailed Block 0 dossiers are the active planning work |
-| Block 1 | MAPPED | Cloud scope exists; detailed articulation has not begun |
+| Block 0 | GATED_COMPLETE | Constitutional Control Plan 1.0 ratified; ADVANCE decision recorded |
+| Block 1 | ARTICULATING | Cloud Ground Charter is the active planning work; no purchase or deployment authorized |
 | Blocks 2–10 | MAPPED | Architectural location established; no build authorization |
 
-The next activity is the **Block 0 Charter**, followed by deep articulation and review of all Block 0 chapters and sections. After Block 0 is gated complete, the program advances to the **Block 1 Charter** and **B1.C1.S1 through B1.C1.S5**. No server purchase or deployment is implied until the relevant Block 1 section dossiers and readiness gate are approved.
+The next activity is the **Block 1 Charter**, followed by **B1.C1.S1 through B1.C1.S5**. Block 0 is now a stable downstream dependency contract. No server purchase or deployment is implied until the relevant Block 1 section dossiers and readiness gate are approved.
 
 ---
 
