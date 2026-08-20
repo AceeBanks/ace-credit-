@@ -10,7 +10,7 @@
 **Price observation date:** 2026-08-17  
 **Build authorization:** B1-I1 static infrastructure repository skeleton only  
 **Purchase authorization:** None  
-**Git status:** Ready for the next reviewed planning checkpoint; not yet pushed in this session  
+**Git status:** Published to `main` as the reviewed Block 1 planning checkpoint  
 **Operator ratification basis:** “OK CONTINUE WITH NEXT STEPS” — 2026-08-20  
 **Next permitted action:** Execute B1-I1 on a dedicated working branch; do not purchase, provision, expose, or deploy cloud resources
 
