@@ -3,7 +3,7 @@
 
 **Document ID:** OCE-ATLAS-001  
 **Version:** 1.0  
-**Status:** Ratified program map; Block 0 gated complete; Block 1 articulation active  
+**Status:** Ratified program map; Block 0 gated complete; Block 1 planning ratified; B1-I1 authorized  
 **Constitutional dependency:** OCE Constitution 1.1  
 **Owner and final authority:** Operator  
 **Effective date:** 2026-08-17

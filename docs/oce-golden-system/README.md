@@ -7,9 +7,10 @@ This directory is the canonical planning and governance entrypoint for the OCE G
 1. **OCE Golden System Architecture Constitution 1.1** — mission, philosophy, authority, invariants, truth rules, cloud doctrine, and amendment process.
 2. **OCE Master Program Atlas 1.0** — complete Block → Chapter → Section map and deep-planning protocol.
 3. **Block 0 Constitutional Control Plan 1.0** — ratified mission, authority, truth, program-control, and build-intelligence contracts.
-4. **Current Block Charter** — the active block's boundaries, dependencies, questions, artifacts, and gate.
-5. **Current Chapter and Section Dossiers** — ratified step-by-step design.
-6. **Current Block Gate Report and Build Learning Ledger** — evidence, failures, lessons, unresolved matters, and operator decision.
+4. **Block 1 Cloud Ground Plan 1.0** — ratified capacity, trust, data, runtime, worker, evidence, and cost contracts.
+5. **Block 1 Agent Master Prompt 1.0** — stage-scoped execution instructions and hard hold points.
+6. **Current Chapter and Section Dossiers** — ratified step-by-step design.
+7. **Current Block Gate Report and Build Learning Ledger** — evidence, failures, lessons, unresolved matters, and operator decision.
 
 No builder or agent should begin implementation from a section title alone.
 
@@ -18,7 +19,7 @@ No builder or agent should begin implementation from a section title alone.
 | Block | Name | Current status |
 |---|---|---|
 | B0 | Constitutional Control | GATED_COMPLETE |
-| B1 | Cloud Ground | ARTICULATING |
+| B1 | Cloud Ground | RATIFIED — B1-I1 AUTHORIZED |
 | B2 | OCE Reality Seal | MAPPED |
 | B3 | OCE Constitutional Spine | MAPPED |
 | B4 | PO Governed Builder | MAPPED |
@@ -67,6 +68,8 @@ Every build produces both a product artifact and process knowledge. Meaningful a
 **Constitution:** 1.1, ratified  
 **Atlas:** 1.0, ratified  
 **Block 0:** 1.0, ratified and gated complete  
-**Active planning unit:** Block 1 — Cloud Ground  
-**Build authorization:** None  
-**Next artifact:** Block 1 Charter
+**Active execution unit:** B1-I1 — static Cloud Ground repository skeleton  
+**Build authorization:** B1-I1 only  
+**Purchase authorization:** None  
+**Cloud mutation authorization:** None  
+**Next checkpoint:** B1-I1 evidence review before any purchase or deployment
