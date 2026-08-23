@@ -1,0 +1,18 @@
+# Freebuff / Codebuff local state
+.freebuff/
+
+# Local WebUI state and logs
+webui/
+*.log
+*.err
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# OS junk
+Thumbs.db
+.DS_Store
