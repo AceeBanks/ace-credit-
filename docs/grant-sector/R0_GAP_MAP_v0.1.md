@@ -1,312 +1,451 @@
 # R0 Gap Map
 
 **Document ID:** GS-R0-GAP-001  
-**Version:** 0.1  
-**Status:** INTERNAL SALVAGE BASELINE COMPLETE  
+**Version:** 0.2  
+**Status:** R0 DATA/SOURCE DEEP-HUNT INCORPORATED  
 **Date:** 2026-08-24
 
 ---
 
 ## 0. Purpose
 
-This map identifies what the Grant Sector product still needs after deep internal salvage. A gap does not automatically mean “build from scratch.” It means the capability is not sufficiently solved by currently inspected `larger-lab` assets and should enter either fresh design or external due diligence.
+This map identifies what remains unsolved after:
+
+1. internal `larger-lab`/OCE/Hermes salvage;
+2. external generic-infrastructure review;
+3. deep grant-domain data/source connectivity research.
+
+R0 has now resolved enough of the *where will the data come from?* question to enter G0. Remaining gaps are primarily canonical contracts, domain logic, production controls, source adapter implementation, and product UX.
 
 ---
 
 # 1. Domain-Critical Gaps — Build Ourselves
 
-These capabilities are the product moat and should not be outsourced wholesale to generic agent frameworks.
+These capabilities are the product moat and should remain platform-owned.
 
-| Gap | Why internal salvage is insufficient | Recommended ownership |
+| Gap | Updated status | Recommended ownership |
 |---|---|---|
-| Canonical Organization Profile model | No grant/business tenant model exists | **NEW BUILD** |
-| Canonical Grant Opportunity model | Research-paper models are not grant semantics | **NEW BUILD** |
-| Grant eligibility DSL / normalized rule model | No deterministic grant rule engine exists | **NEW BUILD** |
-| Eligibility evaluator | Must be deterministic/explainable after extraction | **NEW BUILD** |
-| Explainable grant matching model | Existing routers/retrieval are not grant ranking | **NEW BUILD** |
-| Grant-specific evidence hierarchy | Academic citation scoring is wrong domain | **NEW BUILD** |
-| Funder / award / past-winner domain model | No equivalent internal domain | **NEW BUILD** |
-| Grant Evidence Graph schema | Old generic graph is too broad | **NEW BUILD using salvaged graph concepts** |
-| Application Project state machine | Existing task states are too low-level | **NEW BUILD** |
-| Application blueprint / section dependency graph | No internal grant compiler | **NEW BUILD** |
-| Cross-document fact registry | Needed to synchronize proposal/deck/financials | **NEW BUILD** |
-| Budget / financial reconciliation engine | Must be deterministic and grant aware | **NEW BUILD** |
-| Grant requirement coverage engine | Needs grant-specific checklist/rubric parsing | **NEW BUILD** |
-| Human review / approval gates | OCE gives governance pattern, not product UX | **NEW BUILD** |
-| Outcome/award feedback model | No grant lifecycle tracking domain | **NEW BUILD with Phase 3 hooks from day one** |
+| Canonical Organization Profile model | Still open; now informed by IRS EIN/EO BMF/990, UEI and FAC | **NEW BUILD** |
+| Canonical Grant Opportunity model | Still open; now should map to CommonGrants Opportunity | **NEW BUILD + CommonGrants compatibility** |
+| Grant eligibility DSL / normalized rule model | Open | **NEW BUILD** |
+| Eligibility evaluator | Open; must consume normalized facts/snapshots | **NEW BUILD** |
+| Explainable grant matching model | Open | **NEW BUILD** |
+| Grant-specific evidence hierarchy | Source hierarchy now researched; formal rules remain open | **NEW BUILD** |
+| Funder / award / past-winner domain model | Data sources now resolved for federal baseline | **NEW BUILD** |
+| Grant Evidence Graph schema | Semantica candidate identified; ontology still ours | **NEW BUILD ontology + Semantica bake-off** |
+| Application Project state machine | Open; should map to CommonGrants Application where useful | **NEW BUILD** |
+| Application blueprint / section dependency graph | Open | **NEW BUILD** |
+| Cross-document fact registry | Open | **NEW BUILD** |
+| Budget / financial reconciliation engine | Univer candidate identified; canonical model still ours | **NEW BUILD backend + Univer evaluation** |
+| Grant requirement coverage engine | Open | **NEW BUILD** |
+| Human review / approval gates | Open | **NEW BUILD** |
+| Outcome/award feedback model | Open; CommonGrants Award + USAspending/Candid inform schema | **NEW BUILD** |
 
 ---
 
-# 2. External Due-Diligence Gaps
+# 2. Grant Data / Source Connectivity — RESOLVED AT ARCHITECTURE LEVEL
 
-These should be researched externally before custom implementation because mature solutions may already exist.
+The question is no longer whether suitable data exists. It does.
 
-## 2.1 Grant-source connectivity
+## 2.1 Federal opportunities — resolved candidates
 
-Need current evaluation of:
+- **Grants.gov REST API** — primary federal opportunity source.
+- **Simpler.Grants.gov** — modernization project/API/model source and future interoperability path.
+- **CommonGrants protocol** — external open standard for opportunity/application/award interoperability.
+- **SAM.gov Assistance Listings** — program-level enrichment via Assistance Listing Number.
 
-- Grants.gov APIs/feeds;
-- SAM/assistance-related federal data where applicable;
-- state/local opportunity sources;
-- foundation databases and licensing constraints;
-- corporate grant pages;
-- historical federal award sources;
-- IRS/nonprofit/public organization data where applicable;
-- philanthropic award datasets.
+### Remaining work
 
-Questions:
+- implement adapters;
+- pin schema/API versions;
+- establish retry/rate-limit rules;
+- build revision/amendment detection;
+- define opportunity identity reconciliation;
+- create gold-set tests.
 
-- API or scrape?
-- terms/license?
-- source freshness?
-- revision/deadline semantics?
-- rate limits?
-- stable identifiers?
-- historical winner data availability?
+## 2.2 Federal historical awards / winners — resolved candidates
 
-## 2.2 Browser / web research automation
+- **USAspending API** — cross-agency federal award-history baseline.
+- **SAM.gov subaward data/API** — prime→subrecipient relationships.
+- **TAGGS** — HHS-specialist award enrichment.
+- **NIH RePORTER / other agency systems** — add only when vertical/use case justifies.
 
-Historical workspace contains browser/scraping skills, but no inspected component is yet promoted as a production Grant browser fabric.
+### Remaining work
 
-Research mature candidates for:
+- recipient identity resolution;
+- ALN/opportunity→award linkage;
+- winner cohort logic;
+- no-causal-overclaim guardrails;
+- transaction/award timing semantics.
 
-- robust browser automation;
-- anti-fragile extraction;
-- source snapshots;
-- structured web extraction;
-- robots/terms-aware crawling;
-- retry/replay;
-- web-page change detection.
+## 2.3 Organization identity / financial / compliance — resolved candidates
 
-Prefer wrapping a mature browser layer rather than embedding site-specific browser logic into Hermes.
+- **IRS EO BMF** — registry/basic exempt-organization identity.
+- **IRS 990-series XML/bulk data** — official filing/financial source.
+- **ProPublica Nonprofit Explorer** — convenience/enrichment API.
+- **Federal Audit Clearinghouse** — federal assistance/audit/capacity intelligence.
 
-## 2.3 Production document compiler
+### Remaining work
 
-Open Design is promising for visual artifacts, but a deterministic enterprise document compiler is still a gap.
+- EIN/UEI/entity resolution;
+- filing version/freshness semantics;
+- financial normalization;
+- scoped PII/sensitive field policy;
+- audit-context interpretation rules.
 
-Need evaluation for:
+## 2.4 Private foundations / corporate opportunities — partially resolved
 
-- DOCX templating;
-- PDF generation;
-- section/page controls;
-- tables/charts;
-- reusable styles;
-- headers/footers;
-- citations/footnotes;
-- tracked versions;
-- stable rendering;
-- editable client deliverables.
+- **Candid Grants API/Open Grant Opportunities API** — strongest paid structured candidate.
+- **Targeted Crawl4AI source network** — free/open MVP path for issuer RFP pages.
 
-## 2.4 Spreadsheet / financial artifact generation
+### Remaining work
 
-Need robust XLSX/CSV generation and formula validation integrated with canonical budget facts.
+- quantify free-source recall gap;
+- Candid commercial/license/business-case decision;
+- create private-source registry;
+- source-specific crawl policies and change detection.
 
-## 2.5 Multi-tenant auth / identity
+## 2.5 State/local — architecture resolved, coverage intentionally incremental
 
-OCE historically assumes a private single-operator environment. Commercial product needs:
+- **California Grants Portal/open data** — first clean state API/open-data adapter candidate.
+- **Texas and similar states** — source-specific portal crawlers/parsers.
 
-- tenant isolation;
-- user/org memberships;
-- roles;
-- service identities;
-- scoped authorization;
-- audit actor identity;
-- secure invitation/recovery flows.
+### Remaining work
 
-Evaluate mature auth providers/libraries vs self-hosting.
+- adapter registry;
+- jurisdiction-driven rollout order;
+- coverage metrics;
+- state source health/freshness monitoring.
 
-## 2.6 Object/artifact storage
+## 2.6 Community need / impact — resolved candidate fabric
 
-OCE Block 1 gives the architecture principle, but commercial product needs exact selection and lifecycle policy for:
+Baseline sources:
 
-- source snapshots;
-- uploads;
-- generated files;
-- sidechains/traces;
-- exports;
-- encrypted backups.
+- Census ACS 5-year;
+- Census SAIPE;
+- CDC PLACES;
+- CDC/ATSDR SVI;
+- USDA ERS;
+- BLS;
+- BEA;
+- NCES;
+- HUD;
+- topic-specific adapters as grant categories demand.
 
-## 2.7 Observability stack
+### Remaining work
 
-OCE has metrics/tracing ideas and code, but production selection remains open:
-
-- OpenTelemetry;
-- logs;
-- traces;
-- model/tool cost telemetry;
-- workflow SLIs;
-- source-adapter health;
-- error aggregation.
-
-## 2.8 Evaluation / LLM observability tooling
-
-Hermes skill-creator provides a strong internal eval pattern. External review should determine whether existing eval platforms can provide useful storage/UI/tracing without taking ownership of our evaluation logic.
+- typed `StatisticObservation` contract;
+- geography/FIPS normalization;
+- dataset-vintage semantics;
+- margin-of-error handling;
+- source-methodology metadata;
+- permitted interpretation guidance.
 
 ---
 
-# 3. Design Gaps — Internal Architecture Needed Before Tool Choice
+# 3. New P0 Data Contracts Identified by Deep Hunt
 
-## 3.1 Dual-Hermes communication protocol
+These are now mandatory G0/G1 contracts.
 
-Need exact schemas for:
+## 3.1 `SourceRegistry`
 
-- Intent Contract;
-- Clarification Request;
-- Task Plan;
-- Task Contract;
-- Worker Result;
-- Outcome Artifact;
-- Client Explanation Packet;
-- Feedback/Correction Event.
+Required fields/concepts:
 
-## 3.2 Memory promotion and pruning engine
+- canonical source ID;
+- publisher/authority;
+- jurisdiction;
+- domain/source class;
+- API/BULK/WEB/MANUAL access mode;
+- credential requirements;
+- terms/license notes;
+- refresh policy;
+- parser/adapter version;
+- expected freshness;
+- health/degradation state.
 
-Internal patterns exist, but exact policy is still a design gap.
+## 3.2 `SourceSnapshot`
+
+Immutable evidence record:
+
+- registry/source identity;
+- canonical URL/request;
+- retrieved/requested timestamps;
+- raw payload/object-store pointer;
+- cryptographic content hash;
+- HTTP/API metadata;
+- effective/published date;
+- parser/adapter version;
+- prior/revision relationship.
+
+## 3.3 `ExternalIdentifier`
+
+Normalize at least:
+
+- EIN;
+- UEI;
+- Assistance Listing Number;
+- Grants.gov opportunity ID/number;
+- federal award ID/FAIN/agency award number;
+- state source IDs;
+- Candid IDs where licensed;
+- FIPS/geographic IDs.
+
+## 3.4 `StatisticObservation`
+
+Must bind a statistic to:
+
+- metric/variable;
+- value/unit;
+- geography/FIPS;
+- cohort/population;
+- reference period;
+- estimate/MOE where applicable;
+- methodology/dataset vintage;
+- exact source snapshot;
+- interpretation constraints.
+
+---
+
+# 4. CommonGrants Interoperability Gap — NEW G0 PRIORITY
+
+The HHS CommonGrants project defines an open standard for funding opportunities, applications and awards and publishes SDKs/clients/templates.
+
+We should not let our richer internal model become an incompatible island.
+
+G0 must define:
+
+```text
+Internal GrantOpportunity ↔ CommonGrants Opportunity
+Internal ApplicationProject ↔ CommonGrants Application
+Internal Award/Outcome ↔ CommonGrants Award
+```
+
+Questions to resolve:
+
+- which CommonGrants fields are canonical vs mirrored;
+- how custom/internal fields are namespaced;
+- versioning/migration strategy;
+- validation/conformance tests;
+- whether our public API eventually exposes CommonGrants-compatible endpoints.
+
+---
+
+# 5. Source Trust / Freshness / Conflict — NOW A FIRST-CLASS GAP
+
+Source connectivity without truth discipline would still produce unreliable applications.
+
+G0 needs an executable source precedence model, e.g.:
+
+```text
+current official solicitation/amendment
+  > current issuing-agency source
+  > official federal/state data derivative
+  > curated third-party database
+  > verified issuer webpage snapshot
+  > aggregator/search result
+  > user recollection/unverified statement
+```
+
+This is only a starting model; precedence must be fact-specific.
+
+Required conflict handling:
+
+- current vs superseded solicitation;
+- revised deadlines;
+- conflicting award totals due to transaction timing;
+- nonprofit name changes with stable EIN;
+- Census/statistical vintages;
+- third-party vs official source disagreements.
+
+No silent merge. Resolve deterministically when policy allows; otherwise escalate.
+
+---
+
+# 6. Source Change Detection — P0
+
+New architecture requirement from the deep hunt:
+
+Grant opportunities are mutable until close. Therefore source ingestion must model revisions, not just snapshots.
 
 Need:
 
-- Personal memory classes;
-- CEO memory classes;
-- candidate → promoted → superseded/demoted lifecycle;
-- TTL rules;
-- privacy classification;
-- source/provenance links;
-- contradiction resolution;
-- reconstructability tests;
-- context budgets.
+- hash/content change detection;
+- structured field diffs;
+- amendment relationships;
+- deadline-change alerts;
+- eligibility/requirement-change alerts;
+- invalidation of dependent Match/Application decisions when material fields change;
+- replay/re-evaluation against the new snapshot.
 
-## 3.3 Agent authority policy model
-
-Need executable mapping of:
-
-- agent/service identity;
-- capability;
-- tenant/project scope;
-- resource target;
-- risk class;
-- approval required;
-- expiry/revocation;
-- audit obligations.
-
-## 3.4 Source-trust policy
-
-Need grant-domain precedence rules, e.g. current official solicitation vs cached page vs aggregator vs user statement.
-
-## 3.5 Change/self-improvement governance
-
-CEO Hermes may eventually improve workflows, prompts, or adapters. Need distinction between:
-
-- observation;
-- proposed lesson;
-- candidate change;
-- sandbox evaluation;
-- approved promotion;
-- rollback.
-
-No production self-modification without gates.
+This should feed CEO Hermes as a structured event, not raw webpage text.
 
 ---
 
-# 4. UX Gaps
+# 7. External Generic Infrastructure Gaps — Updated
 
-Need product designs for:
+Prior external review substantially reduced these gaps.
 
-- organization intake / profile completeness;
-- Personal Hermes chat;
-- grant discovery dashboard;
-- explainable match detail;
-- visible past-winner/funder research;
-- evidence viewer;
-- application workspace;
-- artifact/version diff;
-- QA blockers;
-- human approval;
-- CEO Hermes activity/status without exposing noisy chain-of-thought or raw worker transcript;
-- admin/audit view.
+| Area | Leading candidate | Remaining decision |
+|---|---|---|
+| Web extraction | Crawl4AI | benchmark + security hardening |
+| Deep research | GPT Researcher patterns | bounded worker integration |
+| Document parsing | existing parsers + Unstructured | bake-off |
+| Visual parsing | PixelRAG | fallback benchmark |
+| Evidence/provenance | Semantica | P0 bake-off |
+| Agent regression/red-team | Promptfoo + Hermes Eval Lab | integration/promotion policy |
+| Structured validation | Guardrails | select validators only |
+| Spreadsheet workspace | Univer | free/Pro feature boundary |
+| Connector execution | Activepieces | bounded-use architecture |
+| Tool credential proxy | Treg-inspired pattern | independent implementation/license decision |
+| Signature/forms | Documenso/DocuSeal | defer/licensing |
 
-Historical OCE frontend and artifact builders may provide patterns, but product UX needs a clean design.
-
----
-
-# 5. Security / Compliance Gaps
-
-Before production pilot, explicitly design:
-
-- data classification;
-- tenant isolation tests;
-- secret management;
-- PII handling;
-- retention/deletion;
-- audit retention;
-- source/document access control;
-- encryption at rest/in transit;
-- backup restore;
-- dependency/SBOM scanning;
-- prompt/tool injection defenses for web research;
-- malicious document handling;
-- outbound network policy;
-- external action confirmations.
-
-The archived secret-in-memory finding makes this a mandatory early gate, not cleanup work.
+No more broad generic-agent framework hunting is required before G0.
 
 ---
 
-# 6. R0 Gap Priority
+# 8. Production Infrastructure Gaps Still Open
 
-## P0 — must resolve in G0/G1
+## 8.1 Multi-tenant identity/auth
 
-- canonical domain schemas;
-- Dual-Hermes contracts;
-- authority/policy model;
-- source/evidence precedence;
-- memory retention/promotions;
+Still unresolved implementation choice:
+
+- users/orgs/memberships;
+- RBAC/ABAC/relation policy;
+- service identities;
+- invitations/recovery;
+- tenant isolation proof.
+
+## 8.2 Object/artifact storage
+
+Need exact implementation for:
+
+- source snapshots;
+- uploads;
+- sidechains/traces;
+- proposal/deck/XLSX/DOCX/PDF artifacts;
+- version/diff lineage;
+- encryption/backup/retention.
+
+## 8.3 Observability
+
+Need exact stack for:
+
+- distributed traces;
+- tool/model costs;
+- source adapter health;
+- workflow SLIs;
+- evaluation metrics;
+- error aggregation;
+- security events.
+
+## 8.4 Production document compiler
+
+Still not solved by the external batch. Need deterministic/versioned DOCX/PDF compilation independent of LLM generation.
+
+---
+
+# 9. Evaluation Gaps — Expanded by Data Hunt
+
+## 9.1 Source Adapter Gold Set
+
+Every adapter must prove:
+
+- discovery recall;
+- normalized field accuracy;
+- deadline accuracy;
+- stable identity;
+- revision detection;
+- source snapshot reproducibility;
+- schema-drift behavior;
+- duplicate handling;
+- retry/failure behavior.
+
+## 9.2 Winner Research Gold Set
+
+Must prove:
+
+- correct opportunity/program/ALN linkage;
+- recipient identity resolution;
+- amount/date/geography correctness;
+- no unsupported causal claims from winner metadata.
+
+## 9.3 Community Evidence Gold Set
+
+Every promoted statistic must carry:
+
+- variable;
+- geography;
+- reference period;
+- unit;
+- source;
+- margin of error where relevant;
+- methodology/vintage;
+- valid interpretation.
+
+## 9.4 Source Conflict Corpus
+
+Include deliberate conflicts between:
+
+- current vs old solicitation;
+- aggregator vs issuer deadline;
+- changed nonprofit names;
+- award values at different transaction cutoffs;
+- statistical vintages;
+- third-party vs official source.
+
+---
+
+# 10. R0 Gap Priority — Updated
+
+## P0 — G0/G1
+
+- canonical grant/org/award/application schemas;
+- CommonGrants mapping policy;
+- `SourceRegistry`;
+- immutable `SourceSnapshot`;
+- canonical `ExternalIdentifier` model;
+- `StatisticObservation`;
+- source authority/freshness/conflict policy;
+- revision/change-detection semantics;
+- deterministic eligibility contract;
+- Dual-Hermes contracts and authority;
+- memory promotion/pruning;
 - tenant/auth architecture;
-- Postgres truth model;
-- source snapshot/artifact policy;
-- security threat model.
+- evidence/Semantica decision;
+- threat model;
+- adapter/eval doctrine.
 
-## P1 — needed for first functional vertical slice
+## P1 — first real vertical slice
 
-- federal/source adapter;
-- parser/document ingestion;
-- deterministic eligibility;
-- match ranking;
-- funder/winner/evidence research;
+- Grants.gov/Simpler opportunity adapter;
+- SAM Assistance Listing enrichment;
+- USAspending award/winner adapter;
+- IRS EO BMF/990 organization adapter;
+- FAC adapter;
+- ACS/SAIPE evidence adapter;
+- California state adapter or one targeted Crawl4AI private source;
+- explainable eligibility + matching;
 - evidence graph;
-- proposal blueprint + one artifact path;
-- QA/eval harness;
-- Personal→CEO→worker→client feed-forward path.
+- application blueprint/selected sections;
+- QA;
+- full Personal→CEO→worker→client path.
 
-## P2 — expand after vertical slice is evidence-backed
+## P2 — expand after vertical slice proof
 
-- broad source network;
-- full business-plan/deck/financial artifact suite;
-- advanced source change detection;
-- additional model routing;
-- enhanced dashboards;
+- Candid paid integration if ROI justifies;
+- broader state/private source network;
+- SAM subawards/TAGGS/agency-specialist data;
+- CDC/USDA/NCES/HUD domain layers;
+- full proposal/business-plan/deck/financial suite;
 - outreach hooks;
-- grant tracking/outcome loop.
+- Phase 3 outcome/tracker loop.
 
 ---
 
-# 7. External Research Rule
+# 11. R0 Closure Condition
 
-External projects are candidates, not authorities.
+R0 is now sufficient for G0.
 
-Every external candidate must be scored on:
+Remaining work is no longer exploratory infrastructure hunting. It is constitutional/domain design and implementation validation.
 
-- license/commercial suitability;
-- current activity;
-- security posture;
-- test quality;
-- dependency burden;
-- portability;
-- API stability;
-- data ownership;
-- observability;
-- tenant isolation;
-- Hermes/MCP/OCE compatibility;
-- replacement/exit cost;
-- exact capability we want to harvest.
-
-Do not select a large framework because it appears comprehensive. Prefer narrow components behind our contracts.
+The first production vertical slice should consume **real official data**, not mocked grant-domain records, so source authority, revisions, identifiers, evidence and winner research are tested from the beginning.
