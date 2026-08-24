@@ -1,8 +1,8 @@
 # R0 Seed Architecture Recommendation
 
 **Document ID:** GS-R0-SEED-001  
-**Version:** 0.1  
-**Status:** RECOMMENDED INPUT TO G0  
+**Version:** 0.2  
+**Status:** RECOMMENDED INPUT TO G0 — DATA/SOURCE HUNT INCORPORATED  
 **Date:** 2026-08-24
 
 ---
@@ -13,7 +13,11 @@ Do not seed the future Grant Sector repository from any one existing branch.
 
 Create a clean repository after G0 ratifies the contracts, then transplant selected proven components behind new product interfaces.
 
-The future product should be architected as a **domain-neutral governed platform kernel + Grant Sector module + two Hermes operator profiles**.
+The future product should be architected as a **domain-neutral governed platform kernel + Grant Sector module + two Hermes operator profiles + first-class Grant Intelligence Data Fabric**.
+
+The deep grant-domain hunt adds one major interoperability principle:
+
+> **Our internal grant model may be richer, but it should map cleanly to the HHS-backed CommonGrants protocol for Opportunities, Applications, and Awards wherever practical.**
 
 ---
 
@@ -34,7 +38,7 @@ The future product should be architected as a **domain-neutral governed platform
 ┌──────────────────────────────────────────────────────────────┐
 │                   GOVERNED CONTROL PLANE                     │
 │                                                              │
-│  Identity / Tenant / Policy / Audit / Event / Project State │
+│ Identity / Tenant / Policy / Audit / Event / Project State  │
 │                          │                                   │
 │                CEO HERMES PROFILE                            │
 │               planner + application operator                 │
@@ -44,14 +48,28 @@ The future product should be architected as a **domain-neutral governed platform
                           │ Task Contracts
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
-│                       WORKER FABRIC                          │
+│                     WORKER / TOOL FABRIC                     │
 │                                                              │
 │ Research  Parser  Evidence  Proposal  QA  Artifact workers  │
+│ Crawl/Deep Research/Validation/Integration capabilities      │
 │                                                              │
-│ Short result → CEO                                          │
+│ Short result → CEO                                           │
 │ Full trace → sidechain / audit storage                       │
 └─────────────────────────┬────────────────────────────────────┘
                           │
+                          ▼
+┌──────────────────────────────────────────────────────────────┐
+│              GRANT INTELLIGENCE DATA FABRIC                 │
+│                                                              │
+│ Source Registry → Fetch/Snapshot → Normalize → Revisions    │
+│                                                              │
+│ Grants.gov / SAM / USAspending / IRS / FAC / Census         │
+│ State portals / targeted foundation-corporate web sources    │
+│ Optional Candid enrichment                                   │
+│                                                              │
+│ CommonGrants compatibility mappings                          │
+└─────────────────────────┬────────────────────────────────────┘
+                          │ typed facts + immutable evidence
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                       DOMAIN KERNEL                          │
@@ -65,23 +83,24 @@ The future product should be architected as a **domain-neutral governed platform
 ┌──────────────────────────────────────────────────────────────┐
 │                     DATA / ARTIFACT PLANE                    │
 │                                                              │
-│ PostgreSQL authoritative state                              │
-│ Object storage: uploads/source snapshots/generated files     │
+│ PostgreSQL authoritative operational state                  │
+│ Object storage: raw source snapshots / uploads / artifacts   │
 │ Redis optional transport/cache only                          │
-│ Vector retrieval attached to canonical identities            │
-│ Observability / audit / backup / restore                      │
+│ Vector/graph retrieval attached to canonical identities      │
+│ Observability / audit / backup / restore                     │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# 2. Salvaged Seed Packages
+# 2. Seed Packages
 
 ## Package A — Hermes Operator Gateway
 
 Source:
 
 - `hermes-set-up/oce-hermes-telegram-operator`
+- Treg architecture as a reference for server-side tool/credential proxying
 
 Port/fork:
 
@@ -97,13 +116,15 @@ Port/fork:
 - threat-model/runbook structure;
 - adversarial gateway tests.
 
-Change:
+Add:
 
-- rename OCE observer tools into product capabilities;
-- support separate Personal and CEO profiles;
-- preserve read-only-by-default posture;
-- add explicit authority tiers and tenant/project scoping;
-- no direct DB access from Hermes.
+- separate Personal and CEO Hermes profiles;
+- tenant/project scope on capabilities;
+- authority levels L0-L5;
+- typed Tool Registry;
+- server-side credential vault/injection;
+- provider health and tool audit;
+- no direct database or secret access from Hermes.
 
 ## Package B — Context Continuity Kernel
 
@@ -141,7 +162,9 @@ Personal and CEO Hermes use separate namespaces and promotion policies.
 Sources:
 
 - `master/core/research`;
-- parser/semantic/graph contracts.
+- GPT Researcher planning/execution/publisher patterns;
+- Crawl4AI for governed web extraction;
+- optional SearXNG for discovery only.
 
 Port:
 
@@ -158,13 +181,86 @@ Port:
 
 Rewrite:
 
-- source clients;
-- Postgres persistence;
-- grant evidence evaluator;
+- persistence in Postgres;
+- grant-specific worker roles;
+- evidence evaluator;
 - model routing;
-- exact research-agent roles.
+- source-specific policies.
 
-## Package D — Agent Governance Harness
+Research workers cannot directly promote raw web claims. Promotion requires a `SourceSnapshot` and evidence validation.
+
+## Package D — Grant Intelligence Data Fabric
+
+**New mandatory seed package after domain-source deep hunt.**
+
+### Core contracts
+
+- `SourceRegistry`
+- `SourceSnapshot`
+- `ExternalIdentifier`
+- `StatisticObservation`
+- source revision/change event
+- normalized Opportunity/Award/Organization facts
+
+### Initial source adapters
+
+Federal opportunities:
+
+- Grants.gov REST API;
+- Simpler.Grants.gov where useful;
+- SAM Assistance Listings.
+
+Federal winner/history:
+
+- USAspending;
+- SAM subawards when needed;
+- TAGGS for HHS specialization.
+
+Organization/capacity:
+
+- IRS EO BMF;
+- IRS 990-series XML;
+- Federal Audit Clearinghouse;
+- ProPublica as convenience/enrichment.
+
+Community evidence:
+
+- Census ACS;
+- Census SAIPE;
+- BLS;
+- BEA;
+- one domain-specific layer selected by use case (CDC/USDA/NCES/HUD).
+
+State/private:
+
+- California Grants Portal as first state reference adapter;
+- one targeted private/foundation source via Crawl4AI;
+- Candid only as optional paid enrichment after coverage/ROI measurement.
+
+### Key rule
+
+Search/discovery is not evidence. Every promoted fact must resolve to an immutable source snapshot or approved structured dataset record.
+
+## Package E — Evidence / Provenance Layer
+
+Sources:
+
+- Semantica P0 bake-off;
+- historical OCE graph/provenance/contradiction concepts.
+
+We own the Grant ontology. Semantica is evaluated as infrastructure for:
+
+- claim→source provenance;
+- conflicting facts;
+- temporal state;
+- decision chains;
+- deterministic graph reasoning;
+- entity relationships;
+- auditable exports.
+
+Canonical operational state still remains in product-owned storage; Semantica must not become an opaque sovereign truth source.
+
+## Package F — Agent Governance Harness
 
 Sources:
 
@@ -183,13 +279,17 @@ Build:
 - stop/completion gate;
 - audit event schema;
 - approval flow;
-- task/project checkpoints.
+- task/project checkpoints;
+- source-trust/freshness policy;
+- dependency invalidation after material source revisions.
 
-## Package E — Agent Evaluation Lab
+## Package G — Agent Evaluation Lab
 
-Source:
+Sources:
 
-- archived Hermes `skill-creator`.
+- archived Hermes `skill-creator`;
+- Promptfoo;
+- selected Guardrails validators.
 
 Generalize:
 
@@ -200,7 +300,7 @@ versioned eval corpus
         ↓
 parallel candidate + baseline
         ↓
-formal assertions + human review
+formal assertions + red-team + human review
         ↓
 quality / latency / tokens / cost
         ↓
@@ -209,139 +309,123 @@ variance + regression analysis
 PROMOTE | REVISE | REJECT
 ```
 
-Use for every important agent role and for Personal→CEO handoff quality.
+Add domain eval suites for source adapters, winner research, community statistics, eligibility, source conflicts and application artifacts.
 
-## Package F — Document / Artifact Ingestion
+## Package H — Document / Artifact Ingestion
 
 Sources:
 
 - Parser Router architecture;
-- MarkItDown / ODL-PDF / Chandra / optional LiteParse.
+- MarkItDown / ODL-PDF / Chandra;
+- Unstructured bake-off;
+- PixelRAG as layout/visual fallback.
 
 Build a stable `SourceDocument` adapter contract. Treat parser engines as replaceable workers.
 
-## Package G — Client Artifact Output
+## Package I — Financial / Client Artifact Output
 
 Sources:
 
-- Open Design;
-- D2;
-- web artifact builder where useful.
+- Univer evaluation for editable/headless workbook workflow;
+- Open Design/D2 for selected visual artifacts;
+- separate deterministic proposal/document compiler remains product-owned.
 
-Use selectively for visual outputs and internal review. Build a separate canonical application/document compiler so visual tooling never owns facts.
+Canonical facts and budget calculations must exist independently from rendered XLSX/DOCX/PDF/PPTX outputs.
 
 ---
 
-# 3. New Product Packages
+# 3. CommonGrants Compatibility
 
-These should be written specifically for the Grant domain rather than ported.
+The HHS CommonGrants protocol is now a design input, not a peripheral reference.
+
+G0 should define explicit adapters:
 
 ```text
-sectors/grants/domain/
-    organization.py
-    opportunity.py
-    funder.py
-    award.py
-    eligibility.py
-    application.py
-    requirement.py
-    budget.py
-    outcome.py
-
-sectors/grants/sources/
-    adapters/
-    normalization/
-    revisions/
-
-sectors/grants/matching/
-    eligibility_engine/
-    ranking/
-    explanations/
-
-sectors/grants/research/
-    funder/
-    winner/
-    community_impact/
-
-sectors/grants/evidence/
-    claims/
-    sources/
-    lineage/
-    contradictions/
-
-sectors/grants/application_factory/
-    blueprint/
-    sections/
-    facts/
-    compiler/
-
-sectors/grants/qa/
-    eligibility/
-    requirements/
-    factuality/
-    citations/
-    numerical/
-    consistency/
-    alignment/
-    style/
+GrantOpportunity <-> CommonGrants Opportunity
+ApplicationProject <-> CommonGrants Application
+AwardOutcome <-> CommonGrants Award
 ```
 
+Our internal models may include additional:
+
+- evidence lineage;
+- source snapshots;
+- explainability fields;
+- internal matching scores;
+- worker/audit state;
+- QA state;
+- tenant policy;
+- artifact dependencies.
+
+Those fields should be namespaced/internal rather than contaminating the external interoperability contract.
+
 ---
 
-# 4. Suggested Future Repository Shape
-
-Working name only; final product/repository name is deferred.
+# 4. New Product Packages
 
 ```text
-repo/
-├── apps/
-│   ├── web/
-│   ├── api/
-│   └── worker/
-│
-├── platform/
-│   ├── identity/
-│   ├── policy/
-│   ├── audit/
-│   ├── events/
-│   ├── tasks/
-│   ├── memory/
-│   ├── evidence/
-│   ├── artifacts/
-│   ├── models/
-│   └── observability/
-│
-├── agents/
-│   ├── hermes-personal/
-│   ├── hermes-ceo/
-│   ├── skills/
-│   ├── workers/
-│   └── evals/
-│
-├── sectors/
-│   └── grants/
-│       ├── domain/
-│       ├── sources/
-│       ├── eligibility/
-│       ├── matching/
-│       ├── research/
-│       ├── evidence/
-│       ├── applications/
-│       └── qa/
-│
-├── schemas/
-├── migrations/
-├── infra/
-├── tests/
-├── evals/
-└── docs/
+platform/
+    identity/
+    policy/
+    audit/
+    events/
+    tasks/
+    memory/
+    sources/
+        registry/
+        snapshots/
+        identifiers/
+        revisions/
+    evidence/
+    artifacts/
+    models/
+    observability/
+
+agents/
+    hermes-personal/
+    hermes-ceo/
+    skills/
+    workers/
+    evals/
+
+sectors/grants/
+    domain/
+        organization.py
+        opportunity.py
+        funder.py
+        award.py
+        eligibility.py
+        application.py
+        requirement.py
+        budget.py
+        outcome.py
+        statistics.py
+    interoperability/
+        commongrants/
+    sources/
+        grants_gov/
+        simpler_grants/
+        sam_assistance/
+        usaspending/
+        irs/
+        fac/
+        census/
+        states/
+        private_web/
+        candid_optional/
+    eligibility/
+    matching/
+    research/
+    evidence/
+    applications/
+    qa/
 ```
 
 ---
 
 # 5. Core Contracts to Freeze in G0
 
-Before implementation, G0 should define and version at least:
+Before implementation, G0 should define/version at least:
 
 1. `IntentContract`
 2. `ClarificationRequest`
@@ -350,37 +434,62 @@ Before implementation, G0 should define and version at least:
 5. `OutcomeArtifact`
 6. `OrganizationProfile`
 7. `GrantOpportunity`
-8. `EligibilityRule`
-9. `EligibilityDecision`
-10. `MatchExplanation`
-11. `SourceSnapshot`
-12. `EvidenceClaim`
-13. `ResearchPack`
-14. `ApplicationProject`
-15. `CanonicalFact`
-16. `BudgetModel`
-17. `RequirementChecklist`
-18. `ArtifactManifest`
-19. `QAReport`
-20. `ApprovalDecision`
-21. `AgentIdentity`
-22. `CapabilityGrant`
-23. `AuditEvent`
-24. `MemoryCandidate/Promotion`
-25. `FeedbackOutcome`
+8. `Funder`
+9. `Award`
+10. `EligibilityRule`
+11. `EligibilityDecision`
+12. `MatchExplanation`
+13. `SourceRegistry`
+14. `SourceSnapshot`
+15. `ExternalIdentifier`
+16. `StatisticObservation`
+17. `SourceRevisionEvent`
+18. `EvidenceClaim`
+19. `ResearchPack`
+20. `ApplicationProject`
+21. `CanonicalFact`
+22. `BudgetModel`
+23. `RequirementChecklist`
+24. `ArtifactManifest`
+25. `QAReport`
+26. `ApprovalDecision`
+27. `AgentIdentity`
+28. `CapabilityGrant`
+29. `AuditEvent`
+30. `MemoryCandidate/Promotion`
+31. `FeedbackOutcome`
+32. CommonGrants mapping contracts.
 
-These contracts become the stable seams around which upstream components can be swapped.
+These contracts become the stable seams around which source providers, parsers, agents and external components can be swapped.
 
 ---
 
-# 6. Vertical Slice Recommendation
+# 6. Source Truth and Revision Rules
 
-Do not initially build every grant source or every document type.
+G0 must make source precedence executable rather than descriptive.
 
-The first evidence-backed vertical slice should prove the architecture end-to-end:
+Core principles:
+
+- current official solicitation/amendment dominates older copies;
+- current issuer source dominates aggregator claims for issuer-owned facts;
+- official structured award/tax/statistical data outranks third-party summaries for the facts it owns;
+- third-party/private datasets are enrichment, not silent overrides;
+- search snippets never become promoted evidence;
+- materially changed source snapshots trigger dependency re-evaluation;
+- unresolved conflicts are visible and fail closed for consequential decisions.
+
+Grant deadlines, eligibility, requested amounts and required attachments are material dependency fields.
+
+---
+
+# 7. First Real Vertical Slice — Updated
+
+Do not use mocked grant-domain data except unit fixtures.
+
+The first evidence-backed vertical slice should prove:
 
 ```text
-Client idea / request
+Client idea/request
    ↓
 Personal Hermes clarification
    ↓
@@ -388,69 +497,90 @@ Intent Contract
    ↓
 CEO Hermes plan
    ↓
-One real grant source adapter
+REAL Grants.gov/Simpler opportunity query
    ↓
-Opportunity normalization
+SourceSnapshot + normalized GrantOpportunity
+   ↓
+SAM Assistance Listing enrichment
    ↓
 Deterministic eligibility
    ↓
-Research workers
+USAspending historical recipient/award research
    ↓
-Evidence Graph
+IRS/FAC organization verification/capacity context
+   ↓
+ACS/SAIPE community evidence
+   ↓
+Evidence Graph / Semantica bake-off
    ↓
 Explainable match
    ↓
-One proposal blueprint + selected sections
+Application blueprint + selected proposal sections
    ↓
-QA
+QA / Promptfoo-domain assertions / validators
    ↓
 Human review
    ↓
-Client-facing result through Personal Hermes
+Personal Hermes client explanation
 ```
 
-Required proof:
+Optional addition:
 
-- no raw chat polluted into worker prompts unnecessarily;
-- no worker transcript pollutes CEO active context;
-- every material claim has source lineage;
-- eligibility result is reproducible;
-- system restarts without losing accepted task/project state;
-- every action has actor/capability/request ID;
-- context pruning does not lose reconstructability;
-- candidate/baseline evals can quantify agent changes;
-- cost/latency/error metrics are visible.
+- one California state opportunity OR one targeted private foundation webpage through Crawl4AI to prove non-federal adapter extensibility.
+
+### Required proof
+
+- raw client chat is not unnecessarily passed to workers;
+- worker traces do not pollute CEO active context;
+- every promoted factual claim has source lineage;
+- source snapshots are immutable/replayable;
+- opportunity amendments are detected;
+- eligibility is reproducible from normalized facts;
+- award/winner research never implies causation without evidence;
+- statistics retain geography/period/methodology/MOE where relevant;
+- accepted tasks/projects survive Redis loss/restart;
+- every action carries actor/capability/request ID;
+- context pruning preserves reconstructability;
+- agent/source changes are benchmarked before promotion;
+- costs, latency, adapter health and failures are visible.
 
 ---
 
-# 7. What Not to Build Yet
+# 8. What Not to Build Yet
 
 Until the vertical slice passes:
 
 - broad autonomous submission;
+- all 50 state adapters;
+- nationwide uncontrolled foundation crawling;
 - giant generalized knowledge graph;
-- complicated multi-model routing fleet;
+- complicated multi-model fleet;
 - Kubernetes;
-- dozens of specialist agents;
-- autonomous code self-modification;
+- dozens of long-lived specialist agents;
+- autonomous production code/policy self-modification;
 - Phase 2 outreach execution;
-- Phase 3 full tracker UI;
+- full Phase 3 tracker;
 - custom vector database;
-- long-term memory for every worker;
-- every state/corporate/foundation source.
+- permanent memory for every worker;
+- expensive Candid dependency before free-source coverage is measured.
 
 Architect extension points now; earn complexity later.
 
 ---
 
-# 8. R0 → G0 Handoff
+# 9. R0 → G0 Handoff
 
-R0 recommends that G0 ratify five architectural laws:
+R0 now recommends G0 ratify these laws:
 
 1. **Hermes operates; the platform owns truth.**
 2. **Personal cognition and operational cognition stay separate.**
-3. **Workers are bounded and disposable; traces are sidechains, not parent memory.**
+3. **Workers are bounded/disposable; traces are sidechains, not parent memory.**
 4. **Deterministic constraints decide deterministic questions.**
-5. **Every promoted claim, memory, action, and agent change requires lineage and evidence.**
+5. **Every promoted claim, memory, action and agent change requires lineage/evidence.**
+6. **Every external fact enters through a registered source and immutable snapshot.**
+7. **Source authority and freshness are fact-specific and executable.**
+8. **Material source revisions invalidate/re-evaluate dependent decisions.**
+9. **Internal grant models should interoperate with CommonGrants rather than creating an isolated private schema.**
+10. **The first vertical slice proves the system against real official grant data.**
 
-If G0 ratifies these laws, the product can reuse substantial Larger Lab/OCE work without inheriting Larger Lab’s historical complexity.
+With these laws, the product can reuse substantial Larger Lab/OCE/Hermes infrastructure while building the true competitive layer around Grant domain intelligence, evidence, eligibility, matching and application production.
