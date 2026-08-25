@@ -41,11 +41,15 @@ def load_yaml(rel_or_abs_path) -> dict:
 
 
 def blob_sha(path) -> str:
-    """Git-style blob SHA-1 of a file's current content (drift detection)."""
+    """Git-style blob SHA-1 of a file's content, normalized for line endings.
+
+    CRLF/LF must not create phantom authority drift across checkouts with
+    different autocrlf settings, so newlines are canonicalized before hashing.
+    """
     p = Path(path)
     if not p.is_absolute():
         p = REPO_ROOT / p
-    data = p.read_bytes()
+    data = p.read_bytes().replace(b"\r\n", b"\n")
     return hashlib.sha1(b"blob %d\x00" % len(data) + data).hexdigest()
 
 
