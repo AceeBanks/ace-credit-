@@ -1,0 +1,61 @@
+{
+  "execution_id": "G0-B01-EXEC-001",
+  "repository": "dabiggestpoppa/larger-lab",
+  "branch": "grant-sector-r0-salvage",
+  "starting_sha": "0cdd8b0e70b68eec4599e2cef7c20ba0f9e89454",
+  "started_at": "2026-08-25T00:00:00Z",
+  "books": ["G0-B0", "G0-B1"],
+  "authoritative_documents": [
+    {"path": "docs/grant-sector/BOOK_0_CONTINUOUS_EXECUTION_MASTER_PROMPT_v1.0.md", "role": "book0_plan"},
+    {"path": "docs/grant-sector/G0_BOOK_01_MASTER_IMPLEMENTATION_PLAN_v1.0.md", "role": "book1_plan"},
+    {"path": "docs/grant-sector/G0_BOOK_01_PRODUCT_CONSTITUTION_DRAFT_v0.1.md", "role": "book1_provisional_constitution"},
+    {"path": "docs/grant-sector/G0_FULL_MASTER_BUILD_BLUEPRINT_v1.0.md", "role": "global_g0_blueprint"},
+    {"path": "docs/grant-sector/G0_BLOCK_00_TO_03_MASTER_IMPLEMENTATION_PLAN_v1.0.md", "role": "global_g0_block_plan"},
+    {"path": "docs/grant-sector/G0_ENTRY_PLAN_v0.1.md", "role": "g0_entry_plan"},
+    {"path": "docs/grant-sector/G0_BLUEPRINT_AMENDMENT_001_GEORGIA_FIRST_EARLY_DRAFTING.md", "role": "active_amendment"},
+    {"path": "docs/grant-sector/GRANT_SECTOR_DUAL_HERMES_CONTEXT_AND_R0_CHARTER_v0.1.md", "role": "r0_foundation"},
+    {"path": "docs/grant-sector/R0_SALVAGE_MAP_v0.1.md", "role": "r0_foundation"},
+    {"path": "docs/grant-sector/R0_BRANCH_ARCHAEOLOGY_NOTES_v0.1.md", "role": "r0_foundation"},
+    {"path": "docs/grant-sector/R0_REJECT_DO_NOT_PORT_LEDGER_v0.1.md", "role": "r0_foundation"},
+    {"path": "docs/grant-sector/R0_GAP_MAP_v0.1.md", "role": "r0_foundation"},
+    {"path": "docs/grant-sector/R0_SEED_ARCHITECTURE_RECOMMENDATION_v0.1.md", "role": "r0_foundation"},
+    {"path": "docs/grant-sector/R0_PROGRESS_CHECKPOINT_2026-08-24.md", "role": "r0_foundation"},
+    {"path": "docs/grant-sector/R0_EXTERNAL_REPO_REVIEW_BATCH_01.md", "role": "r0_external_review"},
+    {"path": "docs/grant-sector/R0_EXTERNAL_REPO_REVIEW_BATCH_02_SEMANTICA_TREG.md", "role": "r0_external_review"},
+    {"path": "docs/grant-sector/R0_EXTERNAL_REPO_REVIEW_BATCH_03_AWESOME_AI_APPS.md", "role": "r0_external_review"},
+    {"path": "docs/grant-sector/R0_GRANT_DOMAIN_DATA_SOURCE_DEEP_HUNT_v0.1.md", "role": "r0_data_hunt"}
+  ],
+  "reused_components": [],
+  "prohibited_paths": [
+    "quant-lab/** (trading implementation; no modifications)",
+    "oce/backend/** (existing OCE runtime; read-only reference)",
+    "capital-routing/** (trading domain; no modifications)",
+    "**/secrets, credentials, .env files (never created or committed)",
+    "Books 2-9 implementation artifacts beyond typed stubs required by Book 0/1 contracts"
+  ],
+  "known_blockers": [],
+  "planned_commit_sequence": [
+    "G0-B01-BOOT: establish Books 0-1 execution baseline",
+    "G0-B0-C1: build R0 artifact manifest and lineage validator",
+    "G0-B0-C2: normalize R0 architecture decisions",
+    "G0-B0-C3: close R0 P0 contradictions and drift",
+    "G0-B0-C4-C5: freeze non-goals and prototype register",
+    "G0-B0-C6: implement ratification Reality Lock and tests",
+    "G0-B0-BOOK: complete Book 0 implementation and evidence packet",
+    "G0-B1-C1: establish constitutional mission and phase boundaries",
+    "G0-B1-C2: freeze constitutional law catalog",
+    "G0-B1-C3-C4: define actors and L0-L5 authority model",
+    "G0-B1-C5: define typed capability registry",
+    "G0-B1-C6-C8: freeze approvals, self-improvement and failure governance",
+    "G0-B1-C9-C11: implement audit contracts and executable policy prototype",
+    "G0-B1-C12-C13: verify client Phase 1 coverage and Georgia-first assumption",
+    "G0-B1-C14-C15: add adversarial and integration tests",
+    "G0-B1-BOOK: complete Book 1 implementation and evidence packet",
+    "G0-B01-FINAL: Books 0-1 implementation ready for external review"
+  ],
+  "notes": {
+    "worktree": "Work executed in linked worktree g0-worktree/ because the primary checkout is occupied by another agent's in-flight changes on a different branch.",
+    "authority_order": "Per campaign prompt section 1: ratified constitution > newest explicit book master plan > global G0 plan > R0 findings > reusable implementation > external docs > engineering preference.",
+    "scope_note": "Book 0 = R0 Ratification & Reality Lock (per BOOK_0_CONTINUOUS_EXECUTION_MASTER_PROMPT). Book 1 = Product Constitution & Authority (per G0_BOOK_01_MASTER_IMPLEMENTATION_PLAN). No Book 2+ work."
+  }
+}
