@@ -1,0 +1,292 @@
+# G0 Book 0 - R0/G0 pre-ratification artifact manifest (machine-readable).
+# Generated against branch grant-sector-r0-salvage; blob SHAs pin exact content.
+# Authority classes: binding_candidate | architecture_evidence | research_evidence |
+#   prototype_evidence | historical_lineage | reject_ledger | amendment | provisional_downstream_draft
+manifest_version: 1
+branch: grant-sector-r0-salvage
+authority_classes:
+  - binding_candidate
+  - architecture_evidence
+  - research_evidence
+  - prototype_evidence
+  - historical_lineage
+  - reject_ledger
+  - amendment
+  - provisional_downstream_draft
+artifacts:
+- artifact_id: GS-R0-CTX-001
+  path: docs/grant-sector/GRANT_SECTOR_DUAL_HERMES_CONTEXT_AND_R0_CHARTER_v0.1.md
+  blob_sha: 52aadb3f978332ab93a343f4ff2c3bc1afa9cd54
+  version: "0.1"
+  artifact_type: charter
+  authority_class: binding_candidate
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-R0-MAP-001
+  path: docs/grant-sector/R0_SALVAGE_MAP_v0.1.md
+  blob_sha: 9d4b75ba6876e06433084f32f185acb379647229
+  version: "0.2"
+  artifact_type: salvage_map
+  authority_class: architecture_evidence
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-R0-ARCH-001
+  path: docs/grant-sector/R0_BRANCH_ARCHAEOLOGY_NOTES_v0.1.md
+  blob_sha: f1822d087b957c2d14402220b1c276e5d105311d
+  version: "0.2"
+  artifact_type: archaeology_notes
+  authority_class: research_evidence
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-R0-REJECT-001
+  path: docs/grant-sector/R0_REJECT_DO_NOT_PORT_LEDGER_v0.1.md
+  blob_sha: 51ff9f61bd3549e0ed0fc90a62372f47ef282c3a
+  version: "0.2"
+  artifact_type: reject_ledger
+  authority_class: reject_ledger
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-R0-GAP-001
+  path: docs/grant-sector/R0_GAP_MAP_v0.1.md
+  blob_sha: 7a256ef35fb6abff7d5f77b10336ac067b58b8f1
+  version: "0.2"
+  artifact_type: gap_map
+  authority_class: research_evidence
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-R0-SEED-001
+  path: docs/grant-sector/R0_SEED_ARCHITECTURE_RECOMMENDATION_v0.1.md
+  blob_sha: b318c591b84362191be077a4d57b05a9f970464c
+  version: "0.2"
+  artifact_type: architecture_recommendation
+  authority_class: architecture_evidence
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: R0-PROGRESS-CHKPT-2026-08-24
+  path: docs/grant-sector/R0_PROGRESS_CHECKPOINT_2026-08-24.md
+  blob_sha: c8987f2bdd2c3f05ce25ab27301172d3e3788275
+  version: "undeclared"
+  artifact_type: progress_checkpoint
+  authority_class: research_evidence
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: R0-EXT-REVIEW-BATCH-01
+  path: docs/grant-sector/R0_EXTERNAL_REPO_REVIEW_BATCH_01.md
+  blob_sha: 7bfb622d1b38b31d3f0ca495e97a106d6e62d95b
+  version: "undeclared"
+  artifact_type: external_repo_review
+  authority_class: research_evidence
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: R0-EXT-REVIEW-BATCH-02
+  path: docs/grant-sector/R0_EXTERNAL_REPO_REVIEW_BATCH_02_SEMANTICA_TREG.md
+  blob_sha: 1a34227eeb87357edb7519e88d75b7bbf40d211e
+  version: "undeclared"
+  artifact_type: external_repo_review
+  authority_class: research_evidence
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: R0-EXT-REVIEW-BATCH-03
+  path: docs/grant-sector/R0_EXTERNAL_REPO_REVIEW_BATCH_03_AWESOME_AI_APPS.md
+  blob_sha: 4df84b3dcd34c8df0110797ba7aa91b40e3eedb2
+  version: "undeclared"
+  artifact_type: external_repo_review
+  authority_class: research_evidence
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-R0-DATA-001
+  path: docs/grant-sector/R0_GRANT_DOMAIN_DATA_SOURCE_DEEP_HUNT_v0.1.md
+  blob_sha: 38e86593fa8fb4ff4a53cc55f702d79cbc9664a6
+  version: "0.1"
+  artifact_type: data_source_hunt
+  authority_class: research_evidence
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-PLAN-001
+  path: docs/grant-sector/G0_ENTRY_PLAN_v0.1.md
+  blob_sha: e0a2aadaf280f12e0ffef6b014e5e58fa15ff46d
+  version: "0.1"
+  artifact_type: entry_plan
+  authority_class: binding_candidate
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-BLOCK-00-03-001
+  path: docs/grant-sector/G0_BLOCK_00_TO_03_MASTER_IMPLEMENTATION_PLAN_v1.0.md
+  blob_sha: e0249b864a965381bdbe50418653a379c15eda5d
+  version: "1.0"
+  artifact_type: master_implementation_plan
+  authority_class: binding_candidate
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-MASTER-001
+  path: docs/grant-sector/G0_FULL_MASTER_BUILD_BLUEPRINT_v1.0.md
+  blob_sha: c8a9b6a9766812eb40a6d20b4096e1cfe788e89a
+  version: "1.0"
+  artifact_type: master_blueprint
+  authority_class: binding_candidate
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-AMD-001
+  path: docs/grant-sector/G0_BLUEPRINT_AMENDMENT_001_GEORGIA_FIRST_EARLY_DRAFTING.md
+  blob_sha: ca4100552523c8893c4bc1c2c8b8ab51bd2b0a3a
+  version: "1.0"
+  artifact_type: blueprint_amendment
+  authority_class: amendment
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-B0-PROMPT-001
+  path: docs/grant-sector/BOOK_0_CONTINUOUS_EXECUTION_MASTER_PROMPT_v1.0.md
+  blob_sha: 90f3984f1e832054c270ffa0f348f6c7d2739b41
+  version: "1.0"
+  artifact_type: book_execution_prompt
+  authority_class: binding_candidate
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-B1-CONST-001
+  path: docs/grant-sector/G0_BOOK_01_PRODUCT_CONSTITUTION_DRAFT_v0.1.md
+  blob_sha: 30b93f308dc1aade6950a4f6093e2f6d33968058
+  version: "0.1"
+  artifact_type: constitution_draft
+  authority_class: provisional_downstream_draft
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-B1-PLAN-001
+  path: docs/grant-sector/G0_BOOK_01_MASTER_IMPLEMENTATION_PLAN_v1.0.md
+  blob_sha: 039e220b004aa8b54468865b68837bcf01b0a2fa
+  version: "1.0"
+  artifact_type: book_master_implementation_plan
+  authority_class: binding_candidate
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-B2-PLAN-001
+  path: docs/grant-sector/G0_BOOK_02_MASTER_IMPLEMENTATION_PLAN_v1.0.md
+  blob_sha: ff80fc8af1c51ecf61abb9fedda9e69510900e56
+  version: "1.0"
+  artifact_type: book_master_implementation_plan
+  authority_class: provisional_downstream_draft
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-B3-PLAN-001
+  path: docs/grant-sector/G0_BOOK_03_MASTER_IMPLEMENTATION_PLAN_v1.0.md
+  blob_sha: b9fe42e7a08c454dce17eac1d61d6322998b18ad
+  version: "1.0"
+  artifact_type: book_master_implementation_plan
+  authority_class: provisional_downstream_draft
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-B4-PLAN-001
+  path: docs/grant-sector/G0_BOOK_04_MASTER_IMPLEMENTATION_PLAN_v1.0.md
+  blob_sha: 9685289f82da558f0478f9402059017000fb61f6
+  version: "1.0"
+  artifact_type: book_master_implementation_plan
+  authority_class: provisional_downstream_draft
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-B5-PLAN-001
+  path: docs/grant-sector/G0_BOOK_05_MASTER_IMPLEMENTATION_PLAN_v1.0.md
+  blob_sha: cd92262c10dd0e04308912a2e1ccd53660f6bbdb
+  version: "1.0"
+  artifact_type: book_master_implementation_plan
+  authority_class: provisional_downstream_draft
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
+- artifact_id: GS-G0-B6-PLAN-001
+  path: docs/grant-sector/G0_BOOK_06_MASTER_IMPLEMENTATION_PLAN_v1.0.md
+  blob_sha: 6d2fb4de852ce3819d7cafd1ff6942b6b0bef98d
+  version: "1.0"
+  artifact_type: book_master_implementation_plan
+  authority_class: provisional_downstream_draft
+  status: active
+  created_or_observed_at: "2026-08-24"
+  supersedes: []
+  superseded_by: null
+  notes: >-
+    Pinned by content hash at Book 0 ratification baseline.
