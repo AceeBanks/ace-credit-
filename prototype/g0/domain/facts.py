@@ -70,6 +70,30 @@ def validate_statistic(stat: StatisticObservation, policy: dict) -> list[str]:
     return errors
 
 
+def superseded_fact_use(fact: CanonicalFact, artifact_refs: tuple[str, ...]) -> list[str]:
+    """B2.C20/A19 — an artifact that references a SUPERSEDED fact is flagged
+    (traceable and QA/invalidation detectable)."""
+    if fact.promotion_state is not FactPromotionState.SUPERSEDED:
+        return []
+    return [f"artifact {ref} references superseded fact '{fact.fact_id}'"
+            for ref in artifact_refs]
+
+
+def geography_mismatch(stat_geography: str, claimed_scope: str) -> bool:
+    """B2.C20/A10 — a county statistic cannot be silently used as a city
+    statistic: granularity terms must not conflict."""
+    if not stat_geography or not claimed_scope:
+        return False
+    s, c = stat_geography.lower(), claimed_scope.lower()
+    if "county" in s and "city" in c and "county" not in c:
+        return True
+    if "city" in s and "county" in c and "city" not in c:
+        return True
+    if "state" in s and ("city" in c or "county" in c) and "state" not in c:
+        return True
+    return False
+
+
 def assertion_lineage(artifact_version_ref: str, fact: CanonicalFact,
                       claims: dict[str, EvidenceClaim],
                       snapshots: dict[str, SourceSnapshot]) -> dict:
