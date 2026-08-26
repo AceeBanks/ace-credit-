@@ -1,0 +1,67 @@
+# G0-B6-C12/C13 — Integration Boundary & Egress Policy
+
+policy_id: G0-B6-C12
+version: "1.0"
+
+integration_allowed_roles:
+  - create_calendar_event
+  - write_file_to_approved_storage
+  - send_approved_email
+  - sync_approved_crm_fields
+  - trigger_bounded_administrative_workflow
+
+integration_forbidden_roles:
+  - own_canonical_application_project_state
+  - own_agent_authority
+  - own_eligibility_truth
+  - own_approval_truth
+  - own_permanent_source_of_record_status
+
+integration_rules:
+  - id: INT-001
+    text: "A workflow platform outage never erases accepted canonical task state."
+  - id: INT-002
+    text: "A connector can never mutate an unrelated resource; results are scoped to the authorized resource."
+  - id: INT-003
+    text: "Automation created outside the platform gains no canonical authority; only governed capabilities do."
+  - id: INT-004
+    text: "Connector results are validated against schema/expectations before any state promotion."
+  - id: INT-005
+    text: "An integration platform is a subordinate executor (SEC-LAW-018); it never becomes the second control plane."
+
+egress_classes:
+  - REGISTERED_SOURCE_READ
+  - APPROVED_API
+  - APPROVED_INTEGRATION
+  - EMAIL_EXTERNAL
+  - SUBMISSION_PORTAL
+  - UNKNOWN_EXTERNAL
+
+egress_phase1_defaults:
+  REGISTERED_SOURCE_READ: ENABLED
+  APPROVED_API: ENABLED
+  APPROVED_INTEGRATION: ENABLED_AS_NEEDED
+  EMAIL_EXTERNAL: DISABLED
+  SUBMISSION_PORTAL: DISABLED
+  UNKNOWN_EXTERNAL: DISABLED
+
+egress_rules:
+  - id: EGR-001
+    text: "Unknown external destinations are blocked by default; egress requires an explicit allowlisted destination."
+  - id: EGR-002
+    text: "SSRF protections: localhost, cloud metadata (169.254.169.254), private/internal networks and arbitrary file:// are blocked."
+  - id: EGR-003
+    text: "Redirects are revalidated against the egress policy before following; a redirect to an attacker host is blocked."
+  - id: EGR-004
+    text: "Sensitive tenant data upload to an unapproved destination is blocked."
+  - id: EGR-005
+    text: "Downloads are quarantined for parsing; crawled content never carries execution authority."
+
+blocked_destinations:
+  - 127.0.0.1
+  - localhost
+  - 169.254.169.254
+  - 169.254.170.2
+  - ::1
+  - file://
+  - metadata.google.internal

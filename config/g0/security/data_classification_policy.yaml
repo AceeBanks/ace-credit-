@@ -1,0 +1,61 @@
+# G0-B6-C14/C15 — Data Classification & PII Policy
+
+policy_id: G0-B6-C14
+version: "1.0"
+
+data_classes:
+  - PUBLIC
+  - INTERNAL
+  - TENANT_CONFIDENTIAL
+  - PII
+  - FINANCIAL_SENSITIVE
+  - CREDENTIAL_SECRET
+  - LEGAL_OR_CERTIFICATION_SENSITIVE
+  - RESTRICTED_SYSTEM_SECURITY
+
+# strongest-to-weakest ranking for inheritance
+class_ranking:
+  RESTRICTED_SYSTEM_SECURITY: 8
+  CREDENTIAL_SECRET: 7
+  LEGAL_OR_CERTIFICATION_SENSITIVE: 6
+  FINANCIAL_SENSITIVE: 5
+  PII: 4
+  TENANT_CONFIDENTIAL: 3
+  INTERNAL: 2
+  PUBLIC: 1
+
+data_rules:
+  - id: DATA-001
+    text: "Derived artifacts inherit the strongest relevant classification; explicit transformation/redaction may lower it only when safe."
+  - id: DATA-002
+    text: "A secret can never downgrade to INTERNAL or PUBLIC by summarization alone."
+  - id: DATA-003
+    text: "Public source + private annotations results in a tenant-private derived object."
+
+pii_principles:
+  - data_minimization
+  - purpose_limitation
+  - field_level_sensitivity
+  - role_based_access
+  - redaction_in_logs_and_evals
+  - export_delete_workflow_later
+  - avoid_unnecessary_ssn_bank_credential_storage
+  - separate_client_financial_facts_from_public_research
+
+pii_rules:
+  - id: PII-001
+    text: "A worker receives only the fields required for its task; unrelated workers never receive founder/PII fields."
+  - id: PII-002
+    text: "Sensitive values are redacted from sidechain previews and logs."
+  - id: PII-003
+    text: "Public explanation packets omit restricted fields."
+  - id: PII-004
+    text: "Tenant-private data cannot enter global eval/training without explicit policy/consent/governance."
+
+pii_fields:
+  - ssn
+  - bank_account
+  - founder_email
+  - founder_phone
+  - tax_id
+  - date_of_birth
