@@ -1,0 +1,30 @@
+# G0 Book 2 - B2.C14 Outcome & Learning Feedback Ontology (machine-readable).
+# Prepares the domain for later tracking/self-improvement WITHOUT building
+# tracking now. Phase 1 does not require submission automation, but the domain
+# must not require a redesign to learn later from outcomes.
+outcome_policy_version: "1.0"
+outcome_types:
+- SUBMITTED
+- AWARDED
+- REJECTED
+- WITHDRAWN
+- REVISION_REQUESTED
+- NOT_SUBMITTED
+- UNKNOWN
+outcome_fields:
+- outcome_id
+- project_id
+- award_id
+- outcome_type
+- observed_at
+- verified_at
+- source_evidence_refs
+- reason_codes
+- freeform_feedback
+linkage_rules:
+- {rule: historical_award_without_project, note: Award may exist without any ApplicationProject; outcome links later.}
+- {rule: linkable_later, note: An outcome may be linked to a project/award after the fact; linkage is a separate operation.}
+learning_rule: outcome_becomes_evidence_for_book7_not_automatic_doctrine
+learning_constraints:
+- {rule: no_automatic_prompt_rewrite, note: An outcome never rewrites prompts/policies by itself.}
+- {rule: evidence_ledger, note: Outcomes are recorded as evidence for Book 7/self-improvement evaluation.}

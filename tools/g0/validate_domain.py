@@ -19,6 +19,7 @@ Missing files, malformed fields or unknown enum values are hard failures
 - C11 validate_requirement_types
 - C12 validate_budget_policy
 - C13 validate_artifact_families
+- C14 validate_outcome_policy
 - C15 validate_common_grants_mapping
 """
 from __future__ import annotations
@@ -435,6 +436,93 @@ def validate_artifact_families(data: dict) -> tuple[bool, dict]:
     })
 
 
+OUTCOME_TYPES = {"SUBMITTED", "AWARDED", "REJECTED", "WITHDRAWN",
+                 "REVISION_REQUESTED", "NOT_SUBMITTED", "UNKNOWN"}
+
+
+def validate_outcome_policy(data: dict) -> tuple[bool, dict]:
+    """B2.C14 — outcome ontology: outcome types from the plan, learning is
+    evidence-only (never automatic doctrine), linkage rules present."""
+    errors: list[str] = []
+    types = set(data.get("outcome_types") or [])
+    if types != OUTCOME_TYPES:
+        errors.append(f"outcome_types must be exactly {sorted(OUTCOME_TYPES)}")
+    if data.get("learning_rule") != "outcome_becomes_evidence_for_book7_not_automatic_doctrine":
+        errors.append("learning_rule must be evidence-only (never automatic doctrine)")
+    constraints = {c.get("rule") for c in data.get("learning_constraints") or []}
+    if "no_automatic_prompt_rewrite" not in constraints:
+        errors.append("learning_constraints must include no_automatic_prompt_rewrite")
+    linkage = {c.get("rule") for c in data.get("linkage_rules") or []}
+    if "historical_award_without_project" not in linkage:
+        errors.append("linkage_rules must include historical_award_without_project")
+    return finish("domain_outcome_policy", not errors, {
+        "errors": errors, "outcome_type_count": len(types),
+    })
+
+
+MAPPING_CLASSES = {"EXACT", "EXTENSION", "INTERNAL_ONLY", "EXTERNAL_ONLY", "LOSSY"}
+MAPPING_COLUMNS = ("internal_field", "common_grants_entity", "common_grants_field",
+                   "mapping_class", "transform", "reverse_transform", "loss_notes",
+                   "validation", "example")
+CG_ENTITIES = {"Opportunity", "Application", "Award"}
+
+
+def validate_common_grants_mapping(data: dict) -> tuple[bool, dict]:
+    """B2.C15 — CommonGrants mapping: classes from the plan, full matrix
+    columns per row, entities are Opportunity/Application/Award, extension
+    namespace declared, no shadow semantics, every row pinned or pending."""
+    errors: list[str] = []
+    classes = set(data.get("mapping_classes") or [])
+    if classes != MAPPING_CLASSES:
+        errors.append(f"mapping_classes must be exactly {sorted(MAPPING_CLASSES)}")
+    ns = data.get("extension_namespace")
+    if not ns:
+        errors.append("extension_namespace required")
+    for ent in data.get("entities") or []:
+        name = ent.get("entity")
+        rows = ent.get("rows") or []
+        if not rows:
+            errors.append(f"{name}: no mapping rows")
+        for row in rows:
+            missing = [c for c in MAPPING_COLUMNS if c not in row]
+            if missing:
+                errors.append(f"{name}: row missing columns {missing}")
+            cls = row.get("mapping_class")
+            if cls not in MAPPING_CLASSES:
+                errors.append(f"{name}.{row.get('internal_field')}: unknown class '{cls}'")
+            cg_ent = row.get("common_grants_entity")
+            if cg_ent not in CG_ENTITIES:
+                errors.append(f"{name}.{row.get('internal_field')}: unknown CG entity '{cg_ent}'")
+            if not row.get("validation"):
+                errors.append(f"{name}.{row.get('internal_field')}: validation required")
+    # no-shadow semantics: within an entity, one internal field maps to at most
+    # one CG field and vice versa (duplicate targets are ambiguity/shadowing).
+    # Identical internal/CG names are the intended identity mapping.
+    for ent in data.get("entities") or []:
+        name = ent.get("entity")
+        rows = ent.get("rows") or []
+        internal_fields = [r.get("internal_field") for r in rows]
+        cg_fields = [r.get("common_grants_field") for r in rows]
+        dup_internal = {f for f in internal_fields if internal_fields.count(f) > 1}
+        if dup_internal:
+            errors.append(f"{name}: internal_field duplicated {sorted(dup_internal)}")
+        dup_cg = {f for f in cg_fields if cg_fields.count(f) > 1}
+        if dup_cg:
+            errors.append(f"{name}: common_grants_field duplicated {sorted(dup_cg)}")
+    return finish("domain_common_grants_mapping", not errors, {
+        "errors": errors,
+        "row_count": sum(len(e.get("rows") or []) for e in data.get("entities") or []),
+    })
+
+
+def load_outcome_policy() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "outcome_policy.yaml")
+
+
+def load_common_grants_mapping() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "common_grants_mapping.yaml")
+
+
 def load_eligibility_policy() -> dict:
     return load_yaml(DOMAIN_CONFIG_DIR / "eligibility_policy.yaml")
 
@@ -498,6 +586,8 @@ def main() -> int:
         ("requirement_types", validate_requirement_types, load_requirement_types),
         ("budget_policy", validate_budget_policy, load_budget_policy),
         ("artifact_families", validate_artifact_families, load_artifact_families),
+        ("outcome_policy", validate_outcome_policy, load_outcome_policy),
+        ("common_grants_mapping", validate_common_grants_mapping, load_common_grants_mapping),
     ]
     ok_all = True
     for name, fn, loader in checks:

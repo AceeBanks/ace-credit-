@@ -506,6 +506,7 @@ class OutcomeFeedback:
     verified_at: str | None = None
     reason_codes: tuple[str, ...] = ()
     freeform_feedback: str | None = None
+    source_evidence_refs: tuple[str, ...] = ()   # B2.C14 evidence for learning
 
 
 # --- Identity / relationships -------------------------------------------------------
@@ -532,3 +533,15 @@ class Relationship:
     valid_from: str | None = None
     valid_to: str | None = None
     provenance_required: bool = True
+
+
+@dataclass(frozen=True)
+class CommonGrantsExtension:
+    """Project-owned extension value for a field CommonGrants does not
+    represent (B2.C15). Carried under the cgx_ namespace; never shadowed by an
+    external field name."""
+    extension_id: str
+    internal_entity: str
+    internal_field: str
+    mapping_class: str = "EXTENSION"
+    value: str = ""

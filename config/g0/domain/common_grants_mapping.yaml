@@ -1,0 +1,52 @@
+# G0 Book 2 - B2.C15 CommonGrants Interoperability Contract (machine-readable).
+# Standards compatibility WITHOUT reducing internal richness. The plan requires
+# the ACTUAL pinned CommonGrants schemas/SDK version selected by the project.
+# No CommonGrants SDK is vendored in this workspace yet: the mapping below is
+# the executable MECHANISM, and schema_version is unpinned until the real
+# schemas are vendored (G0.3). check_schema_version() fails closed on any
+# mismatch, so no compatibility claim can be made prematurely.
+common_grants_schema_version: "unpinned"
+vendor_status: pending_common_grants_schema_vendor
+mapping_classes: [EXACT, EXTENSION, INTERNAL_ONLY, EXTERNAL_ONLY, LOSSY]
+extension_namespace: cgx_
+extension_field_scope:
+- evidence_lineage
+- eligibility_decision_trace
+- match_explanation
+- application_workflow_state
+- artifact_lineage
+- client_review
+- qa_status
+- outcome_learning_metadata
+round_trip_rule: |
+  EXACT mappings must preserve semantic equality internal -> CommonGrants ->
+  internal. LOSSY mappings must be explicit and test-visible.
+no_shadow_semantics_rule: |
+  Never create a second internal field merely to mirror an external field
+  name; map external semantics into the canonical internal concept.
+external_id_rule: |
+  External IDs map into ExternalIdentifier records; they NEVER replace the
+  internal stable identity.
+# Mapping matrix rows. `validation` states the pin status per row: rows cannot
+# be claimed verified until the CommonGrants schemas are vendored and checked.
+entities:
+- entity: GrantOpportunity
+  rows:
+  - {internal_field: opportunity_id,      common_grants_entity: Opportunity, common_grants_field: opportunity_id,      mapping_class: EXACT, transform: identity, reverse_transform: identity, loss_notes: "", validation: pending_schema_vendor, example: "opp-1"}
+  - {internal_field: title,               common_grants_entity: Opportunity, common_grants_field: opportunity_title,   mapping_class: EXACT, transform: identity, reverse_transform: identity, loss_notes: "", validation: pending_schema_vendor, example: "Community Grant FY2026"}
+  - {internal_field: status,              common_grants_entity: Opportunity, common_grants_field: opportunity_status,  mapping_class: LOSSY, transform: map_status, reverse_transform: map_status, loss_notes: "CG status vocabulary is coarser than EntityStatus", validation: pending_schema_vendor, example: "ACTIVE"}
+  - {internal_field: deadline (revision), common_grants_entity: Opportunity, common_grants_field: deadline,            mapping_class: LOSSY, transform: latest_revision_deadline, reverse_transform: none, loss_notes: "revision history not representable; only latest deadline", validation: pending_schema_vendor, example: "2026-10-15"}
+- entity: ApplicationProject
+  rows:
+  - {internal_field: project_id,          common_grants_entity: Application, common_grants_field: application_id,      mapping_class: EXACT, transform: identity, reverse_transform: identity, loss_notes: "", validation: pending_schema_vendor, example: "app-1"}
+  - {internal_field: organization_id,     common_grants_entity: Application, common_grants_field: applicant_id,        mapping_class: EXACT, transform: identity, reverse_transform: identity, loss_notes: "", validation: pending_schema_vendor, example: "org-42"}
+  - {internal_field: opportunity_id,      common_grants_entity: Application, common_grants_field: opportunity_id,      mapping_class: EXACT, transform: identity, reverse_transform: identity, loss_notes: "", validation: pending_schema_vendor, example: "opp-1"}
+  - {internal_field: state,               common_grants_entity: Application, common_grants_field: application_status,  mapping_class: LOSSY, transform: map_state, reverse_transform: map_state, loss_notes: "workflow state richer than CG status", validation: pending_schema_vendor, example: "DRAFTING"}
+  - {internal_field: opportunity_revision_id, common_grants_entity: Application, common_grants_field: cgx_opportunity_revision_id, mapping_class: EXTENSION, transform: identity, reverse_transform: identity, loss_notes: "project-owned extension", validation: pending_schema_vendor, example: "opp_rev-2"}
+- entity: Award
+  rows:
+  - {internal_field: award_id,            common_grants_entity: Award, common_grants_field: award_id,             mapping_class: EXACT, transform: identity, reverse_transform: identity, loss_notes: "", validation: pending_schema_vendor, example: "award-1"}
+  - {internal_field: amount,              common_grants_entity: Award, common_grants_field: funding_amount,      mapping_class: EXACT, transform: decimal_to_string, reverse_transform: string_to_decimal, loss_notes: "", validation: pending_schema_vendor, example: "75000.00"}
+  - {internal_field: currency,            common_grants_entity: Award, common_grants_field: funding_currency,    mapping_class: EXACT, transform: identity, reverse_transform: identity, loss_notes: "", validation: pending_schema_vendor, example: "USD"}
+  - {internal_field: recipient_id,        common_grants_entity: Award, common_grants_field: recipient_organization_id, mapping_class: EXACT, transform: identity, reverse_transform: identity, loss_notes: "", validation: pending_schema_vendor, example: "org-42"}
+  - {internal_field: award_date,          common_grants_entity: Award, common_grants_field: award_date,          mapping_class: LOSSY, transform: identity, reverse_transform: identity, loss_notes: "internal date precision may exceed CG", validation: pending_schema_vendor, example: "2026-06-01"}
