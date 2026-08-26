@@ -79,5 +79,5 @@ Exit code 0 ⇔ PASS. Regeneration is deterministic given repository state.
 | G0-B1-RATIFY (168 total) | 117 | Checkpoint `G0_B1_BOOK_CHECKPOINT.json` records the 168-suite total at RATIFY time |
 | **G0-B1-REPAIR-02 (current)** | **133** | +16 approval-integrity tests (this report) |
 
-Current full-suite counts (`python -m pytest tests/g0/ -q` → **682 passed**, Book 3 in progress):
-Book 0 = 51, Book 1 = 133, Book 2 = 255, Book 3 = 243 (C1-C27 implemented, Reality Lock PASS, ready_for_book4). Book 2 complete — Reality Lock PASS, ready_for_book3.
+Current full-suite counts (`python -m pytest tests/g0/ -q` → **698 passed**, Book 4 in progress):
+Book 0 = 51, Book 1 = 133, Book 2 = 255, Book 3 = 243 (C1-C27, Reality Lock PASS), Book 4 = 16 (C1 boundary implemented; Reality Lock pending end-of-Book). Books 2/3 complete — Reality Locks PASS.

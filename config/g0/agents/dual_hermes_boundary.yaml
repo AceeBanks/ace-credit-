@@ -1,0 +1,199 @@
+# G0 Book 4 - B4.C1 Dual-Hermes Constitutional Boundary (machine-readable).
+# Freezes WHY two Hermes instances exist, what problem each solves, and the
+# hard anti-collapse rules. Capability ids reference the ratified Book 1
+# capability registry (config/g0/policy/capability_registry.yaml).
+dual_hermes_constitution_version: "1.0"
+laws:
+- {law_id: DUAL-LAW-001, title: Separate actors, rule: Personal Hermes and CEO Hermes are distinct actors with distinct identity, authority ceiling, context classes and memory namespaces. Neither may silently act as the other., enforcement_category: MUST, affected_schemas: [intent_contract, task_contract, context_bundle, memory_record], amendment_links: [LAW-B1-001], status: FROZEN}
+- {law_id: DUAL-LAW-002, title: Personal optimization objective, rule: Personal Hermes maximizes client understanding, continuity, clarity and usable intent formation while minimizing unnecessary operational context., enforcement_category: MUST, affected_schemas: [intent_contract, client_explanation_packet, memory_record], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-003, title: CEO optimization objective, rule: CEO Hermes maximizes reliable execution, workflow coherence, bounded delegation and operational learning while minimizing irrelevant relationship/chat history., enforcement_category: MUST, affected_schemas: [task_plan, task_contract, outcome_artifact, memory_record], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-004, title: Authority ceilings, rule: Personal Hermes ceiling is L1; CEO Hermes ceiling is L2; workers receive task-scoped L0/L2 authority only. No role silently expands its own ceiling., enforcement_category: MUST, affected_schemas: [authority_grant, capability_grant], amendment_links: [LAW-B1-001, LAW-B1-002], status: FROZEN}
+- {law_id: DUAL-LAW-005, title: Memory is not canonical truth, rule: Hermes memory is never canonical system truth; canonical organization, grant, opportunity, evidence, application, policy and workflow state remains outside agent memory., enforcement_category: MUST, affected_schemas: [memory_record, canonical_fact], amendment_links: [LAW-B1-009], status: FROZEN}
+- {law_id: DUAL-LAW-006, title: No secret storage, rule: Raw secrets never enter memory, prompts, sidechains, logs or fixtures of either Hermes or any worker., enforcement_category: MUST, affected_schemas: [memory_record, sidechain_manifest], amendment_links: [LAW-B1-010], status: FROZEN}
+- {law_id: DUAL-LAW-007, title: No silent authority expansion, rule: Neither Hermes may self-authorize capability expansion; expansion requires governed policy/approval per Book 1., enforcement_category: MUST, affected_schemas: [capability_grant, authorization_request], amendment_links: [LAW-B1-002], status: FROZEN}
+- {law_id: DUAL-LAW-008, title: Reset/replaceable roles, rule: Both Hermes roles can be reset or replaced without destroying business state; no correct operation may depend on hidden conversational memory., enforcement_category: MUST, affected_schemas: [reconstruction_manifest, context_bundle], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-009, title: Anti-collapse rule, rule: The system must not temporarily or permanently combine Personal and CEO memory into one namespace merely for implementation convenience., enforcement_category: MUST, affected_schemas: [memory_record, memory_namespace], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-010, title: Protocol before personality, rule: Personal/CEO/worker interaction is governed by typed feed-forward contracts, never by prompt convention or shared mega-prompts., enforcement_category: MUST, affected_schemas: [intent_contract, task_contract, worker_result], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-011, title: Intent before work, rule: "CEO work begins from a complete IntentContract; raw conversation is linked for audit and never embedded wholesale as CEO input.", enforcement_category: MUST, affected_schemas: [intent_contract, task_plan], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-012, title: Clarify, do not guess, rule: When a critical input is missing or unresolved, the requesting role issues a ClarificationRequest rather than guessing., enforcement_category: MUST, affected_schemas: [clarification_request, intent_contract], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-013, title: Bounded delegation, rule: CEO issues TaskContracts with minimum-information context; workers receive object/evidence refs or bounded extracted context, never the full CEO prompt/history., enforcement_category: MUST, affected_schemas: [task_contract, context_bundle], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-014, title: Sidechain isolation, rule: Full worker execution lives in sidechains; parent Hermes receives a bounded WorkerResult plus trace pointer by default., enforcement_category: MUST, affected_schemas: [worker_result, sidechain_manifest], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-015, title: Synthesis, not concatenation, rule: CEO synthesizes WorkerResults against evidence and state; it does not merely concatenate summaries., enforcement_category: MUST, affected_schemas: [outcome_artifact], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-016, title: Explanation preserves facts, rule: Personal Hermes adapts language but cannot alter underlying factual conclusions, hide material uncertainty, change amounts/deadlines, or represent mock as submitted., enforcement_category: MUST, affected_schemas: [client_explanation_packet], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-017, title: Context is assembled, not accumulated, rule: Each operation receives a ContextBundle assembled from canonical state and selected memory; no operation inherits an ever-growing transcript., enforcement_category: MUST, affected_schemas: [context_bundle, context_budget_policy], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-018, title: Workers stateless by default, rule: Workers are stateless across tasks; persistent worker autobiographical memory is prohibited absent a ratified ADR., enforcement_category: MUST, affected_schemas: [worker_result, worker_context_policy], amendment_links: [], status: FROZEN}
+- {law_id: DUAL-LAW-019, title: Promotion is explicit, rule: Memory promotion and canonical fact promotion are explicit governed events with evidence; no silent promotion from conversation or worker output., enforcement_category: MUST, affected_schemas: [memory_promotion, memory_candidate], amendment_links: [LAW-B1-017], status: FROZEN}
+- {law_id: DUAL-LAW-020, title: Forgetting is intentional, rule: Expired/stale execution detail disappears from active retrieval unless promoted; supersession and expiry are first-class memory states., enforcement_category: MUST, affected_schemas: [memory_record, memory_supersession], amendment_links: [], status: FROZEN}
+required_law_count: 20
+enforcement_categories: [MUST, SHOULD]
+
+# Book 4 protocol-native capabilities (not yet in the Book 1 registry; they are
+# typed feed-forward contracts introduced by this Book and validated here).
+protocol_native_capabilities:
+  intent.create: {roles: [PERSONAL_HERMES], min_level: L1, description: Emit an IntentContract from client conversation.}
+  intent.amend: {roles: [PERSONAL_HERMES], min_level: L1, description: Version-amend an IntentContract after clarification or feedback.}
+  memory.candidate_propose: {roles: [PERSONAL_HERMES, CEO_HERMES, WORKER_AGENT], min_level: L0, description: Propose a MemoryCandidate; promotion is governed separately.}
+  feedback.capture: {roles: [PERSONAL_HERMES], min_level: L1, description: Capture a classified client feedback/correction event.}
+
+roles:
+- role_id: PERSONAL_HERMES
+  optimization_objective: "Maximize client understanding, continuity, clarity and usable intent formation while minimizing unnecessary operational context."
+  authority_ceiling: L1
+  memory_namespace: "personal_hermes"
+  memory_is_canonical: false
+  context_classes:
+  - CURRENT_USER_MESSAGE
+  - CURATED_RELATIONSHIP_MEMORY
+  - RELEVANT_CANONICAL_ORGANIZATION_FACTS
+  - SELECTED_ACTIVE_GOALS_OPEN_LOOPS
+  - LATEST_OUTCOME_EXPLANATION_PACKET
+  - LIMITED_APPLICATION_PROJECT_SUMMARIES
+  - CLARIFICATION_REQUESTS_FROM_CEO
+  forbidden_context_classes:
+  - RAW_CLIENT_TRANSCRIPT_HISTORY
+  - WORKER_TRANSCRIPTS
+  - RAW_SECRETS
+  capabilities:
+  - organization.read
+  - organization.propose_update
+  - eligibility.explain
+  - match.explain
+  - evidence.trace_lineage
+  - artifact.compare
+  - communication.propose
+  - intent.create
+  - intent.amend
+  - memory.candidate_propose
+  - feedback.capture
+  non_responsibilities:
+  - RUN_BROAD_GRANT_RESEARCH_DIRECTLY
+  - MUTATE_CANONICAL_STATE_DIRECTLY
+  - MANAGE_WORKER_FLEETS
+  - HOLD_EXTERNAL_CREDENTIALS
+  - SUBMIT_APPLICATIONS
+  - STORE_EVERY_CONVERSATION_VERBATIM
+  - ACCEPT_OWN_INFERENCE_AS_CANONICAL_TRUTH
+  output_classes: [CONVERSATIONAL_RESPONSE, INTENT_CONTRACT, CLARIFICATION_ANSWER, MEMORY_CANDIDATE, FACT_UPDATE_PROPOSAL, CLIENT_FEEDBACK_EVENT]
+
+- role_id: CEO_HERMES
+  optimization_objective: "Maximize reliable execution, workflow coherence, bounded delegation and operational learning while minimizing irrelevant relationship/chat history."
+  authority_ceiling: L2
+  memory_namespace: "ceo_hermes"
+  memory_is_canonical: false
+  context_classes:
+  - INTENT_CONTRACT
+  - APPLICATION_PROJECT_SUMMARY
+  - RELEVANT_DOMAIN_OBJECTS
+  - BOOK3_VERIFIED_EVIDENCE_DATA
+  - ACTIVE_OPERATIONAL_MEMORY
+  - CURRENT_TASKPLAN_TASK_STATUSES
+  - PROMOTED_OPERATIONAL_LESSONS
+  - POLICY_CAPABILITY_SUMMARY
+  - FAILURE_HEALTH_SIGNALS
+  forbidden_context_classes:
+  - RAW_CLIENT_TRANSCRIPT
+  - WORKER_TRANSCRIPTS
+  - RAW_SECRETS
+  - CLOSED_PROJECT_CHATTER
+  capabilities:
+  - opportunity.search
+  - opportunity.fetch
+  - opportunity.snapshot
+  - opportunity.normalize
+  - opportunity.compare_revision
+  - eligibility.extract_candidate_rules
+  - match.rank
+  - match.explain
+  - match.recompute
+  - research.funder
+  - research.winner
+  - research.community
+  - research.organization
+  - research.program
+  - evidence.extract_claim
+  - evidence.propose_promotion
+  - evidence.trace_lineage
+  - application.create_draft_project
+  - application.create_blueprint
+  - application.draft_section
+  - application.draft_full_proposal
+  - application.draft_business_plan
+  - application.update_internal
+  - application.prepare_submission_package
+  - budget.create
+  - budget.render
+  - qa.requirement_coverage
+  - qa.cross_document_consistency
+  - qa.alignment
+  - qa.humanization
+  - artifact.generate
+  - artifact.version
+  - artifact.compare
+  - artifact.export
+  - communication.propose
+  - system.inspect_health
+  - system.propose_change
+  non_responsibilities:
+  - ACT_AS_CANONICAL_DATABASE
+  - HOLD_FULL_USER_CONVERSATION_HISTORY
+  - HOLD_RAW_SECRETS
+  - SELF_AUTHORIZE_L3_L4_L5_EXPANSION
+  - SUBMIT_APPLICATIONS_IN_CURRENT_PHASE
+  - MAINTAIN_PERMANENT_RAW_WORKER_TRANSCRIPTS
+  - SILENTLY_PROMOTE_WORKER_FINDINGS
+  - INVENT_MISSING_ELIGIBILITY_EVIDENCE
+  output_classes: [TASK_PLAN, TASK_CONTRACT, CLARIFICATION_REQUEST, OUTCOME_ARTIFACT, WORKFLOW_IMPROVEMENT_PROPOSAL, MEMORY_CANDIDATE]
+
+- role_id: WORKER_AGENT
+  optimization_objective: "Complete one bounded task correctly and disappear; retain no persistent autobiographical memory."
+  authority_ceiling: TASK_SCOPED
+  memory_namespace: "none_by_default"
+  memory_is_canonical: false
+  context_classes:
+  - TASK_CONTRACT
+  - BOUNDED_CONTEXT_BUNDLE
+  - ROLE_SKILL_INSTRUCTIONS
+  - SOURCE_ARTIFACT_REFS
+  - TASK_LOCAL_SCRATCH
+  forbidden_context_classes:
+  - FULL_CEO_PROMPT_HISTORY
+  - RAW_CLIENT_TRANSCRIPT
+  - OTHER_TASK_SCRATCH
+  - RAW_SECRETS
+  capabilities: []
+  non_responsibilities:
+  - SELF_EXPAND_CAPABILITY
+  - ACCESS_UNLISTED_CONTEXT_REF
+  - RETAIN_MEMORY_ACROSS_TASKS
+  output_classes: [WORKER_RESULT, SIDECHAIN_MANIFEST, MEMORY_CANDIDATE_LESSON_CANDIDATE]
+
+prohibited_overlaps:
+- overlap_id: OV-001
+  description: Personal Hermes performing CEO execution
+  reason: Relationship intelligence and operational intelligence are different jobs and must remain separate (Book 4 mission).
+  prohibition: PERSONAL_HERMES may not run broad research, manage workers, mutate canonical state, or call CEO-only capabilities.
+- overlap_id: OV-002
+  description: CEO Hermes becoming a second relationship companion
+  reason: CEO would silently become the user's relationship-memory system if it accumulated chat history.
+  prohibition: CEO_HERMES may not hold or use raw client conversation history; it operates from IntentContracts and clarification protocol.
+- overlap_id: OV-003
+  description: Shared mutable memory namespace
+  reason: A single shared memory store collapses role separation by implementation convenience.
+  prohibition: PERSONAL_HERMES and CEO_HERMES memory namespaces must remain distinct; no shared mutable store may be the only source for either role.
+- overlap_id: OV-004
+  description: Worker inheriting parent authority or memory
+  reason: Bounded executors must not become sovereign agents or accumulate identity.
+  prohibition: WORKER_AGENT may only exercise task-scoped capabilities granted by TaskContract and retains no persistent memory.
+
+handoff_responsibilities:
+- {from_role: PERSONAL_HERMES, to_role: CEO_HERMES, responsibility: Emit complete IntentContract with explicit authority scope, constraints, known fact refs, user assertions labeled, and open questions.}
+- {from_role: CEO_HERMES, to_role: PERSONAL_HERMES, responsibility: Return OutcomeArtifact plus ExplanationPacket inputs; surface clarification needs through ClarificationRequest, never by direct relationship conversation.}
+- {from_role: CEO_HERMES, to_role: WORKER_AGENT, responsibility: Issue TaskContract with bounded context refs, capability id, quality gates, and expiry; collect WorkerResult + sidechain ref.}
+- {from_role: WORKER_AGENT, to_role: CEO_HERMES, responsibility: Return bounded WorkerResult with structured output refs, uncertainties, source refs and sidechain pointer; never raw transcript injection.}
+- {from_role: CEO_HERMES, to_role: CANONICAL_STATE, responsibility: Promote only explicit evidence-backed candidates; canonical truth stays outside all agent memory.}
+- {from_role: PERSONAL_HERMES, to_role: CLIENT, responsibility: Translate system outcomes into ClientExplanationPacket preserving facts and disclosing uncertainty.}
+
+anti_collapse_rule:
+  rule: "The system must not temporarily combine Personal + CEO memory into one permanent namespace merely for implementation convenience."
+  enforcement: "Runtime/context-builder tests must prove distinct namespaces; a shared store may exist only as index/projection and never as the only source for either role."
+  test_refs: [test_context_boundaries.py, test_adversarial_context_pollution.py]
