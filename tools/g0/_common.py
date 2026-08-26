@@ -19,6 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 RATIFICATION_CONFIG_DIR = Path("config/g0/ratification")
 POLICY_CONFIG_DIR = Path("config/g0/policy")
+DOMAIN_CONFIG_DIR = Path("config/g0/domain")
 
 
 class ValidationFailure(Exception):
