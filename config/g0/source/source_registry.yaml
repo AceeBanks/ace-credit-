@@ -1,0 +1,220 @@
+# G0 Book 3 - B3.C3 SourceRegistry (machine-readable, seed).
+# `source_id` identifies a GOVERNED LOGICAL SOURCE, not one fetched page.
+# Declares the full field contract from the plan; seed rows cover the initial
+# federal/Georgia/statistical sources. `enabled` governs fresh promotion;
+# historical data stays queryable/retainable even when disabled.
+source_registry_version: "1.0"
+field_contract:
+- source_id
+- name
+- source_class
+- authority_tier
+- owner_organization
+- jurisdiction
+- domain_categories
+- access_modes
+- base_urls
+- api_base_url
+- auth_mode
+- credential_scope_ref
+- expected_update_frequency
+- default_freshness_policy
+- terms_policy_ref
+- robots_policy_ref
+- rate_limit_policy_ref
+- adapter_name
+- adapter_version
+- parser_strategy
+- health_policy_ref
+- pii_classification
+- retention_class
+- enabled
+sources:
+- source_id: src_grants_gov
+  name: Grants.gov
+  source_class: OFFICIAL_AGGREGATOR
+  authority_tier: B
+  owner_organization: GSA
+  jurisdiction: federal
+  domain_categories: [opportunities, requirements]
+  access_modes: [API_JSON, BULK_FILE]
+  api_base_url: "https://api.grants.gov/api"
+  auth_mode: none
+  credential_scope_ref: null
+  expected_update_frequency: daily
+  default_freshness_policy: active_opportunity
+  terms_policy_ref: grants_gov_terms
+  robots_policy_ref: grants_gov_robots
+  rate_limit_policy_ref: grants_gov_rate
+  adapter_name: grants_gov_adapter
+  adapter_version: 0.1.0
+  parser_strategy: deterministic_jsm
+  health_policy_ref: src_grants_gov_health
+  pii_classification: D0
+  retention_class: D1
+  enabled: true
+- source_id: src_simpler_grants
+  name: Simpler.Grants.gov
+  source_class: OFFICIAL_AGGREGATOR
+  authority_tier: B
+  owner_organization: GSA
+  jurisdiction: federal
+  domain_categories: [opportunities]
+  access_modes: [API_JSON]
+  api_base_url: "https://api.simpler.grants.gov"
+  auth_mode: none
+  credential_scope_ref: null
+  expected_update_frequency: daily
+  default_freshness_policy: active_opportunity
+  terms_policy_ref: simpler_terms
+  robots_policy_ref: simpler_robots
+  rate_limit_policy_ref: simpler_rate
+  adapter_name: simpler_grants_adapter
+  adapter_version: 0.1.0
+  parser_strategy: deterministic_jsm
+  health_policy_ref: src_simpler_health
+  pii_classification: D0
+  retention_class: D1
+  enabled: true
+- source_id: src_usaspending
+  name: USAspending
+  source_class: OFFICIAL_TRANSACTIONAL
+  authority_tier: B
+  owner_organization: GSA/OMB
+  jurisdiction: federal
+  domain_categories: [awards, organizations]
+  access_modes: [API_JSON]
+  api_base_url: "https://api.usaspending.gov/api"
+  auth_mode: none
+  credential_scope_ref: null
+  expected_update_frequency: monthly
+  default_freshness_policy: historical_fixed
+  terms_policy_ref: usaspending_terms
+  robots_policy_ref: usaspending_robots
+  rate_limit_policy_ref: usaspending_rate
+  adapter_name: usaspending_adapter
+  adapter_version: 0.1.0
+  parser_strategy: deterministic_jsm
+  health_policy_ref: src_usaspending_health
+  pii_classification: D0
+  retention_class: D1
+  enabled: true
+- source_id: src_irs_eo
+  name: IRS Tax Exempt Org Search
+  source_class: OFFICIAL_TRANSACTIONAL
+  authority_tier: B
+  owner_organization: IRS
+  jurisdiction: federal
+  domain_categories: [organizations]
+  access_modes: [HTML]
+  base_urls: ["https://apps.irs.gov/app/eos/"]
+  api_base_url: null
+  auth_mode: none
+  credential_scope_ref: null
+  expected_update_frequency: monthly
+  default_freshness_policy: org_filings
+  terms_policy_ref: irs_terms
+  robots_policy_ref: irs_robots
+  rate_limit_policy_ref: irs_rate
+  adapter_name: irs_eo_adapter
+  adapter_version: 0.1.0
+  parser_strategy: html_structured
+  health_policy_ref: src_irs_eo_health
+  pii_classification: D1
+  retention_class: D3
+  enabled: true
+- source_id: src_census_acs
+  name: Census ACS
+  source_class: OFFICIAL_STATISTICAL
+  authority_tier: B
+  owner_organization: Census Bureau
+  jurisdiction: federal
+  domain_categories: [statistics]
+  access_modes: [API_JSON]
+  api_base_url: "https://api.census.gov/data"
+  auth_mode: none
+  credential_scope_ref: null
+  expected_update_frequency: annual
+  default_freshness_policy: annual_statistic
+  terms_policy_ref: census_terms
+  robots_policy_ref: census_robots
+  rate_limit_policy_ref: census_rate
+  adapter_name: census_acs_adapter
+  adapter_version: 0.1.0
+  parser_strategy: deterministic_jsm
+  health_policy_ref: src_census_acs_health
+  pii_classification: D0
+  retention_class: D1
+  enabled: true
+- source_id: src_ga_opb_grants
+  name: Georgia OPB / Grants Portal
+  source_class: OFFICIAL_ISSUER
+  authority_tier: A
+  owner_organization: GA OPB
+  jurisdiction: georgia
+  domain_categories: [opportunities, programs, awards]
+  access_modes: [HTML]
+  base_urls: ["https://opb.georgia.gov/grants"]
+  api_base_url: null
+  auth_mode: none
+  credential_scope_ref: null
+  expected_update_frequency: weekly
+  default_freshness_policy: active_opportunity
+  terms_policy_ref: ga_opb_terms
+  robots_policy_ref: ga_opb_robots
+  rate_limit_policy_ref: ga_opb_rate
+  adapter_name: ga_opb_adapter
+  adapter_version: 0.1.0
+  parser_strategy: html_structured
+  health_policy_ref: src_ga_opb_health
+  pii_classification: D0
+  retention_class: D1
+  enabled: true
+- source_id: src_ga_dca
+  name: Georgia Department of Community Affairs
+  source_class: OFFICIAL_ISSUER
+  authority_tier: A
+  owner_organization: GA DCA
+  jurisdiction: georgia
+  domain_categories: [opportunities]
+  access_modes: [HTML, PDF]
+  base_urls: ["https://www.dca.ga.gov/"]
+  api_base_url: null
+  auth_mode: none
+  credential_scope_ref: null
+  expected_update_frequency: weekly
+  default_freshness_policy: active_opportunity
+  terms_policy_ref: ga_dca_terms
+  robots_policy_ref: ga_dca_robots
+  rate_limit_policy_ref: ga_dca_rate
+  adapter_name: ga_dca_adapter
+  adapter_version: 0.1.0
+  parser_strategy: pdf_structured
+  health_policy_ref: src_ga_dca_health
+  pii_classification: D0
+  retention_class: D1
+  enabled: true
+- source_id: src_foundation_xyz
+  name: Foundation XYZ
+  source_class: GOVERNED_WEB
+  authority_tier: D
+  owner_organization: Foundation XYZ
+  jurisdiction: national
+  domain_categories: [opportunities, funders]
+  access_modes: [GOVERNED_WEB]
+  base_urls: ["https://www.foundationxyz.org/"]
+  api_base_url: null
+  auth_mode: none
+  credential_scope_ref: null
+  expected_update_frequency: monthly
+  default_freshness_policy: web_funder
+  terms_policy_ref: foundation_xyz_terms
+  robots_policy_ref: foundation_xyz_robots
+  rate_limit_policy_ref: foundation_xyz_rate
+  adapter_name: foundation_crawler
+  adapter_version: 0.1.0
+  parser_strategy: governed_web_crawl
+  health_policy_ref: src_foundation_xyz_health
+  pii_classification: D0
+  retention_class: D1
+  enabled: true

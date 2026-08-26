@@ -1,0 +1,40 @@
+# G0 Book 3 - B3.C2 Source Classification System (machine-readable).
+# Defines source classes before individual integrations are configured.
+# Authority is ALWAYS source + fact class: a source class alone never bypasses
+# fact-specific precedence.
+source_classes_version: "1.0"
+classes:
+- class_id: OFFICIAL_ISSUER
+  authority_tier: A
+  description: Organization/agency issuing an opportunity, solicitation or guidance.
+  examples: [official federal agency solicitation, GA OPB/DCA/GEMA issuer pages, foundation page]
+- class_id: OFFICIAL_AGGREGATOR
+  authority_tier: B
+  description: Government/official platform aggregating issuer data.
+  examples: [Grants.gov, Simpler.Grants.gov, SAM Assistance Listings]
+- class_id: OFFICIAL_TRANSACTIONAL
+  authority_tier: B
+  description: Official award/transaction record.
+  examples: [USAspending, SAM subaward datasets, FAC, agency award databases]
+- class_id: OFFICIAL_STATISTICAL
+  authority_tier: B
+  description: Government/statistical authority.
+  examples: [Census ACS/SAIPE, BLS, BEA, CDC, USDA, NCES, HUD]
+- class_id: TRUSTED_CURATED
+  authority_tier: C
+  description: High-quality institutional secondary/aggregated source.
+  examples: [ProPublica nonprofit explorer, Candid if licensed, trusted datasets]
+- class_id: GOVERNED_WEB
+  authority_tier: D
+  description: Registered funder/organization/research webpage captured by crawler.
+  examples: []
+- class_id: USER_PROVIDED
+  authority_tier: E
+  description: Client uploads/statements/manual data.
+  examples: []
+- class_id: DERIVED_INTERNAL
+  authority_tier: null
+  description: Product-derived structured data whose parent evidence remains external/user-provided.
+  examples: []
+  external_authority: false
+authority_tiers: [A, B, C, D, E]
