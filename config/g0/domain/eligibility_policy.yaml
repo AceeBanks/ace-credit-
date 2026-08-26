@@ -1,0 +1,41 @@
+# G0 Book 2 - B2.C10 Eligibility Ontology & Deterministic Boundary (machine-readable).
+# Separates interpretation from evaluation so Book 3/source extraction and G1
+# implementation share one contract.
+eligibility_policy_version: "1.0"
+operators:
+- EQUALS
+- IN
+- NOT_IN
+- EXISTS
+- NOT_EXISTS
+- GTE
+- LTE
+- BETWEEN
+- WITHIN_GEOGRAPHY
+- BEFORE
+- AFTER
+- BOOLEAN_TRUE
+- CUSTOM_DETERMINISTIC_PREDICATE
+# Missing evidence yields UNKNOWN (aggregate: CONDITIONAL), never fabricated
+# eligibility. A fact only counts as false when the rule explicitly declares
+# closed-world behavior.
+missing_evidence_semantics: UNKNOWN
+closed_world_default: false
+extraction_boundary:
+  llm_may_propose: true            # solicitation language -> candidate structured rule
+  validation_required: true        # schema/meaning confirmed before use
+  evaluation_deterministic: true   # validated rule + canonical facts -> deterministic result
+  llm_narrative_cannot_set_result: true   # narrative output never directly sets ELIGIBLE
+# Every reproducible decision records these, at minimum:
+decision_reproducibility_fields:
+- rule_set_id
+- rule_set_version
+- opportunity_revision_id
+- fact_version_refs
+- per_rule_results
+- aggregate_result
+- explanation
+aggregate_semantics:
+  any_required_failure: INELIGIBLE
+  any_unknown_without_failure: CONDITIONAL
+  all_pass: ELIGIBLE

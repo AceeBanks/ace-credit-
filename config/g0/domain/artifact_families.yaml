@@ -1,0 +1,21 @@
+# G0 Book 2 - B2.C13 Artifact & Document Family Model (machine-readable).
+# The client's complete Phase 1 document suite, coherently represented.
+artifact_families_version: "1.0"
+phase1_families:
+- {family: grant_proposal,        artifact_type: grant_proposal,        description: Funder/opportunity-specific response artifact.}
+- {family: business_plan,         artifact_type: business_plan,         description: Distinct business-operating artifact.}
+- {family: pitch_deck,            artifact_type: pitch_deck,            description: Presentation derived from approved canonical facts/framing.}
+- {family: financial_package,     artifact_type: budget_financial,      description: Budget/financial outputs where required.}
+- {family: partnership_material,  artifact_type: partnership_material,  description: Letters/partnership evidence or placeholders ONLY when supported.}
+- {family: testimonial_material,  artifact_type: testimonial_material,  description: Verified testimonial/support content only; never synthetic presented as real.}
+- {family: goal_sheet,            artifact_type: goal_sheet,            description: Structured milestones/outcomes/goals.}
+- {family: research_report,       artifact_type: research_report,       description: Client-visible grant/funder/winner/community research.}
+- {family: qa_report,             artifact_type: qa_report,             description: Coverage/factuality/alignment/consistency findings.}
+- {family: submission_package,    artifact_type: submission_package,    description: Bundle/manifest of submission-ready artifacts; Phase 1 may prepare but not submit.}
+version_rules:
+- {rule: immutable_versions,      note: Authored/exported versions are immutable with content hash.}
+- {rule: monotonic_numbers,       note: Version numbers increase monotonically without gaps.}
+- {rule: no_superseded_in_package,note: Final package cannot include a superseded artifact version.}
+mock_rules:
+- {rule: mock_visibly_distinct,   note: Mock artifacts are visibly distinguishable from approved/submission-ready artifacts.}
+- {rule: mock_cannot_submit,      note: Mock artifacts can never enter a real submission package.}

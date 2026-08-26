@@ -1,0 +1,34 @@
+# G0 Book 2 - B2.C11 Requirement & Application Content Model (machine-readable).
+requirement_types_version: "1.0"
+requirement_types:
+- {type: narrative,          description: Free-form written response section.}
+- {type: form_field,         description: Structured form value.}
+- {type: budget,             description: Budget/financial submission.}
+- {type: attachment,         description: Uploaded document or file.}
+- {type: certification,      description: Signed/checked certification.}
+- {type: support_letter,     description: Third-party letter of support.}
+- {type: data_entry,         description: Structured data submission.}
+- {type: other,              description: Funder-specific requirement type.}
+response_types:
+- {type: section,            description: ProposalSection response.}
+- {type: form,               description: Form value response.}
+- {type: budget,             description: Budget object response.}
+- {type: attachment,         description: ArtifactVersion attachment.}
+- {type: certification,      description: Certification placeholder.}
+- {type: support_letter,     description: Support letter artifact.}
+# Sections: dynamic solicitation sets coexist with the client's fixed
+# 18-section profile (a proposal template), never hard-coded into the core.
+section_families:
+- {family: proposal_section,       profile: client_18_section,   dynamic_from_solicitation: true}
+- {family: business_plan_section,  profile: business_plan,       dynamic_from_solicitation: false}
+content_link_targets:
+- requirement
+- canonical_fact
+- evidence_claim
+- statistic
+- project_goal
+- budget_line
+- research_finding
+# Cross-document consistency: shared canonical facts drive proposal/business
+# plan/pitch deck/financials; each artifact keeps its own purpose/narrative.
+cross_document_rule: shared_canonical_facts_drive_artifacts

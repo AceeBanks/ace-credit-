@@ -15,8 +15,10 @@ Missing files, malformed fields or unknown enum values are hard failures
 - C7  validate_state_machines
 - C8  validate_revision_policy
 - C9  validate_fact_semantics
+- C10 validate_eligibility_policy
 - C11 validate_requirement_types
-- C13 validate_artifact_types
+- C12 validate_budget_policy
+- C13 validate_artifact_families
 - C15 validate_common_grants_mapping
 """
 from __future__ import annotations
@@ -324,6 +326,131 @@ def validate_fact_semantics(data: dict) -> tuple[bool, dict]:
     })
 
 
+ELIGIBILITY_OPERATORS = {
+    "EQUALS", "IN", "NOT_IN", "EXISTS", "NOT_EXISTS", "GTE", "LTE",
+    "BETWEEN", "WITHIN_GEOGRAPHY", "BEFORE", "AFTER", "BOOLEAN_TRUE",
+    "CUSTOM_DETERMINISTIC_PREDICATE",
+}
+REQUIRED_STATISTIC_CTX = {"geography", "unit", "reference_period"}
+
+
+def validate_eligibility_policy(data: dict) -> tuple[bool, dict]:
+    """B2.C10 — eligibility ontology: operators from the plan set, missing
+    evidence is UNKNOWN by default, evaluation is deterministic, narrative
+    cannot set the result, reproducibility fields present."""
+    errors: list[str] = []
+    ops = set(data.get("operators") or [])
+    if ops != ELIGIBILITY_OPERATORS:
+        errors.append(f"operators must be exactly {sorted(ELIGIBILITY_OPERATORS)}")
+    if data.get("missing_evidence_semantics") != "UNKNOWN":
+        errors.append("missing_evidence_semantics must be UNKNOWN")
+    if data.get("closed_world_default") is not False:
+        errors.append("closed_world_default must be false")
+    boundary = data.get("extraction_boundary") or {}
+    if boundary.get("evaluation_deterministic") is not True:
+        errors.append("extraction_boundary.evaluation_deterministic must be true")
+    if boundary.get("llm_narrative_cannot_set_result") is not True:
+        errors.append("extraction_boundary.llm_narrative_cannot_set_result must be true")
+    for field in ("rule_set_id", "rule_set_version", "opportunity_revision_id",
+                  "per_rule_results", "aggregate_result"):
+        if field not in (data.get("decision_reproducibility_fields") or []):
+            errors.append(f"decision_reproducibility_fields must include '{field}'")
+    return finish("domain_eligibility_policy", not errors, {
+        "errors": errors, "operator_count": len(ops),
+    })
+
+
+REQUIREMENT_TYPES = {"narrative", "form_field", "budget", "attachment",
+                     "certification", "support_letter", "data_entry", "other"}
+RESPONSE_TYPES = {"section", "form", "budget", "attachment", "certification",
+                  "support_letter"}
+
+
+def validate_requirement_types(data: dict) -> tuple[bool, dict]:
+    """B2.C11 — requirement & content model: known requirement/response types,
+    section families present, content link targets non-empty."""
+    errors: list[str] = []
+    req_types = {r.get("type") for r in data.get("requirement_types") or []}
+    if req_types != REQUIREMENT_TYPES:
+        errors.append(f"requirement_types must be exactly {sorted(REQUIREMENT_TYPES)}")
+    resp_types = {r.get("type") for r in data.get("response_types") or []}
+    if resp_types != RESPONSE_TYPES:
+        errors.append(f"response_types must be exactly {sorted(RESPONSE_TYPES)}")
+    families = data.get("section_families") or []
+    fam_keys = {f.get("family") for f in families}
+    if "proposal_section" not in fam_keys or "business_plan_section" not in fam_keys:
+        errors.append("section_families must include proposal_section and business_plan_section")
+    if not (data.get("content_link_targets") or []):
+        errors.append("content_link_targets may not be empty")
+    return finish("domain_requirement_types", not errors, {
+        "errors": errors,
+        "requirement_type_count": len(req_types),
+        "section_family_count": len(fam_keys),
+    })
+
+
+MONETARY_RULES = {"decimal_only", "explicit_currency", "explicit_period",
+                  "deterministic_totals", "amount_lineage"}
+
+
+def validate_budget_policy(data: dict) -> tuple[bool, dict]:
+    """B2.C12 — budget semantics: monetary rules from the plan set, currency
+    mismatch rejected, deterministic match calculation."""
+    errors: list[str] = []
+    rules = {r.get("rule") for r in data.get("monetary_rules") or []}
+    if rules != MONETARY_RULES:
+        errors.append(f"monetary_rules must be exactly {sorted(MONETARY_RULES)}")
+    if data.get("currency_mismatch") != "REJECTED":
+        errors.append("currency_mismatch must be REJECTED")
+    if data.get("match_calculation") != "deterministic":
+        errors.append("match_calculation must be deterministic")
+    return finish("domain_budget_policy", not errors, {
+        "errors": errors, "monetary_rule_count": len(rules),
+    })
+
+
+PHASE1_ARTIFACT_TYPES = {"grant_proposal", "business_plan", "pitch_deck",
+                         "budget_financial", "partnership_material",
+                         "testimonial_material", "goal_sheet", "research_report",
+                         "qa_report", "submission_package"}
+
+
+def validate_artifact_families(data: dict) -> tuple[bool, dict]:
+    """B2.C13 — artifact families: Phase 1 family set complete, version and
+    mock rules present."""
+    errors: list[str] = []
+    families = {f.get("artifact_type") for f in data.get("phase1_families") or []}
+    if families != PHASE1_ARTIFACT_TYPES:
+        errors.append(f"phase1_families must cover exactly {sorted(PHASE1_ARTIFACT_TYPES)}")
+    version_rules = {r.get("rule") for r in data.get("version_rules") or []}
+    for rule in ("immutable_versions", "monotonic_numbers", "no_superseded_in_package"):
+        if rule not in version_rules:
+            errors.append(f"version_rules must include '{rule}'")
+    mock_rules = {r.get("rule") for r in data.get("mock_rules") or []}
+    for rule in ("mock_visibly_distinct", "mock_cannot_submit"):
+        if rule not in mock_rules:
+            errors.append(f"mock_rules must include '{rule}'")
+    return finish("domain_artifact_families", not errors, {
+        "errors": errors, "family_count": len(families),
+    })
+
+
+def load_eligibility_policy() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "eligibility_policy.yaml")
+
+
+def load_requirement_types() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "requirement_types.yaml")
+
+
+def load_budget_policy() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "budget_policy.yaml")
+
+
+def load_artifact_families() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "artifact_families.yaml")
+
+
 def load_revision_policy() -> dict:
     return load_yaml(DOMAIN_CONFIG_DIR / "revision_policy.yaml")
 
@@ -367,6 +494,10 @@ def main() -> int:
         ("state_machines", validate_state_machines, load_state_machines),
         ("revision_policy", validate_revision_policy, load_revision_policy),
         ("fact_semantics", validate_fact_semantics, load_fact_semantics),
+        ("eligibility_policy", validate_eligibility_policy, load_eligibility_policy),
+        ("requirement_types", validate_requirement_types, load_requirement_types),
+        ("budget_policy", validate_budget_policy, load_budget_policy),
+        ("artifact_families", validate_artifact_families, load_artifact_families),
     ]
     ok_all = True
     for name, fn, loader in checks:

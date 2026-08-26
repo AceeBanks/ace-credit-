@@ -1,0 +1,16 @@
+# G0 Book 2 - B2.C12 Budget & Financial Semantic Model (machine-readable).
+# Narrative and numbers share a structured domain — the LLM never improvises
+# arithmetic on canonical money.
+budget_policy_version: "1.0"
+monetary_rules:
+- {rule: decimal_only,        note: Fixed-point Decimal arithmetic only; float money is prohibited.}
+- {rule: explicit_currency,   note: Every amount carries an explicit currency.}
+- {rule: explicit_period,     note: Every line/version declares its period.}
+- {rule: deterministic_totals,note: Totals are computed, never hand-written.}
+- {rule: amount_lineage,      note: Amounts carry source/assumption lineage refs.}
+currency_mismatch: REJECTED
+ceiling_semantics: requested_must_be_lte_applicable_ceiling_where_rule_exists
+match_calculation: deterministic
+narrative_linkage:
+  budget_lines_may_link_to: [project_activity, outcome, proposal_section, requirement, evidence, assumption]
+  narrative_mismatch_detection: required   # narrative figure vs budget line discrepancy is detected

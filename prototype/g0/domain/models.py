@@ -198,6 +198,7 @@ class EligibilityRule:
     source_requirement_ref: str | None = None
     severity: str = "REQUIRED"
     explanation_template: str = ""
+    closed_world: bool = False   # B2.C10: missing fact is false ONLY when declared
 
 
 @dataclass(frozen=True)
@@ -266,6 +267,40 @@ class Requirement:
     mandatory: bool = True
     prompt: str = ""
     state: str = "IDENTIFIED"
+    # B2.C11 content workload concepts
+    constraints: tuple[str, ...] = ()
+    word_limit: int | None = None
+    page_limit: int | None = None
+    character_limit: int | None = None
+    formatting_rules: tuple[str, ...] = ()
+    required_evidence: tuple[str, ...] = ()
+    required_attachments: tuple[str, ...] = ()
+    due_semantics: str | None = None
+    normalized_state: str | None = None
+
+
+@dataclass(frozen=True)
+class ProposalSection:
+    """A solicitation section; the client's fixed 18-section model is a
+    proposal TEMPLATE/PROFILE, while actual requirements may add/remove/reorder
+    sections (B2.C11 — never hard-coded into the core ontology)."""
+    section_id: str
+    requirement_id: str | None = None
+    profile_section_key: str | None = None      # client 18-section profile key
+    title: str = ""
+    order: int = 0
+    content_link_refs: tuple[str, ...] = ()    # B2.C11 alignment links
+
+
+@dataclass(frozen=True)
+class BusinessPlanSection:
+    """Business plan serves business viability/operations — a separate section
+    type/schema from funder-response semantics (B2.C11)."""
+    section_id: str
+    business_plan_section_key: str
+    title: str = ""
+    order: int = 0
+    content_link_refs: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -288,16 +323,82 @@ class BudgetLine:
 
 
 @dataclass(frozen=True)
+class FundingSource:
+    source_id: str
+    name: str
+    kind: str = "external"        # external | internal | public | private
+
+
+@dataclass(frozen=True)
+class MatchContribution:
+    contribution_id: str
+    source_id: str
+    amount: Decimal
+    currency: str = "USD"
+    kind: str = "cash"            # cash | in_kind
+
+
+@dataclass(frozen=True)
+class InKindContribution:
+    contribution_id: str
+    source_id: str
+    description: str
+    fair_market_value: Decimal
+    currency: str = "USD"
+
+
+@dataclass(frozen=True)
+class CostShare:
+    cost_share_id: str
+    match_contributions: tuple[MatchContribution, ...] = ()
+    in_kind_contributions: tuple[InKindContribution, ...] = ()
+
+    @property
+    def total(self) -> Decimal:
+        return sum((c.amount for c in self.match_contributions), Decimal("0")) \
+            + sum((c.fair_market_value for c in self.in_kind_contributions), Decimal("0"))
+
+
+@dataclass(frozen=True)
+class Period:
+    period_id: str
+    name: str
+    start: str | None = None
+    end: str | None = None
+
+
+@dataclass(frozen=True)
+class Assumption:
+    assumption_id: str
+    statement: str
+    source_ref: str | None = None
+    evidence_ref: str | None = None
+
+
+@dataclass(frozen=True)
 class Budget:
     budget_id: str
     project_id: str
     version: int = 1
     currency: str = "USD"
     lines: tuple[BudgetLine, ...] = ()
+    period: Period | None = None
+    funding_sources: tuple[FundingSource, ...] = ()
+    cost_share: CostShare | None = None
+    assumptions: tuple[Assumption, ...] = ()
 
     @property
     def total(self) -> Decimal:
         return sum((line.amount for line in self.lines), Decimal("0"))
+
+
+@dataclass(frozen=True)
+class BudgetVersion:
+    version_id: str
+    budget_id: str
+    version_number: int
+    content_hash: str
+    currency: str = "USD"
 
 
 # --- Evidence ------------------------------------------------------------------
