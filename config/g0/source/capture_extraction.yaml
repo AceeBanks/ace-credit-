@@ -1,0 +1,75 @@
+# G0-B3-C6-C7 — Capture/Replay and Extraction/Normalization source of truth
+# (fail-closed). Content addressing is verified by raw_hash; LLM/OCR output is
+# a candidate structure, never an automatic CanonicalFact.
+
+replay_classes:
+  - EXACT_REPLAY
+  - COMPATIBLE_REPLAY
+  - PARTIAL_REPLAY
+  - NON_REPLAYABLE
+
+# NON_REPLAYABLE unacceptable for promoted critical data unless explicitly
+# exempted.
+critical_data_replay_rule: "NON_REPLAYABLE is only acceptable when exempted"
+
+extraction_engines:
+  - deterministic_json_mapper
+  - html_parser
+  - unstructured
+  - markitdown
+  - opendataloader_pdf
+  - ocr
+  - pixel_rag
+  - llm_structured
+
+# Outputs of these engines are CANDIDATE until separately verified.
+candidate_only_engines:
+  - llm_structured
+  - ocr
+  - pixel_rag
+
+min_acceptable_confidence: 0.7
+
+# Raw object fixtures demonstrating deterministic content addressing.
+raw_objects:
+  - object_id: ga_opp_0142_v1
+    raw_hash: "0dbb2b0a5f4a23f1c10f4f8e9c3e0b6c1f3a2b4c5d6e7f8a9b0c1d2e3f4a5b6c"
+    immutable: true
+    retention_class: D1
+    replay_class: EXACT_REPLAY
+    promoted_critical: true
+
+  - object_id: ga_opp_0142_v2_with_node
+    raw_hash: "5c8f1e0d2b3a4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d"
+    immutable: true
+    retention_class: D1
+    replay_class: EXACT_REPLAY
+    promoted_critical: true
+
+# Extraction event fixtures: heuristics stay candidate-only.
+extraction_events:
+  - extraction_event_id: ext_ga_0142_jsm
+    snapshot_id: snap_ga_0001
+    engine: deterministic_json_mapper
+    engine_version: 0.1.0
+    strategy: json_schema_validated
+    started_at: "2026-08-01T12:00:01Z"
+    completed_at: "2026-08-01T12:00:02Z"
+    quality_metrics:
+      field_coverage: 1.0
+    output_artifact_ref: "s3://out/ga/0142.json"
+    status: COMPLETED
+    auto_verified: false
+
+  - extraction_event_id: ext_ga_0142_llm
+    snapshot_id: snap_ga_0001
+    engine: llm_structured
+    engine_version: 0.3.0
+    strategy: llm_structured
+    started_at: "2026-08-01T12:00:03Z"
+    completed_at: "2026-08-01T12:00:30Z"
+    quality_metrics:
+      overall_confidence: 0.62
+    output_artifact_ref: "s3://out/ga/0142.llm.json"
+    status: COMPLETED
+    auto_verified: false
