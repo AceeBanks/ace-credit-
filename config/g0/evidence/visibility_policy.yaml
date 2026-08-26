@@ -26,6 +26,8 @@ rules:
     text: "Explanation packets filter evidence by viewer authority; no ref above the viewer's authority is cited."
   - id: VIS-006
     text: "A tenant may export its own evidence lineage; exports must not include other tenants' data."
+  - id: VIS-007
+    text: "License-restricted source evidence is not freely reusable; reuse requires explicit approval. Retention (tombstones/hashes) is unaffected by reuse restrictions."
 
 viewer_authority_ranking:
   PUBLIC_SOURCE: 1

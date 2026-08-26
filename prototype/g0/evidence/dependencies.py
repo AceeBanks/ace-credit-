@@ -135,3 +135,17 @@ class DependencyGraph:
             affected_downstream_refs=affected, required_action=action,
             priority=priority)
         return event
+
+    def require_fresh(self, ref: str, *, last_invalidation: InvalidationEvent
+                      | None) -> None:
+        """INV-008 / ADV-26: a lagging projection must not serve a stale
+        dependency result. If an invalidation touched `ref` and it is not
+        resolved, downstream use is blocked until the recompute lands."""
+        if last_invalidation is None:
+            return
+        if ref in last_invalidation.affected_downstream_refs \
+                and not last_invalidation.resolved:
+            raise DependencyError(
+                f"stale dependency result for {ref}: invalidation "
+                f"{last_invalidation.invalidation_id} unresolved — "
+                "recompute before use (INV-008)")

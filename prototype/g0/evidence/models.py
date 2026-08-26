@@ -129,6 +129,19 @@ class EvidenceGraph:
                  edge_id: str | None = None) -> EvidenceEdge:
         if edge_type not in self._edge_types:
             raise EvidenceGraphError(f"unknown edge type {edge_type!r}")
+        # ADV-031: malicious source content must not create a self-SUPPORTS
+        # edge; no ref may point to itself.
+        if from_ref.ref_id == to_ref.ref_id:
+            raise EvidenceGraphError(
+                f"self-loop edge denied: {from_ref.ref_id} cannot {edge_type} "
+                "itself (GRAPH-004)")
+        # ADV-032: corroboration must come from distinct sources; a duplicate
+        # of the same upstream content is not corroboration.
+        if edge_type == "CORROBORATES" and \
+                from_ref.content_hash == to_ref.content_hash:
+            raise EvidenceGraphError(
+                "CORROBORATES requires distinct source content; duplicate "
+                "of the same upstream is not corroboration (GRAPH-005)")
         if tenant_scope not in (from_ref.tenant_id, to_ref.tenant_id):
             raise EvidenceGraphError(
                 "edge tenant_scope must belong to one of its endpoints")

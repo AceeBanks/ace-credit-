@@ -42,6 +42,8 @@ rules:
     text: "Rewriting or re-mapping claim text (e.g., humanization) must produce a new artifact_version_id or raise; claim-to-ledger mapping may never sever silently."
   - id: CLAIM-007
     text: "An assumption may be written only when clearly represented as future plan/assumption, never as historical fact (status ASSUMPTION)."
+  - id: CLAIM-008
+    text: "Community statistics must match the claim's declared geography and unit; a statistic from another region or unit cannot support the claim."
 
 numeric_classes:
   - FUNDING_AMOUNT

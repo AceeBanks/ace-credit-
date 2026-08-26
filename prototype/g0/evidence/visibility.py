@@ -30,6 +30,8 @@ class VisibilityManager:
         self.policy = policy or _POLICY
         self._visibility: dict[str, str] = {}
         self._deleted: set[str] = set()
+        self._license_restricted: dict[str, bool] = {}
+        self._reuse_approved: set[str] = set()
 
     def declare(self, ref_id: str, visibility: str) -> None:
         if visibility not in self.policy["visibility_classes"]:
@@ -103,6 +105,21 @@ class VisibilityManager:
         node carries its visibility class."""
         return {nid: n.get("visibility", self.visibility_of(nid))
                 for nid, n in nodes.items()}
+
+    def declare_license(self, ref_id: str, restricted: bool = True) -> None:
+        """ADV-39: mark a ref as license-restricted for reuse purposes."""
+        self._license_restricted[ref_id] = restricted
+
+    def reuse_allowed(self, ref_id: str) -> bool:
+        """VIS-007/ADV-39: license-restricted evidence is not freely reusable;
+        reuse requires explicit approval. Retention (tombstones/hashes) is
+        unaffected by reuse restrictions."""
+        if self._license_restricted.get(ref_id) and ref_id not in self._reuse_approved:
+            return False
+        return True
+
+    def approve_reuse(self, ref_id: str) -> None:
+        self._reuse_approved.add(ref_id)
 
     def tenant_export(self, *, graph: EvidenceGraph,
                       tenant_id: str) -> list[dict]:

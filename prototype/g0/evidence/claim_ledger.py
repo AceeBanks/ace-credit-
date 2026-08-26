@@ -78,6 +78,23 @@ class ClaimLedger:
                     "assumption must be represented as future plan/assumption "
                     "(CLAIM-007)")
 
+        # CLAIM-008: community statistics must match declared geography/unit
+        if cls == "POPULATION_COMMUNITY_STATISTICS" and \
+                (out.get("geography") or out.get("unit")):
+            for ref_id in refs:
+                resolved = graph.resolve_or_tombstone(ref_id)
+                if resolved.get("tombstoned"):
+                    continue
+                loc = resolved.get("locator") or {}
+                if out.get("geography") and loc.get("geography") \
+                        and loc["geography"] != out["geography"]:
+                    raise ClaimLedgerError(
+                        f"statistic {ref_id} geography mismatch (CLAIM-008)")
+                if out.get("unit") and loc.get("unit") \
+                        and loc["unit"] != out["unit"]:
+                    raise ClaimLedgerError(
+                        f"statistic {ref_id} unit mismatch (CLAIM-008)")
+
         # CLAIM-005: numeric claims trace to statistic/fact/budget
         if cls in self.policy["numeric_classes"]:
             numeric_ok = False
@@ -116,10 +133,11 @@ class ClaimLedger:
                                          UNSUPPORTED, CONFLICTED):
             return out
 
-        stale = [r for r in refs if graph.resolve_or_tombstone(r).get("tombstoned")]
-        missing = [r for r in refs
-                   if not graph.resolve_or_tombstone(r).get("tombstoned")
-                   and r not in graph._refs]
+        # missing (never existed) is UNSUPPORTED; tombstoned (deleted by
+        # governance) is STALE — a fabricated ref is never just 'old'.
+        missing = [r for r in refs if r not in graph._refs]
+        stale = [r for r in refs if r in graph._refs
+                 and graph.resolve_or_tombstone(r).get("tombstoned")]
         if stale:
             out["support_status"] = STALE
             out["qa_status"] = "REVIEW_REQUIRED"

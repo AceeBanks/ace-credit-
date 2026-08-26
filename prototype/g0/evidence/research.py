@@ -76,6 +76,18 @@ def validate_finding(*, finding: dict, graph: EvidenceGraph,
         if resolved.get("tombstoned"):
             raise ResearchFindingError(f"evidence ref {ref} is tombstoned")
 
+    # FIND-006 / ADV-04: generated research summaries must not be recursively
+    # cited as their own evidence — every finding's evidence chain must bottom
+    # out at a source snapshot, statistic observation or canonical fact.
+    base_types = {"SOURCE_SNAPSHOT", "STATISTIC_OBSERVATION",
+                  "CANONICAL_FACT"}
+    if refs and all(
+            graph.resolve_or_tombstone(r).get("ref_type") == "RESEARCH_FINDING"
+            for r in refs):
+        raise ResearchFindingError(
+            "research finding may not cite only other research findings; "
+            "evidence must bottom out at sources (FIND-006)")
+
     return {
         "finding_id": finding.get("finding_id"),
         "research_type": ftype,

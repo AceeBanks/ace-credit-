@@ -307,3 +307,19 @@ def equal_authority_must_stay_open(qualities: list[EvidenceQuality]) -> bool:
     """CONTR-002: equal-authority conflicts cannot be force-closed."""
     authorities = [q.dimensions["authority"] for q in qualities]
     return len(set(authorities)) <= 1 and len(authorities) >= 2
+
+
+def reopen_on_amendment(contradiction: Contradiction,
+                        amendment_refs: list[str]) -> bool:
+    """CONTR-004 / ADV-36: a previously-resolved contradiction becomes OPEN
+    again when a new amendment (SUPERSEDES/new-revision) touches one of its
+    claims/facts — old resolutions do not permanently close conflicts."""
+    if contradiction.status in ("OPEN", "UNRESOLVED_ACCEPTED"):
+        return False
+    touched = set(contradiction.claim_refs)
+    if any(a in touched for a in amendment_refs):
+        contradiction.status = "OPEN"
+        contradiction.resolved_at = None
+        contradiction.resolution_event_ref = None
+        return True
+    return False

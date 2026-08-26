@@ -46,6 +46,14 @@
       "type": "boolean",
       "description": "True when the claim is a future target rather than an achieved historical outcome (CLAIM-004)."
     },
+    "geography": {
+      "type": "string",
+      "description": "Declared geography for POPULATION_COMMUNITY_STATISTICS claims; evidence refs must match (CLAIM-008)."
+    },
+    "unit": {
+      "type": "string",
+      "description": "Declared unit for numeric claims; evidence refs must match (CLAIM-008)."
+    },
     "created_at": {"type": "string", "format": "date-time"}
   }
 }

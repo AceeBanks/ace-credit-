@@ -45,10 +45,26 @@ class ReplayPacket:
         }
 
 
+DETERMINISTIC_DECISION_TYPES = (
+    "ELIGIBILITY", "REQUIREMENT_COVERAGE", "BUDGET_VALIDATION",
+    "FACT_PROMOTION", "MATCH_RANKING", "CONFLICT_RESOLUTION")
+
+
+def require_engine_metadata(decision: dict) -> None:
+    """DEC-002/ADV-34: deterministic decisions must pin engine/model
+    metadata before replay; missing metadata fails closed."""
+    if decision.get("decision_type") in DETERMINISTIC_DECISION_TYPES \
+            and not decision.get("model_or_engine_ref"):
+        raise ReplayError(
+            f"missing historical engine metadata for deterministic decision "
+            f"{decision.get('decision_id')} (DEC-002)")
+
+
 def build_replay_packet(*, decision: dict,
                         source_snapshot_resolver) -> ReplayPacket:
     """Assemble the replay packet; every pinned input must resolve to a
     historical object or the packet fails integrity (P0)."""
+    require_engine_metadata(decision)
     pinned = decision.get("input_refs", [])
     snapshot_refs = []
     for inp in pinned:

@@ -1,0 +1,48 @@
+# G0-B5-C24 — Adversarial Evidence Scenario Catalog
+# Attacks evidence integrity before Books 6/7/8 rely on it. All P0
+# integrity/security scenarios must pass (tests/g0/book5/test_adversarial_evidence.py).
+
+policy_id: G0-B5-C24
+version: "1.0"
+
+scenarios:
+  - {id: ADV-01, severity: P0, attack: "proposal claim points to source that never contained it", guard: "fabricated ref does not resolve; claim support fails"}
+  - {id: ADV-02, severity: P0, attack: "locator points to wrong PDF page", guard: "locator integrity verified against ref; mismatch blocks support"}
+  - {id: ADV-03, severity: P0, attack: "model cites secondary source while decision used official source", guard: "EXPL-001: citation must be a decision input"}
+  - {id: ADV-04, severity: P0, attack: "generated research summary recursively cited as evidence", guard: "FIND-006: evidence bottoms out at sources"}
+  - {id: ADV-05, severity: P0, attack: "two 'independent' corroborations are copies of same upstream article", guard: "independent_corroboration requires distinct upstreams"}
+  - {id: ADV-06, severity: P0, attack: "stale high-authority source vs current official amendment", guard: "SUPERSEDES/tombstone blocks stale ref use"}
+  - {id: ADV-07, severity: P0, attack: "current source incorrectly substituted into historical replay", guard: "current_state_must_not_substitute blocks"}
+  - {id: ADV-08, severity: P0, attack: "graph node created without canonical entity", guard: "refs require canonical content_hash + typed ref; unknown rejected"}
+  - {id: ADV-09, severity: P0, attack: "graph mutation attempts to create canonical fact", guard: "graph immutability: hash mismatch raises; canonical truth not writable via graph"}
+  - {id: ADV-10, severity: P0, attack: "vector top result conflicts with canonical fact", guard: "retrieval rank is not authority (RETR-001); conflict flagged"}
+  - {id: ADV-11, severity: P0, attack: "cross-tenant nearest-neighbor leak", guard: "tenant-scoped vector results"}
+  - {id: ADV-12, severity: P0, attack: "evidence edge crosses tenants", guard: "GRAPH-002: cross-tenant edges denied"}
+  - {id: ADV-13, severity: P0, attack: "deleted private evidence remains retrievable through embedding", guard: "vector results honor deletion"}
+  - {id: ADV-14, severity: P0, attack: "contradiction resolution deletes losing claim", guard: "contradiction history is append-only; losing claim retained"}
+  - {id: ADV-15, severity: P0, attack: "model confidence resolves hard official conflict", guard: "CONTR-001: confidence never resolves"}
+  - {id: ADV-16, severity: P0, attack: "opportunity revision changes but old eligibility remains current", guard: "superseded decision no longer current"}
+  - {id: ADV-17, severity: P0, attack: "community statistic geography mismatch", guard: "CLAIM-008: geography must match"}
+  - {id: ADV-18, severity: P0, attack: "statistic unit mismatch", guard: "CLAIM-008: unit must match"}
+  - {id: ADV-19, severity: P0, attack: "award recipient entity resolution wrong", guard: "entity ref must resolve to canonical entity; wrong alias unsupported"}
+  - {id: ADV-20, severity: P0, attack: "proposal historical outcome is actually future target", guard: "CLAIM-004: future target not presented as achieved"}
+  - {id: ADV-21, severity: P0, attack: "synthetic testimonial presented as verified", guard: "CLAIM-003: synthetic testimonial fails support"}
+  - {id: ADV-22, severity: P0, attack: "budget number has no derivation lineage", guard: "CLAIM-005: numeric claims trace to statistic/fact/budget"}
+  - {id: ADV-23, severity: P0, attack: "humanization changes supported number after QA", guard: "CLAIM-006: text change requires re-version"}
+  - {id: ADV-24, severity: P1, attack: "Semantica unavailable during draft generation", guard: "DEG-001: degraded mode, core continues"}
+  - {id: ADV-25, severity: P1, attack: "Semantica state deleted and rebuild attempted", guard: "W7: rebuild from canonical succeeds"}
+  - {id: ADV-26, severity: P0, attack: "graph projection lag serves stale dependency result", guard: "INV-008: stale dependency blocked until recompute"}
+  - {id: ADV-27, severity: P0, attack: "evidence hash mismatch", guard: "immutability: hash mismatch rejected"}
+  - {id: ADV-28, severity: P0, attack: "audit event and decision actor disagree", guard: "LINK-003: actor/capability consistency"}
+  - {id: ADV-29, severity: P0, attack: "eval case label has no reviewer/source lineage", guard: "EVAL-001/002: lineage and label provenance required"}
+  - {id: ADV-30, severity: P0, attack: "tenant-private case enters global eval without approval", guard: "EVAL-005: governance gate"}
+  - {id: ADV-31, severity: P0, attack: "malicious source content attempts to create SUPPORTS edge to itself", guard: "GRAPH-004: self-loop denied"}
+  - {id: ADV-32, severity: P0, attack: "source duplicate masquerades as corroboration", guard: "GRAPH-005: corroboration needs distinct content"}
+  - {id: ADV-33, severity: P0, attack: "evidence quality composite hides stale dimension", guard: "composite quality fails when a dimension is stale"}
+  - {id: ADV-34, severity: P0, attack: "missing historical model metadata", guard: "replay requires engine/model metadata"}
+  - {id: ADV-35, severity: P0, attack: "unsupported causal conclusion from winner research", guard: "FIND-003: causal language rejected on patterns"}
+  - {id: ADV-36, severity: P0, attack: "old resolved contradiction becomes relevant after new amendment", guard: "CONTR-004: resolution reopens on amendment"}
+  - {id: ADV-37, severity: P0, attack: "dependency cycle causes invalidation storm", guard: "INV-006: bounded traversal + cycle flag"}
+  - {id: ADV-38, severity: P0, attack: "evidence graph query returns unauthorized restricted metadata", guard: "VIS-001/005: scoped query by viewer authority"}
+  - {id: ADV-39, severity: P0, attack: "source/license restriction conflicts with retention/reuse", guard: "VIS-007: restricted reuse requires approval; retention unaffected"}
+  - {id: ADV-40, severity: P0, attack: "explanation packet omits known material uncertainty", guard: "EXPL-004/005: stale and conflicts surfaced"}

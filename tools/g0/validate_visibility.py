@@ -15,7 +15,7 @@ if str(_ROOT) not in sys.path:
 from tools.g0._common import load_yaml  # noqa: E402
 
 EXPECTED_RULES = ("VIS-001", "VIS-002", "VIS-003", "VIS-004", "VIS-005",
-                  "VIS-006")
+                  "VIS-006", "VIS-007")
 
 EXPECTED_CLASSES = ("PUBLIC_SOURCE", "TENANT_PRIVATE", "TENANT_SHARED_APPROVED",
                     "PLATFORM_INTERNAL", "RESTRICTED_SENSITIVE")
