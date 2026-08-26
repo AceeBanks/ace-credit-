@@ -1,0 +1,31 @@
+{
+  "checkpoint": "G0-B3-RATIFY",
+  "branch": "grant-sector-r0-salvage",
+  "head_sha": "32e30841",
+  "boot_commit": {
+    "sha": "42a002cf",
+    "message": "G0-B3-C1: freeze grant intelligence data constitution"
+  },
+  "chapter_commits": [
+    {"sha": "42a002cf", "message": "G0-B3-C1: freeze grant intelligence data constitution"},
+    {"sha": "97b34cbc", "message": "G0-B3-C2-C3: source classification ontology and seeded Source Registry"},
+    {"sha": "31c8d5e5", "message": "G0-B3-C4-C5: freeze source onboarding protocol and immutable SourceSnapshot"},
+    {"sha": "718d8f39", "message": "G0-B3-C6-C7: capture/replay content-addressed storage and extraction/normalization lineage"},
+    {"sha": "3dbcfdcc", "message": "G0-B3-C8-C9: freeze source precedence and freshness semantics"},
+    {"sha": "4c3ab776", "message": "G0-B3-C10-C12: define promotion, conflict and source-change governance"},
+    {"sha": "a609bbb4", "message": "G0-B3-C13-C14: define dependency invalidation and identifier verification"},
+    {"sha": "c00d46bb", "message": "G0-B3-C15-C17: establish statistics, federal and Georgia source profiles"},
+    {"sha": "b80fb6b0", "message": "G0-B3-C18-C19: govern private sources and hostile-source security"},
+    {"sha": "34a09cfa", "message": "G0-B3-C20-C21: freeze retention and end-to-end provenance chain"},
+    {"sha": "021f50e9", "message": "G0-B3-C22-C24: add source health controls and D0 grounded draft packet"},
+    {"sha": "0df6c507", "message": "G0-B3-C25-C26: prove adversarial data suite and book integration"},
+    {"sha": "32e30841", "message": "G0-B3-BOOK: seal Book 3 with derived reality lock"}
+  ],
+  "repair_commits": [],
+  "reality_lock_status": "PASS",
+  "tests_passed": 682,
+  "tests_failed": 0,
+  "ready_for_d0": true,
+  "ready_for_book4": true,
+  "note": "No bounded review repairs were required: every band landed green and the derived Book 3 Reality Lock computed PASS on its first full build after the critical-precedence-chain gap it surfaced was closed (legal_organization_name, opportunity_required_attachments, opportunity_submission_instructions now have fact-specific chains). Self-review is NOT external ratification; Book 4 may begin per plan gate. Book 3 reality lock freshness test guards against stale/hand-edited lock JSON. D0 Shadow Draft is unlocked immediately per plan section 36."
+}
