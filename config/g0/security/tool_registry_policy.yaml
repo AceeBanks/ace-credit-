@@ -1,0 +1,87 @@
+# G0-B6-C9/C10/C11 — Tool Registry, Gateway & Hermes MCP Facade Policy
+
+policy_id: G0-B6-C9
+version: "1.0"
+
+tool_statuses:
+  - EXPERIMENTAL
+  - APPROVED_INTERNAL
+  - APPROVED_PRODUCTION
+  - DEPRECATED
+  - DISABLED
+
+side_effect_classes:
+  - NONE
+  - READ_ONLY
+  - INTERNAL_MUTATION
+  - EXTERNAL_SEND
+  - EXTERNAL_SUBMIT
+
+rules:
+  - id: TOOL-001
+    text: "Unknown tools are denied; only registered ToolDefinitions may execute."
+  - id: TOOL-002
+    text: "A tool version change that alters side effects or schema requires review before re-approval (SEC-LAW-017)."
+  - id: TOOL-003
+    text: "A tool cannot declare a capability outside the capability registry."
+  - id: TOOL-004
+    text: "A disabled tool is denied even if the capability would otherwise allow it."
+  - id: TOOL-005
+    text: "No dynamically discovered MCP/community tool becomes production-authorized automatically; promotion requires the full review path."
+  - id: TOOL-006
+    text: "Tool availability does NOT imply permission; the gateway enforces the AuthorizationDecision independently (SEC-LAW-007)."
+  - id: TOOL-007
+    text: "Credentials are injected server-side and are invisible to the caller; callers cannot override the injected auth header."
+  - id: TOOL-008
+    text: "Credential references may only reach their allowed destinations; redirects are subject to egress policy."
+  - id: TOOL-009
+    text: "External side effects require a side-effect capability; read/search/draft tools can never send or submit (SEC-LAW-009)."
+  - id: TOOL-010
+    text: "The returned payload never contains credential material."
+  - id: TOOL-011
+    text: "Personal Hermes cannot call CEO-only tools; CEO cannot discover hidden submission tools; task workers receive reduced tool manifests."
+
+gateway_responsibilities:
+  - verify_authorization_decision
+  - resolve_tool_definition
+  - resolve_credential_reference
+  - inject_credential_server_side
+  - enforce_destination_egress
+  - execute_request
+  - sanitize_validate_result
+  - emit_audit
+
+gateway_non_responsibilities:
+  - decide_grant_eligibility
+  - own_business_workflow_state
+  - become_hermes_memory
+  - decide_source_authority
+  - autonomously_escalate_capabilities
+
+mcp_facade_rules:
+  - no_direct_database_access
+  - no_raw_secret_endpoints
+  - no_wildcard_generic_http_tool_in_production
+  - tool_schemas_map_to_capability_registry
+  - request_ids_propagated_end_to_end
+  - tenant_project_scope_explicit
+  - worker_subagents_receive_narrower_manifests
+
+personal_surface_capabilities:
+  - client.read_approved_data
+  - intent.propose
+  - explanation.read
+  - review.request
+
+ceo_surface_capabilities:
+  - research.run
+  - matching.rank
+  - application.draft_internal
+  - qa.run
+  - operational.state_bounded
+
+hidden_never_capabilities:
+  - submission.execute
+  - submission.discover
+  - database.query_arbitrary
+  - secrets.read_raw
