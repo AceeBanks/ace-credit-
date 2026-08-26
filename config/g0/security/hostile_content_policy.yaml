@@ -1,0 +1,63 @@
+# G0-B6-C16/C17 — Prompt Injection & Malicious Document Policy
+
+policy_id: G0-B6-C16
+version: "1.0"
+
+threat_classes:
+  - SOURCE_INSTRUCTION_INJECTION
+  - TOOL_USE_COERCION
+  - CREDENTIAL_SOLICITATION
+  - POLICY_SPOOFING
+  - DATA_POISONING
+  - RETRIEVAL_POISONING
+
+defense_layers:
+  - source_content_marked_untrusted
+  - tool_authority_independent_of_model_prompt
+  - credentials_inaccessible_to_model
+  - source_adapter_sanitization_metadata
+  - schema_bound_worker_results
+  - source_authority_evidence_rules
+  - destination_egress_enforcement
+  - post_action_validation_audit
+
+rules:
+  - id: INJ-001
+    text: "Source content is marked untrusted; an injected instruction can never call a tool (SEC-LAW-008)."
+  - id: INJ-002
+    text: "A 'system message' inside source content remains data; it carries zero policy authority."
+  - id: INJ-003
+    text: "Source content can never change tenant or project scope."
+  - id: INJ-004
+    text: "Malicious content cannot self-promote evidence; promotion requires governed policy."
+  - id: INJ-005
+    text: "Retrieval poisoning cannot override official source precedence."
+  - id: INJ-006
+    text: "Tool-use coercion in content cannot trigger email/browser/upload/tool calls; the gateway is independent."
+  - id: INJ-007
+    text: "Credential solicitation from content never yields secrets; credentials are inaccessible to the model (SEC-LAW-006)."
+
+file_rules:
+  - id: FILE-001
+    text: "File type/magic validation is mandatory; extension alone is not trusted."
+  - id: FILE-002
+    text: "Size limits are enforced; archives with decompression-bomb ratios are blocked."
+  - id: FILE-003
+    text: "Files are quarantined before parsing; parser sandbox where practical."
+  - id: FILE-004
+    text: "Macro/executable content is never executed."
+  - id: FILE-005
+    text: "Filenames are treated as untrusted; path traversal is sanitized."
+  - id: FILE-006
+    text: "Parser output is never trusted as policy instructions."
+  - id: FILE-007
+    text: "Document links are subject to the egress policy; parser-generated URLs are not auto-fetched."
+
+file_limits:
+  max_file_bytes: 52428800
+  max_archive_ratio: 100
+  allowed_magic:
+    - "%PDF"
+    - "PK"          # zip/docx
+    - "\xD0\xCF\x11\xE0"  # OLE doc
+    - "OPC"

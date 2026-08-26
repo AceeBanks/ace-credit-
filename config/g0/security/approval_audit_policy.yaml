@@ -1,0 +1,54 @@
+# G0-B6-C18/C19 — Approval Enforcement & Audit Security Policy
+
+policy_id: G0-B6-C18
+version: "1.0"
+
+approval_classes:
+  - AP1
+  - AP2
+  - AP3
+  - APX
+
+rules:
+  - id: APPR-001
+    text: "An approval binds to a specific action/resource/version via request_hash; it never applies to 'anything related to this application forever'."
+  - id: APPR-002
+    text: "An old approval cannot authorize a changed document version."
+  - id: APPR-003
+    text: "An approval from the wrong tenant is denied."
+  - id: APPR-004
+    text: "A revoked approval is denied."
+  - id: APPR-005
+    text: "A chat phrase like 'looks good' does not become an approval unless captured through an approved UX/action; approval is durable evidence (SEC-LAW-013)."
+  - id: APPR-006
+    text: "Generating a draft needs no pre-approval; accepting protected canonical changes requires approval per policy; L5 submission stays disabled regardless of approval tokens."
+  - id: AUD-001
+    text: "Denied actions are logged where policy requires."
+  - id: AUD-002
+    text: "Secret values are absent from audit records; only references are recorded."
+  - id: AUD-003
+    text: "Audit events link to the AuthorizationDecision and DecisionRecord where applicable."
+  - id: AUD-004
+    text: "Audit access is tenant-filtered."
+  - id: AUD-005
+    text: "Audit storage is append-oriented with an integrity hash chain; mutation is restricted; retention class is recorded."
+
+audit_classes:
+  - authentication_event
+  - authorization_decision
+  - grant_revocation
+  - credential_use
+  - tool_execution
+  - approval
+  - denied_action
+  - cross_tenant_attempt
+  - policy_change
+  - break_glass_action
+  - security_alert
+
+tamper_resistance:
+  append_oriented: true
+  integrity_hash_chain: true
+  restricted_mutation: true
+  retention_class: true
+  export_review_capability: true
