@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/client_explanation_packet.schema.json",
+  "title": "ClientExplanationPacket",
+  "description": "B4.C10 — Separates operational synthesis from client communication. Personal Hermes adapts language but cannot alter underlying factual conclusions, hide material uncertainty, change dollar amounts/deadlines, or represent mock as submitted/final.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "explanation_id",
+    "outcome_id",
+    "audience",
+    "summary",
+    "what_we_found",
+    "recommended_next_step",
+    "visible_research_refs",
+    "visible_artifact_refs",
+    "uncertainty_disclosures"
+  ],
+  "properties": {
+    "explanation_id": {"type": "string"},
+    "outcome_id": {"type": "string"},
+    "audience": {"type": "string", "enum": ["CLIENT_USER", "CLIENT_ORGANIZATION", "REVIEWER"]},
+    "summary": {"type": "string"},
+    "what_we_found": {"type": "string"},
+    "why_it_matters": {"type": "string"},
+    "recommended_next_step": {"type": "string"},
+    "questions_for_client": {"type": "array", "items": {"type": "string"}},
+    "visible_research_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Past-winner/funder research made visible to the client (product requirement)."
+    },
+    "visible_artifact_refs": {"type": "array", "items": {"type": "string"}},
+    "uncertainty_disclosures": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Material uncertainty must be disclosed, never hidden."
+    },
+    "factual_anchors": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Exact factual tokens (amounts, deadlines, revision ids) that style transformation may not change."
+    },
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/context_bundle.schema.json",
+  "title": "ContextBundle",
+  "description": "B4.C11 — Explicit contextual assembly replacing unbounded conversation inheritance. Context is assembled, never accumulated. Mandatory anchors survive budget pressure.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "context_bundle_id",
+    "consumer_actor",
+    "operation_type",
+    "tenant_id",
+    "project_id",
+    "canonical_state_refs",
+    "evidence_refs",
+    "memory_refs",
+    "recent_interaction_refs",
+    "policy_refs",
+    "task_refs",
+    "anchors",
+    "excluded_context_classes",
+    "assembled_at"
+  ],
+  "properties": {
+    "context_bundle_id": {"type": "string"},
+    "consumer_actor": {
+      "type": "string",
+      "enum": ["PERSONAL_HERMES", "CEO_HERMES", "WORKER_AGENT"]
+    },
+    "operation_type": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "project_id": {"type": ["string", "null"]},
+    "canonical_state_refs": {"type": "array", "items": {"type": "string"}},
+    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+    "memory_refs": {"type": "array", "items": {"type": "string"}},
+    "recent_interaction_refs": {"type": "array", "items": {"type": "string"}},
+    "policy_refs": {"type": "array", "items": {"type": "string"}},
+    "task_refs": {"type": "array", "items": {"type": "string"}},
+    "anchors": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Refs that must always survive assembly regardless of budget."
+    },
+    "excluded_context_classes": {"type": "array", "items": {"type": "string"}},
+    "context_budget": {
+      "type": "object",
+      "properties": {
+        "tokens_or_characters": {"type": "integer", "minimum": 0},
+        "item_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "assembled_at": {"type": "string", "format": "date-time"}
+  }
+}
