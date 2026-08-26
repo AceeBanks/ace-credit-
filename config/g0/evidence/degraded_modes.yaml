@@ -1,0 +1,34 @@
+# G0-B5-C23 — Failure & Degraded Modes Registry
+# Every optional component has explicit degraded behavior; every
+# integrity-critical component fails closed.
+
+policy_id: G0-B5-C23
+version: "1.0"
+
+components:
+  - id: graph_projection
+    role: OPTIONAL
+    degraded_behavior: "core canonical state and decision recording continue; graph-enhanced traversal degrades (falls back to explicit substrate)"
+  - id: vector_store
+    role: OPTIONAL
+    degraded_behavior: "exact/relational/full-text retrieval continues; semantic retrieval disabled"
+  - id: semantica
+    role: OPTIONAL
+    degraded_behavior: "system continues without losing canonical state; adapter reports unavailable"
+  - id: provenance_write
+    role: INTEGRITY_CRITICAL
+    fail_closed_behavior: "material decision/output requiring provenance must fail closed rather than create untraceable production state"
+  - id: historical_evidence
+    role: INTEGRITY_CRITICAL
+    fail_closed_behavior: "replay marked integrity failure when historical evidence is missing/corrupt; reconstruction is never fabricated"
+  - id: contradiction_service
+    role: INTEGRITY_CRITICAL
+    fail_closed_behavior: "conflicted facts are never auto-promoted when the contradiction service is unavailable"
+
+rules:
+  - id: DEG-001
+    text: "Optional component failure degrades only its own lanes; core canonical operation continues."
+  - id: DEG-002
+    text: "Integrity-critical component failure fails closed: no untraceable production state, no fabricated reconstruction, no auto-promotion of conflicted facts."
+  - id: DEG-003
+    text: "Degraded mode decisions are recorded in audit events (component, mode, fallback lane)."

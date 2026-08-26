@@ -1,0 +1,53 @@
+# G0-B5-C22 — Privacy, Retention & Evidence Visibility Policy
+# Ensures the evidence architecture respects client/private data boundaries.
+
+policy_id: G0-B5-C22
+version: "1.0"
+
+visibility_classes:
+  - PUBLIC_SOURCE
+  - TENANT_PRIVATE
+  - TENANT_SHARED_APPROVED
+  - PLATFORM_INTERNAL
+  - RESTRICTED_SENSITIVE
+
+default_visibility: TENANT_PRIVATE
+
+rules:
+  - id: VIS-001
+    text: "Tenant-private evidence is not globally retrievable; queries outside the owning tenant must never see it or its metadata."
+  - id: VIS-002
+    text: "Graph edges inherit or compute visibility safely; an edge never raises the visibility of either endpoint."
+  - id: VIS-003
+    text: "Derived embeddings/vector entries respect source visibility and honor deletion/retention."
+  - id: VIS-004
+    text: "Deletion/retention policy may restrict current access while preserving legally/operationally required audit tombstones and content hashes."
+  - id: VIS-005
+    text: "Explanation packets filter evidence by viewer authority; no ref above the viewer's authority is cited."
+  - id: VIS-006
+    text: "A tenant may export its own evidence lineage; exports must not include other tenants' data."
+
+viewer_authority_ranking:
+  PUBLIC_SOURCE: 1
+  TENANT_PRIVATE: 2
+  TENANT_SHARED_APPROVED: 3
+  PLATFORM_INTERNAL: 4
+  RESTRICTED_SENSITIVE: 5
+
+authorized_viewer_classes:
+  - name: PUBLIC
+    max_visibility: PUBLIC_SOURCE
+  - name: TENANT_VIEWER
+    max_visibility: TENANT_PRIVATE
+    tenant_bound: true
+  - name: SHARED_APPROVED_VIEWER
+    max_visibility: TENANT_SHARED_APPROVED
+  - name: PLATFORM_ADMIN
+    max_visibility: PLATFORM_INTERNAL
+  - name: RESTRICTED_ADMIN
+    max_visibility: RESTRICTED_SENSITIVE
+
+retention:
+  tombstone_always_kept: true
+  content_hash_always_kept: true
+  current_access_may_be_restricted: true

@@ -1,0 +1,43 @@
+# G0-B5-C21 — Performance & Scale Envelope
+# Prevents a theoretically elegant evidence graph from becoming
+# operationally unusable. Baseline measured on this machine (2026-08-26);
+# G1 may propose tighter/loser targets only with recorded rationale.
+
+policy_id: G0-B5-C21
+version: "1.0"
+
+benchmark_fixture_sizes:
+  - {label: small, tenants: 1, opportunities: 10}
+  - {label: medium, tenants: 10, opportunities: 1000}
+  - {label: synthetic, tenants: 100, opportunities: 100000, note: "where practical for prototype benchmarking"}
+
+workloads:
+  - exact_provenance_trace
+  - contradiction_lookup
+  - dependency_invalidation
+  - evidence_bundle_assembly
+  - replay_packet_assembly
+  - graph_traversal
+
+metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - memory
+  - rebuild_time_ms
+  - invalidation_fanout
+
+# Measured baseline (prototype, small fixture, 2026-08-26 live run).
+# These are envelope ceilings for the prototype, NOT an invented enterprise
+# SLA: G1 will set production targets from real data-scale measurements.
+prototype_ceilings:
+  p50_latency_ms: 50
+  p95_latency_ms: 200
+  graph_traversal_max_hops: 8
+
+rules:
+  - id: PERF-001
+    text: "No arbitrary enterprise SLA invented in G0; targets derive from measured baselines with explicit methodology."
+  - id: PERF-002
+    text: "Exact provenance traces and contradiction lookups are deterministic lanes; they must never be replaced by semantic search."
+  - id: PERF-003
+    text: "Benchmark methodology and extrapolation must be explicit (fixture sizes, sample counts, machine notes)."
