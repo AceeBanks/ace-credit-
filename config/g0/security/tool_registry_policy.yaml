@@ -40,6 +40,8 @@ rules:
     text: "The returned payload never contains credential material."
   - id: TOOL-011
     text: "Personal Hermes cannot call CEO-only tools; CEO cannot discover hidden submission tools; task workers receive reduced tool manifests."
+  - id: TOOL-012
+    text: "External-side-effect tool requests are idempotent: a reused request_id/nonce is a replay and is refused (no duplicate external side effect)."
 
 gateway_responsibilities:
   - verify_authorization_decision

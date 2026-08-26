@@ -158,6 +158,29 @@ class ClassificationEngine:
         return summary_class
 
 
+class QuotaEnforcer:
+    """QTA-001: per-principal rate limits cannot be bypassed by cycling
+    request ids; the enforcer counts on the principal bucket."""
+
+    def __init__(self, default_limit: int = 60) -> None:
+        self.default_limit = default_limit
+        self._used: dict[tuple[str, str], int] = {}  # (principal, bucket)
+
+    def check(self, *, principal_id: str, bucket: str,
+              limit: int | None = None) -> None:
+        key = (principal_id, bucket)
+        used = self._used.get(key, 0)
+        cap = limit if limit is not None else self.default_limit
+        if used >= cap:
+            raise BoundaryError(
+                f"quota exceeded for {principal_id}/{bucket}: {used}/{cap} "
+                "(QTA-001)")
+        self._used[key] = used + 1
+
+    def used(self, *, principal_id: str, bucket: str) -> int:
+        return self._used.get((principal_id, bucket), 0)
+
+
 class PIIFilter:
     """Field-scoped context, redaction and eval gating."""
 

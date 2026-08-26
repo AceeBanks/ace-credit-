@@ -111,6 +111,25 @@ class ToolGateway:
         self.registry = registry
         self.policy = policy or _POLICY
         self._audit: list[dict] = []
+        self._executed: dict[str, str] = {}  # request_id -> tool_id
+
+    def _idempotency_key(self, request_body: dict) -> str | None:
+        return request_body.get("request_id") or request_body.get("nonce")
+
+    def _assert_not_replayed(self, tool: dict, request_body: dict) -> None:
+        """TOOL-012: an external-side-effect tool request with a reused
+        request_id/nonce is a replay; the gateway refuses to execute it a
+        second time."""
+        key = self._idempotency_key(request_body)
+        if key is None:
+            return
+        if tool["side_effect_class"] in ("EXTERNAL_SEND",
+                                          "EXTERNAL_SUBMIT"):
+            if key in self._executed:
+                raise ToolError(
+                    f"replay detected: request {key} already executed by "
+                    f"{self._executed[key]} (TOOL-012)")
+            self._executed[key] = tool["tool_id"]
 
     def dispatch(self, *, tool_id: str, request_body: dict,
                  authorization_decision: dict, actor: str,
@@ -122,11 +141,16 @@ class ToolGateway:
         if tool["status"] == "DISABLED":
             raise ToolError(f"tool {tool_id} is disabled (TOOL-004)")
 
-        # the AuthorizationDecision must ALLOW for the tool's capability
-        if authorization_decision.get("decision") != "ALLOW":
+        # the AuthorizationDecision must ALLOW for the tool's capability;
+        # a missing/erroring decision fails closed (no availability = no
+        # permission)
+        if authorization_decision is None or \
+                authorization_decision.get("decision") != "ALLOW":
+            reason = ((authorization_decision or {})
+                      .get("reason_code") or "DECISION_UNAVAILABLE")
             raise ToolError(
                 f"tool {tool_id} denied by AuthorizationDecision "
-                f"({authorization_decision.get('reason_code')}) (TOOL-006)")
+                f"({reason}) (TOOL-006)")
 
         capability_ids = tool["capability_ids"]
         granted = authorization_decision.get("granted_capability_id")
@@ -149,6 +173,9 @@ class ToolGateway:
             raise ToolError(
                 f"destination {destination} not allowed for {tool_id} "
                 "(TOOL-008)")
+
+        # TOOL-012: replay/idempotency guard before any side effect
+        self._assert_not_replayed(tool, request_body)
 
         # TOOL-007: credentials injected server-side; caller can't override
         headers = dict(request_body.get("headers") or {})

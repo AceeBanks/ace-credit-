@@ -101,8 +101,9 @@ class ApprovalRegistry:
         self._approvals[approval_id]["status"] = "REVOKED"
 
     def l5_submission_stays_disabled(self) -> bool:
-        """APPR-006: L5 submission is disabled regardless of approval."""
-        return False
+        """APPR-006: L5 submission is disabled regardless of approval.
+        Derived from policy, never a hard-coded constant."""
+        return self.policy.get("submission_phase") == "DISABLED"
 
 
 class SecurityAudit:

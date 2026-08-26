@@ -33,6 +33,10 @@ rules:
   - id: AUD-005
     text: "Audit storage is append-oriented with an integrity hash chain; mutation is restricted; retention class is recorded."
 
+submission_phase: DISABLED
+
+# APPR-006: structurally disabled; no approval token can enable it.
+
 audit_classes:
   - authentication_event
   - authorization_decision

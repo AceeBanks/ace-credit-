@@ -1,0 +1,240 @@
+# G0-B6-C25 — Attack Surface Register
+
+# Every externally or agent-accessible boundary. Fields per plan:
+# entry point, principal types, input trust level, tenant scope,
+# capabilities, secrets involved, egress involved, controls, rate limits,
+# logging, P0 failure mode.
+
+policy_id: G0-B6-C25
+version: "1.0"
+
+surfaces:
+  - id: SRF-001
+    name: web_ui_api
+    entry_point: "web UI / REST API"
+    principal_types: [client_user, tenant_admin]
+    input_trust: UNTRUSTED
+    tenant_scope: bound_by_session
+    capabilities: [api.read, api.write]
+    secrets: [session_token]
+    egress: NONE
+    controls: [authn, authorization, rate_limit, audit]
+    rate_limits: "per-principal quota"
+    logging: [authentication_event, authorization_decision]
+    p0_failure: "cross-tenant read via guessed artifact id"
+  - id: SRF-002
+    name: personal_hermes_mcp
+    entry_point: "Personal Hermes MCP surface"
+    principal_types: [client_user, personal_hermes]
+    input_trust: UNTRUSTED
+    tenant_scope: bound_by_session
+    capabilities: [client.intent, client.explain]
+    secrets: [session_token]
+    egress: NONE
+    controls: [mcp_facade, authorization, deny_default]
+    rate_limits: "per-session message quota"
+    logging: [authorization_decision, tool_execution]
+    p0_failure: "Personal Hermes escalates to CEO-only capability"
+  - id: SRF-003
+    name: ceo_hermes_mcp
+    entry_point: "CEO Hermes MCP surface"
+    principal_types: [personal_hermes, ceo_hermes]
+    input_trust: SEMI_TRUSTED
+    tenant_scope: bound_by_project
+    capabilities: [task.plan, task.delegate, task.synthesize]
+    secrets: []
+    egress: NONE
+    controls: [mcp_facade, task_contract, authorization]
+    rate_limits: "per-task quota"
+    logging: [tool_execution, authorization_decision]
+    p0_failure: "CEO invokes hidden submission tool"
+  - id: SRF-004
+    name: worker_tool_surface
+    entry_point: "worker tool surface"
+    principal_types: [worker]
+    input_trust: SEMI_TRUSTED
+    tenant_scope: bound_by_task
+    capabilities: [tool.run]
+    secrets: []
+    egress: tool_allowlist
+    controls: [tool_gateway, task_scope, capability_grant]
+    rate_limits: "per-task tool quota"
+    logging: [tool_execution, denied_action]
+    p0_failure: "worker exceeds parent capability via task escalation"
+  - id: SRF-005
+    name: source_browser_crawler
+    entry_point: "source browser/crawler"
+    principal_types: [system]
+    input_trust: UNTRUSTED
+    tenant_scope: none
+    capabilities: [source.fetch]
+    secrets: []
+    egress: source_allowlist
+    controls: [registered_sources, egress, terms_boundary]
+    rate_limits: "crawl rate limit"
+    logging: [tool_execution]
+    p0_failure: "crawler crosses registered-source boundary"
+  - id: SRF-006
+    name: file_upload
+    entry_point: "file upload"
+    principal_types: [client_user, worker]
+    input_trust: UNTRUSTED
+    tenant_scope: bound_by_session
+    capabilities: [file.receive]
+    secrets: []
+    egress: NONE
+    controls: [file_safety, quarantine, magic_validation]
+    rate_limits: "size + count limits"
+    logging: [parser_quarantine_failure]
+    p0_failure: "macro document executes or zip bomb exhausts storage"
+  - id: SRF-007
+    name: document_parser
+    entry_point: "document parser"
+    principal_types: [system]
+    input_trust: UNTRUSTED
+    tenant_scope: none
+    capabilities: [doc.parse]
+    secrets: []
+    egress: NONE
+    controls: [parser_sandbox, output_not_policy]
+    rate_limits: "parse budget"
+    logging: [parser_quarantine_failure]
+    p0_failure: "parser output treated as policy instruction"
+  - id: SRF-008
+    name: vector_graph_retrieval
+    entry_point: "vector/graph retrieval"
+    principal_types: [personal_hermes, ceo_hermes, worker]
+    input_trust: SEMI_TRUSTED
+    tenant_scope: bound_by_tenant
+    capabilities: [retrieval.query]
+    secrets: []
+    egress: NONE
+    controls: [tenant_filter, visibility, evidence_rules]
+    rate_limits: "per-tenant query quota"
+    logging: [denied_action]
+    p0_failure: "vector search leaks tenant B content to tenant A"
+  - id: SRF-009
+    name: credential_gateway
+    entry_point: "credential gateway"
+    principal_types: [system]
+    input_trust: TRUSTED
+    tenant_scope: bound_by_tenant
+    capabilities: [credential.resolve]
+    secrets: [all_credentials]
+    egress: NONE
+    controls: [vault, capability_scope, destination_scope]
+    rate_limits: "resolve quota"
+    logging: [credential_use, secret_redaction_hit]
+    p0_failure: "credential returned to agent context"
+  - id: SRF-010
+    name: oauth_callbacks
+    entry_point: "OAuth callbacks"
+    principal_types: [external_identity_provider]
+    input_trust: UNTRUSTED
+    tenant_scope: bound_by_state
+    capabilities: [auth.exchange]
+    secrets: [auth_code, token]
+    egress: NONE
+    controls: [state_validation, redirect_allowlist, pkce]
+    rate_limits: "exchange quota"
+    logging: [authentication_event]
+    p0_failure: "OAuth token used for wrong tenant (state confusion)"
+  - id: SRF-011
+    name: webhooks
+    entry_point: "webhooks"
+    principal_types: [external_integration]
+    input_trust: UNTRUSTED
+    tenant_scope: bound_by_signature
+    capabilities: [integration.receive]
+    secrets: [webhook_secret]
+    egress: NONE
+    controls: [signature_validation, idempotency]
+    rate_limits: "per-source quota"
+    logging: [tool_execution]
+    p0_failure: "forged webhook mutates canonical state"
+  - id: SRF-012
+    name: integration_executor
+    entry_point: "Activepieces/integration executor"
+    principal_types: [external_workflow]
+    input_trust: UNTRUSTED
+    tenant_scope: bound_by_project
+    capabilities: [integration.run]
+    secrets: [integration_credentials]
+    egress: allowlisted_destinations
+    controls: [non_authoritative_executor, egress, authorization]
+    rate_limits: "per-flow quota"
+    logging: [tool_execution, credential_use]
+    p0_failure: "Activepieces flow mutates canonical state outside policy"
+  - id: SRF-013
+    name: database_admin
+    entry_point: "database/admin interfaces"
+    principal_types: [platform_admin]
+    input_trust: TRUSTED
+    tenant_scope: all
+    capabilities: [db.manage]
+    secrets: [db_credentials]
+    egress: NONE
+    controls: [admin_only, audit, break_glass]
+    rate_limits: "admin session"
+    logging: [policy_change, break_glass_action]
+    p0_failure: "agent gains direct DB access"
+  - id: SRF-014
+    name: observability
+    entry_point: "observability interfaces"
+    principal_types: [platform_admin]
+    input_trust: TRUSTED
+    tenant_scope: all
+    capabilities: [obs.read]
+    secrets: []
+    egress: NONE
+    controls: [tenant_filter, redaction]
+    rate_limits: "admin session"
+    logging: [policy_change]
+    p0_failure: "observability leaks cross-tenant telemetry"
+  - id: SRF-015
+    name: artifact_export
+    entry_point: "artifact download/export"
+    principal_types: [client_user]
+    input_trust: SEMI_TRUSTED
+    tenant_scope: bound_by_session
+    capabilities: [artifact.export]
+    secrets: []
+    egress: NONE
+    controls: [data_classification, authorization, share_link_policy]
+    rate_limits: "per-user export quota"
+    logging: [authorization_decision]
+    p0_failure: "export bypasses data classification; public link leaks private artifact"
+  - id: SRF-016
+    name: external_email_outreach
+    entry_point: "future external email/outreach"
+    principal_types: [ceo_hermes]
+    input_trust: SEMI_TRUSTED
+    tenant_scope: bound_by_project
+    capabilities: [egress.send_external]
+    secrets: [outreach_credentials]
+    egress: allowlisted_email_destinations
+    controls: [approval, egress, audit]
+    rate_limits: "per-day outreach quota"
+    logging: [credential_use, tool_execution]
+    p0_failure: "prompt-injected content triggers email send"
+  - id: SRF-017
+    name: grant_portal_submission
+    entry_point: "future grant portal submission"
+    principal_types: [ceo_hermes]
+    input_trust: TRUSTED
+    tenant_scope: bound_by_project
+    capabilities: [submission.execute]
+    secrets: [portal_credentials]
+    egress: portal_allowlist
+    controls: [submission_disabled, approval, audit]
+    rate_limits: "L5 gate"
+    logging: [denied_action]
+    p0_failure: "L5 endpoint accidentally enabled by feature flag"
+
+register_rules:
+  - id: ASR-001
+    text: "Every surface registers entry point, principal types, trust level, tenant scope, capabilities, secrets, egress, controls, rate limits, logging and P0 failure mode."
+  - id: ASR-002
+    text: "No new externally reachable boundary may be added without a register row."
+  - id: ASR-003
+    text: "Submission-capable surfaces (SRF-017) remain structurally disabled in Phase 1."

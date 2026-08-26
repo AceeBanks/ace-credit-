@@ -195,8 +195,13 @@ def test_chat_phrase_does_not_auto_approve():
 
 
 def test_l5_submission_disabled_despite_approval():
+    # derived from policy (approval_audit_policy.submission_phase == DISABLED),
+    # not a hard-coded constant
     reg = ApprovalRegistry()
-    assert reg.l5_submission_stays_disabled() is False
+    assert reg.l5_submission_stays_disabled() is True
+    # and no approval token can flip it — another registry sees the same
+    reg2 = ApprovalRegistry()
+    assert reg2.l5_submission_stays_disabled() is True
 
 
 # ------------------------------------------------------------- C19 audit

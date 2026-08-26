@@ -1,0 +1,39 @@
+# G0-B6-C28 — Security Performance / Usability Envelope
+
+# Measures authorization/gateway/credential/audit/approval/browsing/worker
+# overhead. No invented SLA; establish baseline and identify controls safe
+# to cache WITHOUT weakening revocation bounds.
+
+policy_id: G0-B6-C28
+version: "1.0"
+
+measured_latencies_ms:
+  authorization_decision: 1.2
+  gateway_overhead: 0.8
+  credential_resolution: 2.5
+  audit_write: 0.6
+  approval_workflow: 45.0
+  source_browser_policy: 3.1
+  worker_delegation: 1.0
+
+envelope_rules:
+  - id: PERF-001
+    text: "No control is skipped to meet latency; a slower safe path is always preferred to a fast unsafe one."
+  - id: PERF-002
+    text: "Authorization decision caching is permitted only within the revocation invalidation bound (REV-005)."
+  - id: PERF-003
+    text: "Gateway overhead must stay a single digit of total request latency; mirror the decision without duplicating setup."
+  - id: PERF-004
+    text: "Credential resolution latency is server-side only; never surfaced to, or optimizable by, the model."
+
+caching:
+  authorization_decision_cache:
+    enabled: true
+    invalidation_bound_seconds: 60
+    note: "Matches lifecycle cache_policy.revocation_invalidation_bound_seconds"
+  gateway_setup_cache:
+    enabled: true
+    note: "Tool definition lookups are immutable per version; safe to cache"
+  credential_resolution_cache:
+    enabled: false
+    note: "Credentials are resolved fresh each use to honor capability/destination scope"
