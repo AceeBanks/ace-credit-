@@ -57,3 +57,16 @@ reconstruction, portability, D1 mock draft) is implemented with in-repo
 schemas/configs/prototypes/tests. Graph/vector systems remain projections;
 no candidate becomes canonical truth without a ratified ADR + bake-off
 (Book 5).
+
+## Batch 06 — Book 5 (Evidence) decisions
+
+**Date:** 2026-08-26  **Book:** 5 (Evidence, decision records & replay)
+
+| Component | Decision | Target Book(s) | Reason |
+|---|---|---|---|
+| semantica-agi/semantica (PyPI `semantica` 0.6.6) | DEFER (adapter frozen; no runtime install) | 5, future | C13 bake-off: both candidates correct on all W1-W10 workloads; no correctness or latency advantage. Verdict ADOPT_OPTIONAL_ACCELERATOR with deferred activation. Adapter contract frozen in `prototype/g0/evidence/semantica_adapter.py`; dependency scoped to gitignored `.bakeoff/`; activation requires a new ADR with measured recall/latency benefit at real data scale (G0_B5_STORAGE_ADR.md). |
+
+**Rule reaffirmed:** storage ADR (C14) ratified **Pattern A — relational
+canonical + relational evidence/dependency tables**. Graph/vector systems
+remain projections, rebuildable from canonical evidence, never the system of
+record. Bake-off evidence: `G0_B5_SEMANTICA_BAKEOFF_RESULTS.json`.

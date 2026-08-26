@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evidence/explanation_packet.schema.json",
+  "title": "EvidenceExplanationPacket",
+  "description": "G0-B5-C15 — Converts a DecisionRecord into client transparency. Cites structured decision evidence only; carries decision_record_ref for audit linkage; surfaces stale indicators and conflicts; rejects unsupported rationale.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "explanation_id",
+    "decision_record_ref",
+    "decision_type",
+    "tenant_id",
+    "project_id",
+    "summary",
+    "cited_evidence_refs",
+    "reason_codes",
+    "stale_indicators",
+    "conflict_disclosures",
+    "assumptions"
+  ],
+  "properties": {
+    "explanation_id": {"type": "string", "minLength": 1},
+    "decision_record_ref": {"type": "string", "minLength": 1},
+    "decision_type": {"type": "string", "minLength": 1},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "project_id": {"type": "string", "minLength": 1},
+    "summary": {"type": "string"},
+    "cited_evidence_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "reason_codes": {"type": "array", "items": {"type": "string"}},
+    "stale_indicators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ref", "stale_class"],
+        "properties": {
+          "ref": {"type": "string"},
+          "stale_class": {
+            "type": "string",
+            "enum": ["TOMBSTONED", "INVALIDATED", "SUPERSEDED", "EXPIRED"]
+          }
+        }
+      }
+    },
+    "conflict_disclosures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ref_a", "ref_b", "edge_type"],
+        "properties": {
+          "ref_a": {"type": "string"},
+          "ref_b": {"type": "string"},
+          "edge_type": {"type": "string"}
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Rationale elements not traceable to decision inputs/outputs must be explicitly flagged here or rejected."
+    },
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

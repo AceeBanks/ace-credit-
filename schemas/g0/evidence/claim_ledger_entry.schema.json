@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evidence/claim_ledger_entry.schema.json",
+  "title": "ClaimLedgerEntry",
+  "description": "G0-B5-C16 — claim-level auditability for grant drafts. Every entry carries claim_class, evidence refs, support status and QA status.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_version_id",
+    "section_id",
+    "claim_id",
+    "claim_text_or_structured_ref",
+    "claim_class",
+    "evidence_refs",
+    "support_status",
+    "qa_status"
+  ],
+  "properties": {
+    "artifact_version_id": {"type": "string", "minLength": 1},
+    "section_id": {"type": "string", "minLength": 1},
+    "claim_id": {"type": "string", "minLength": 1},
+    "claim_text_or_structured_ref": {"type": "string", "minLength": 1},
+    "claim_class": {"type": "string", "minLength": 1},
+    "evidence_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Empty only for ASSUMPTION/UNSUPPORTED entries; support assessment decides."
+    },
+    "support_status": {
+      "type": "string",
+      "enum": [
+        "SUPPORTED",
+        "SUPPORTED_WITH_QUALIFICATION",
+        "USER_ATTESTED",
+        "ASSUMPTION",
+        "UNSUPPORTED",
+        "CONFLICTED",
+        "STALE"
+      ]
+    },
+    "qa_status": {
+      "type": "string",
+      "enum": ["PASSED", "FAILED", "PENDING", "REVIEW_REQUIRED"]
+    },
+    "is_target": {
+      "type": "boolean",
+      "description": "True when the claim is a future target rather than an achieved historical outcome (CLAIM-004)."
+    },
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

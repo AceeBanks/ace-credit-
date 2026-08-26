@@ -1,0 +1,64 @@
+# G0-B5-C16 — Application Claim Ledger Policy
+# Grant drafts are auditable at the claim level without requiring every
+# adjective to be cited.
+
+policy_id: G0-B5-C16
+version: "1.0"
+
+claim_classes:
+  - ORGANIZATION_LEGAL_STATUS
+  - PROGRAM_HISTORY_PERFORMANCE
+  - POPULATION_COMMUNITY_STATISTICS
+  - FUNDING_AMOUNT
+  - DATES_DEADLINES
+  - PARTNERSHIP
+  - TESTIMONIAL_SUPPORT
+  - BUDGET_ASSUMPTION
+  - MEASURABLE_OUTCOME_HISTORICAL
+  - PRIOR_AWARD_WINNER
+  - REGULATORY_COMPLIANCE
+
+support_statuses:
+  - SUPPORTED
+  - SUPPORTED_WITH_QUALIFICATION
+  - USER_ATTESTED
+  - ASSUMPTION
+  - UNSUPPORTED
+  - CONFLICTED
+  - STALE
+
+rules:
+  - id: CLAIM-001
+    text: "Every claim carries a claim_class from the enumerated set; unknown classes are rejected."
+  - id: CLAIM-002
+    text: "A claim is SUPPORTED only when every cited evidence ref resolves and none is tombstoned."
+  - id: CLAIM-003
+    text: "A TESTIMONIAL_SUPPORT claim whose evidence is synthetic, unverifiable or AI-generated must fail support (UNSUPPORTED)."
+  - id: CLAIM-004
+    text: "Future targets must never be presented as achieved outcomes: a MEASURABLE_OUTCOME_HISTORICAL claim whose text is future/planned must carry is_target=true or be reclassified."
+  - id: CLAIM-005
+    text: "A numeric claim (FUNDING_AMOUNT, POPULATION_COMMUNITY_STATISTICS, MEASURABLE_OUTCOME_HISTORICAL with numbers) must trace to at least one STATISTIC_OBSERVATION, CANONICAL_FACT or budget ref."
+  - id: CLAIM-006
+    text: "Rewriting or re-mapping claim text (e.g., humanization) must produce a new artifact_version_id or raise; claim-to-ledger mapping may never sever silently."
+  - id: CLAIM-007
+    text: "An assumption may be written only when clearly represented as future plan/assumption, never as historical fact (status ASSUMPTION)."
+
+numeric_classes:
+  - FUNDING_AMOUNT
+  - POPULATION_COMMUNITY_STATISTICS
+  - MEASURABLE_OUTCOME_HISTORICAL
+
+numeric_evidence_types:
+  - STATISTIC_OBSERVATION
+  - CANONICAL_FACT
+  - BUDGET
+  - BUDGET_ASSUMPTION
+
+future_markers:
+  - "will"
+  - "target"
+  - "planned"
+  - "projected"
+  - "expected"
+  - "by 2027"
+  - "aim to"

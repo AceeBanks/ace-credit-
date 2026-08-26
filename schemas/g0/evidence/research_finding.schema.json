@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evidence/research_finding.schema.json",
+  "title": "ResearchFinding",
+  "description": "G0-B5-C17 — durable, evidence-backed research finding. Requires evidence refs, preserves limitations, and represents award sample size for pattern/range findings.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "finding_id",
+    "research_type",
+    "statement",
+    "evidence_refs",
+    "quality",
+    "applicability",
+    "created_at",
+    "created_by"
+  ],
+  "properties": {
+    "finding_id": {"type": "string", "minLength": 1},
+    "research_type": {"type": "string", "minLength": 1},
+    "subject_refs": {"type": "array", "items": {"type": "string"}},
+    "statement": {"type": "string", "minLength": 1},
+    "evidence_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "quality": {
+      "type": "string",
+      "enum": ["HIGH", "MEDIUM", "LOW", "UNVERIFIED"]
+    },
+    "applicability": {"type": "string"},
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Preserved wherever the finding is consumed (FIND-002)."
+    },
+    "award_sample_size": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Required for AWARD_RANGE and HISTORICAL_WINNER_PATTERN (FIND-004)."
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "created_by": {"type": "string", "minLength": 1}
+  }
+}

@@ -1,0 +1,58 @@
+# G0-B5-C18 — Audit <-> Evidence <-> Decision Linkage Policy
+# Unifies Book 1 audit events with Book 5 decision/evidence records so a
+# consequential action can be traversed forward and backward without gaps.
+
+policy_id: G0-B5-C18
+version: "1.0"
+
+rules:
+  - id: LINK-001
+    text: "Every consequential decision must be referenced by at least one audit event; an orphaned consequential decision is rejected."
+  - id: LINK-002
+    text: "An approval reference on an audit event or decision must resolve to a valid approval in the approval registry."
+  - id: LINK-003
+    text: "The actor and capability on the decision record must be consistent with the linking audit event."
+  - id: LINK-004
+    text: "Sensitive payload redaction must not destroy lineage: refs, ids, actor, capability and policy references survive redaction."
+
+forward_path:
+  - AuditEvent
+  - PolicyDecision
+  - Capability
+  - DecisionRecord
+  - EvidenceInputs
+  - OutputArtifacts
+  - HumanApproval
+
+backward_path:
+  - ProposalArtifact
+  - GeneratingDecision
+  - Evidence
+  - Actor
+  - PolicyDecision
+  - AuditEvent
+
+consequential_result_classes:
+  - CANONICAL_MUTATION
+  - EXTERNAL_ACTION
+  - LEGALLY_MATERIAL
+
+redaction_never_removes:
+  - event_id
+  - audit_event_id
+  - request_id
+  - actor_id
+  - capability_id
+  - tenant_id
+  - project_id
+  - policy_decision_ref
+  - approval_ref
+  - decision_record_ref
+  - input_artifact_refs
+  - output_artifact_refs
+  - evidence_inputs
+  - output_artifacts
+  - source_refs
+  - evidence_refs
+  - ref
+  - tombstoned

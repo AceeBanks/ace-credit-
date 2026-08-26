@@ -1,0 +1,43 @@
+# G0-B5-C15 — Client Explanation Policy
+# ExplanationPacket converts evidence/decision lineage into client-facing
+# transparency. It cites structured decision evidence; it NEVER contains
+# chain-of-thought, hidden model reasoning, or unsupported rationale.
+
+policy_id: G0-B5-C15
+version: "1.0"
+
+citation_rules:
+  - id: EXPL-001
+    text: "Every evidence ref cited in the explanation must appear in the decision record's input_refs or output_refs."
+  - id: EXPL-002
+    text: "Unsupported rationale is rejected: a claim about why a decision was made must trace to a decision input, an output artifact ref, or an explicit ASSUMPTION flag."
+  - id: EXPL-003
+    text: "Chain-of-thought and internal model reasoning traces are never included in the packet."
+  - id: EXPL-004
+    text: "If any input ref is tombstoned, invalidated or stale at explanation time, the packet must surface a stale indicator; it may not silently cite the ref as current."
+  - id: EXPL-005
+    text: "If any two cited refs participate in a CONTRADICTS edge, the conflict must be disclosed in conflict_disclosures; conflicts are never hidden."
+
+content_allowed:
+  - decision result summary
+  - eligibility rule results (from result)
+  - reason codes
+  - key evidence citations (refs only)
+  - known conflicts / uncertainties
+  - stale / freshness indicators
+  - human review items (flagged ASSUMPTION or REVIEW_REQUIRED)
+
+content_forbidden:
+  - internal reasoning traces
+  - model prompt/response dumps
+  - hidden confidence scores presented as facts
+  - refs not present in the decision record
+
+stale_classes:
+  - TOMBSTONED
+  - INVALIDATED
+  - SUPERSEDED
+  - EXPIRED
+
+conflict_edge_types:
+  - CONTRADICTS

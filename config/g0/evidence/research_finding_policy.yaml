@@ -1,0 +1,38 @@
+# G0-B5-C17 — Research Finding Policy
+# Funders/winner/community research becomes durable evidence-backed objects,
+# not disposable prose.
+
+policy_id: G0-B5-C17
+version: "1.0"
+
+research_types:
+  - FUNDER_PRIORITY
+  - HISTORICAL_WINNER_PATTERN
+  - AWARD_RANGE
+  - GEOGRAPHIC_PATTERN
+  - PROGRAM_ALIGNMENT
+  - COMMUNITY_NEED
+  - COMPETITIVE_SIGNAL
+  - REQUIREMENT_INTERPRETATION
+  - OTHER
+
+rules:
+  - id: FIND-001
+    text: "Every finding requires at least one evidence ref; a finding without evidence is rejected."
+  - id: FIND-002
+    text: "Limitations must be preserved and carried with the finding wherever it is consumed."
+  - id: FIND-003
+    text: "Historical winner patterns are descriptive, not causal: statements must not claim universal causality ('winners always do X') from a weak sample."
+  - id: FIND-004
+    text: "Award sample size must be represented on AWARD_RANGE and HISTORICAL_WINNER_PATTERN findings."
+  - id: FIND-005
+    text: "A research finding may be shown to the client and consumed by drafting context; it is never silently injected as an established fact."
+
+causal_forbidden_terms:
+  - "always"
+  - "never"
+  - "proves"
+  - "guarantees"
+  - "every winner"
+
+weak_sample_threshold: 5
