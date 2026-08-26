@@ -1,0 +1,82 @@
+# G0-B3-C9 — Freshness Constitution (machine-readable, fail-closed).
+# Defines when data is current enough for its intended use. Per fact/source
+# policy; closer deadline -> stronger refresh/health requirements.
+
+freshness_states:
+  - FRESH
+  - SOFT_STALE
+  - HARD_STALE
+  - UNKNOWN_FRESHNESS
+  - HISTORICAL_FIXED
+
+# Deadline proximity tiers (stronger refresh/health the closer the deadline).
+deadline_proximity_tiers:
+  - label: ">30 days"
+    min_days: 31
+  - label: "14-30 days"
+    min_days: 15
+    max_days: 30
+  - label: "7-14 days"
+    min_days: 8
+    max_days: 14
+  - label: "<7 days"
+    min_days: 0
+    max_days: 7
+  - label: "<24 hours"
+    max_hours: 24
+
+policies:
+  opportunity_deadline:
+    fact_class: opportunity_deadline
+    source_class: OFFICIAL_ISSUER
+    soft_stale_after_days: 7
+    hard_stale_after_days: 14
+    refresh_on_access: true
+    refresh_on_deadline_window: "<14 days"
+    latest_vintage_rule: null
+    critical_use_block_on_hard_stale: true
+  opportunity_eligibility:
+    fact_class: opportunity_eligibility
+    source_class: OFFICIAL_ISSUER
+    soft_stale_after_days: 7
+    hard_stale_after_days: 14
+    refresh_on_access: true
+    refresh_on_deadline_window: "<14 days"
+    latest_vintage_rule: null
+    critical_use_block_on_hard_stale: true
+  historical_award:
+    fact_class: historical_award_amount
+    source_class: OFFICIAL_TRANSACTIONAL
+    soft_stale_after_days: null
+    hard_stale_after_days: null
+    refresh_on_access: false
+    refresh_on_deadline_window: null
+    latest_vintage_rule: "historical_fixed_absent_correction"
+    critical_use_block_on_hard_stale: false
+  irs_annual_filing:
+    fact_class: organization_financial_filings
+    source_class: OFFICIAL_TRANSACTIONAL
+    soft_stale_after_days: null
+    hard_stale_after_days: null
+    refresh_on_access: false
+    refresh_on_deadline_window: null
+    latest_vintage_rule: "latest_official_vintage"
+    critical_use_block_on_hard_stale: false
+  acs_saipe:
+    fact_class: community_statistics
+    source_class: OFFICIAL_STATISTICAL
+    soft_stale_after_days: null
+    hard_stale_after_days: null
+    refresh_on_access: false
+    refresh_on_deadline_window: null
+    latest_vintage_rule: "dataset_vintage_reference_period"
+    critical_use_block_on_hard_stale: false
+  web_funder_priority:
+    fact_class: funder_identity
+    source_class: GOVERNED_WEB
+    soft_stale_after_days: 60
+    hard_stale_after_days: 180
+    refresh_on_access: false
+    refresh_on_deadline_window: "<7 days"
+    latest_vintage_rule: null
+    critical_use_block_on_hard_stale: false

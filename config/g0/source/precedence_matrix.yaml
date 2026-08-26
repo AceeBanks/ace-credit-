@@ -1,0 +1,104 @@
+# G0-B3-C8 — Source Precedence Matrix (machine-readable, fail-closed).
+# Determines which source governs which fact class when sources disagree.
+# Authority is ALWAYS fact class × source class via the ordered chain below.
+# Equal-authority conflict: no automatic last-write-wins; status becomes
+# CONFLICTED/REVIEW_REQUIRED unless a temporal/effective-date rule resolves it.
+#
+# Structure: each fact class -> an ordered list of stages; each stage is a
+# list of {label: {source_classes: [...]}}. Lower stage index = more
+# authoritative. Only KNOWN_SOURCE_CLASSES may appear.
+
+fact_classes:
+  - opportunity_title
+  - opportunity_status
+  - opportunity_deadline
+  - opportunity_award_ceiling
+  - opportunity_award_floor
+  - opportunity_estimated_funding
+  - opportunity_eligibility
+  - opportunity_matching_cost_share
+  - opportunity_required_attachments
+  - opportunity_application_questions
+  - opportunity_submission_instructions
+  - funder_identity
+  - program_aln
+  - historical_award_amount
+  - recipient_identity
+  - tax_exempt_status
+  - legal_organization_name
+  - organization_financial_filings
+  - community_statistics
+  - user_preferences_intention
+  - internal_project_goals
+  - client_program_intent
+
+precedence_matrix:
+  opportunity_deadline:
+    - - official_solicitation:
+          source_classes: [OFFICIAL_ISSUER]
+    - - official_aggregator:
+          source_classes: [OFFICIAL_AGGREGATOR]
+    - - agency_landing_page:
+          source_classes: [GOVERNED_WEB, OFFICIAL_TRANSACTIONAL]
+    - - trusted_curated_db:
+          source_classes: [TRUSTED_CURATED]
+    - - registered_secondary_web:
+          source_classes: [GOVERNED_WEB, USER_PROVIDED]
+    - - user_recollection:
+          source_classes: [USER_PROVIDED]
+  opportunity_eligibility:
+    - - official_solicitation:
+          source_classes: [OFFICIAL_ISSUER]
+    - - official_aggregator:
+          source_classes: [OFFICIAL_AGGREGATOR]
+    - - agency_landing_page:
+          source_classes: [OFFICIAL_TRANSACTIONAL, GOVERNED_WEB]
+    - - trusted_curated_db:
+          source_classes: [TRUSTED_CURATED]
+    - - user_recollection:
+          source_classes: [USER_PROVIDED]
+  opportunity_award_ceiling:
+    - - official_solicitation:
+          source_classes: [OFFICIAL_ISSUER]
+    - - official_aggregator:
+          source_classes: [OFFICIAL_AGGREGATOR]
+    - - trusted_curated_db:
+          source_classes: [TRUSTED_CURATED]
+    - - user_recollection:
+          source_classes: [USER_PROVIDED]
+  tax_exempt_status:
+    - - current_irs_official:
+          source_classes: [OFFICIAL_TRANSACTIONAL]
+    - - trusted_aggregator_derived_from_irs:
+          source_classes: [TRUSTED_CURATED]
+    - - organization_website:
+          source_classes: [GOVERNED_WEB]
+    - - client_statement:
+          source_classes: [USER_PROVIDED]
+  historical_award_amount:
+    - - official_transactional_record:
+          source_classes: [OFFICIAL_TRANSACTIONAL]
+    - - trusted_curated_db:
+          source_classes: [TRUSTED_CURATED]
+    - - funder_press_release:
+          source_classes: [GOVERNED_WEB]
+    - - recipient_website:
+          source_classes: [GOVERNED_WEB]
+  client_program_intent:
+    - - client_approved_canonical:
+          source_classes: [USER_PROVIDED]
+    - - old_client_conversation:
+          source_classes: [USER_PROVIDED]
+    - - third_party_description:
+          source_classes: [TRUSTED_CURATED, GOVERNED_WEB]
+
+# Facts the client controls (client intent/preferences) vs issuer/legal facts.
+client_controlled_fact_classes:
+  - user_preferences_intention
+  - client_program_intent
+  - internal_project_goals
+
+equal_authority_conflict_rule: |
+  No automatic last-write-wins. When two sources at the same resolved
+  authority disagree, the fact state becomes CONFLICTED / REVIEW_REQUIRED
+  unless a temporal (source_effective_at) rule resolves it.
