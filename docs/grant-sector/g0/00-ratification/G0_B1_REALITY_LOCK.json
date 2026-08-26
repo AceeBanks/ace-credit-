@@ -17,9 +17,9 @@
   "evidence": {
     "test_results": {
       "exit_code": 0,
-      "passed": 102,
+      "passed": 116,
       "failed": 0,
-      "summary": "102 passed, 1 skipped in 10.56s",
+      "summary": "116 passed, 1 skipped in 12.77s",
       "scope": "tests/g0/book1 excluding G0_B1_REALITY_LOCK.json freshness self-test"
     },
     "law_count": 30

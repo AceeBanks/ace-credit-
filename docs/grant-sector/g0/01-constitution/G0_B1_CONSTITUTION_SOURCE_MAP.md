@@ -18,6 +18,7 @@ disconnected from project evidence.
 | Self-improvement governance (LAW-B1-017/018) | OCE/Hermes eval & coevolution findings |
 | Reject/security patterns (LAW-B1-014) | `R0_REJECT_DO_NOT_PORT_LEDGER_v0.1.md` |
 | Georgia-first operating assumption (B1.C13) | `G0_BLUEPRINT_AMENDMENT_001_GEORGIA_FIRST_EARLY_DRAFTING.md` |
+| Amendment protocol (B1.C10) | `G0_B1_CONSTITUTIONAL_AMENDMENT_PROTOCOL.md` (this constitution package) |
 
 All input artifacts are content-pinned in
 `config/g0/ratification/artifact_manifest.yaml` (Book 0). Where a source
