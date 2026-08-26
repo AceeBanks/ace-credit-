@@ -1,0 +1,26 @@
+# G0-B5-C9 — Dependency invalidation rules (machine-readable).
+# Material source changes -> targeted recomputation, never global rebuild.
+
+selective_rules:
+  - id: INV-001
+    change: "deadline change in OpportunityRevision"
+    effect: "eligibility timing check + requirement deadline + readiness + user alert/explanation"
+    required_action: RECOMPUTE
+  - id: INV-002
+    change: "community statistic update"
+    effect: "affected proposal sections/research report"
+    required_action: RECOMPUTE
+  - id: INV-003
+    change: "formatting-only source change"
+    effect: "no downstream semantic invalidation if normalized meaning unchanged"
+    required_action: NONE
+
+hard_rules:
+  - id: INV-004
+    text: "no global recompute when the dependency subset is known"
+  - id: INV-005
+    text: "transitive invalidation is bounded and inspectable"
+  - id: INV-006
+    text: "cycles are handled safely (no invalidation storm)"
+  - id: INV-007
+    text: "a stale dependency prevents false submission-ready state"

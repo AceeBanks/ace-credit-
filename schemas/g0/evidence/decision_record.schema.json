@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://grant-sector.g0/schemas/evidence/decision_record.schema.json",
+  "title": "DecisionRecord",
+  "description": "First-class record of a material system decision: exact inputs, versions, policy/evaluator version, result and explanation lineage required for replay.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision_id", "decision_type", "tenant_id", "project_id", "actor_ref", "capability_id", "created_at", "input_refs", "policy_ref", "result", "status"],
+  "properties": {
+    "decision_id": {"type": "string", "minLength": 1},
+    "decision_type": {"type": "string", "enum": ["ELIGIBILITY", "MATCH_RANKING", "FACT_PROMOTION", "CONFLICT_RESOLUTION", "REQUIREMENT_COVERAGE", "BUDGET_VALIDATION", "QA_FACTUALITY", "QA_ALIGNMENT", "SUBMISSION_READINESS", "MEMORY_PROMOTION", "CHANGE_PROMOTION", "POLICY_AUTHORIZATION"]},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "project_id": {"type": "string", "minLength": 1},
+    "actor_ref": {"type": "string", "minLength": 1},
+    "capability_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "effective_at": {"type": ["string", "null"], "format": "date-time"},
+    "input_refs": {
+      "type": "array",
+      "items": {"$ref": "decision_input_ref.schema.json"},
+      "minItems": 1
+    },
+    "configuration_refs": {"type": "array", "items": {"type": "string"}},
+    "model_or_engine_ref": {"type": ["string", "null"]},
+    "policy_ref": {"type": "string", "minLength": 1},
+    "result": {"type": "object", "additionalProperties": true},
+    "reason_codes": {"type": "array", "items": {"type": "string"}},
+    "explanation_data": {"type": "object", "additionalProperties": true},
+    "output_refs": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["ACTIVE", "SUPERSEDED", "INVALIDATED"]},
+    "supersedes_decision_id": {"type": ["string", "null"]}
+  }
+}

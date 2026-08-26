@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://grant-sector.g0/schemas/evidence/decision_input_ref.schema.json",
+  "title": "DecisionInputRef",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["input_role", "ref"],
+  "properties": {
+    "input_role": {"type": "string", "description": "e.g. opportunity_revision, eligibility_rule, evidence_claim, statistic"},
+    "ref": {"type": "string", "minLength": 1},
+    "version_or_revision_id": {"type": ["string", "null"]},
+    "content_hash": {"type": ["string", "null"]}
+  }
+}

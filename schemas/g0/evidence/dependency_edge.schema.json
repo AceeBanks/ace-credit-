@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://grant-sector.g0/schemas/evidence/dependency_edge.schema.json",
+  "title": "DependencyEdge",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["dependency_id", "dependent_ref", "depends_on_ref", "dependency_type", "materiality", "created_at", "status"],
+  "properties": {
+    "dependency_id": {"type": "string", "minLength": 1},
+    "dependent_ref": {"type": "string", "minLength": 1},
+    "depends_on_ref": {"type": "string", "minLength": 1},
+    "dependency_type": {"type": "string", "enum": ["FACTUAL", "ELIGIBILITY", "REQUIREMENT", "MATCH", "NUMERIC", "CITATION", "NARRATIVE_ALIGNMENT", "POLICY", "MODEL_OUTPUT", "ARTIFACT_BUNDLE"]},
+    "materiality": {"type": "string", "enum": ["CRITICAL", "SIGNIFICANT", "MINOR"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "status": {"type": "string", "enum": ["ACTIVE", "INVALIDATED", "RESOLVED"]}
+  }
+}

@@ -1,0 +1,38 @@
+# G0-B5-C7 — Decision types (machine-readable).
+decision_types:
+  - id: ELIGIBILITY
+    replay_mode: DETERMINISTIC
+  - id: MATCH_RANKING
+    replay_mode: DETERMINISTIC_WITH_PROJECTION
+  - id: FACT_PROMOTION
+    replay_mode: DETERMINISTIC
+  - id: CONFLICT_RESOLUTION
+    replay_mode: AUDIT_REQUIRED
+  - id: REQUIREMENT_COVERAGE
+    replay_mode: DETERMINISTIC
+  - id: BUDGET_VALIDATION
+    replay_mode: DETERMINISTIC
+  - id: QA_FACTUALITY
+    replay_mode: MODEL_ASSISTED
+  - id: QA_ALIGNMENT
+    replay_mode: MODEL_ASSISTED
+  - id: SUBMISSION_READINESS
+    replay_mode: DETERMINISTIC
+  - id: MEMORY_PROMOTION
+    replay_mode: AUDIT_REQUIRED
+  - id: CHANGE_PROMOTION
+    replay_mode: AUDIT_REQUIRED
+  - id: POLICY_AUTHORIZATION
+    replay_mode: AUDIT_REQUIRED
+
+hard_rules:
+  - id: DEC-001
+    text: "a decision missing the exact opportunity revision fails validation"
+  - id: DEC-002
+    text: "deterministic decision records engine version"
+  - id: DEC-003
+    text: "model-assisted decision pins structured context refs"
+  - id: DEC-004
+    text: "supersession does not mutate the old decision"
+  - id: DEC-005
+    text: "chain-of-thought is never stored as required replay state"
