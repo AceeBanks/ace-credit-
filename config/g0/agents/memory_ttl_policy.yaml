@@ -1,0 +1,27 @@
+# G0 Book 4 - B4.C13/C16 Memory TTL Policy (machine-readable).
+# Forgetting is intentional: expired/stale execution detail leaves active
+# retrieval unless promoted.
+memory_ttl_policy_version: "1.0"
+default_ttl_days: 90
+
+class_ttls:
+  PM-IDENTITY: 730
+  PM-PREFERENCE: 730
+  PM-GOAL: 365
+  PM-DECISION: 365
+  PM-RELATIONSHIP: 365
+  PM-OPEN_LOOP: 180
+  PM-EPISODIC_SUMMARY: 30
+  CM-SYSTEM-DOCTRINE: 3650
+  CM-ACTIVE-PROJECT: 30
+  CM-BLOCKER: 30
+  CM-CAPABILITY: 365
+  CM-LESSON-CANDIDATE: 90
+  CM-PROMOTED-LESSON: 730
+  CM-HEALTH-DEGRADATION: 7
+
+ttl_rules:
+- rule: "expires_at on a record overrides the class TTL when present."
+- rule: "A promoted lesson outlives the closed task detail that produced it; closed-task chatter expires, the lesson is retained."
+- rule: "Transient provider/source outages expire after the CM-HEALTH-DEGRADATION TTL."
+- rule: "Records past their retention window leave ACTIVE retrieval; archived raw interaction remains only under the separate retention policy."

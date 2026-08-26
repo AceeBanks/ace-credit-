@@ -1,0 +1,38 @@
+# G0 Book 4 - B4.C13 CEO Memory Classes (machine-readable).
+# Lean operational continuity. Retain lessons and active-state awareness, not
+# raw execution history.
+ceo_memory_classes_version: "1.0"
+namespace: ceo_hermes
+
+classes:
+- class_id: CM-SYSTEM-DOCTRINE
+  description: "References ratified laws/contracts, ideally by version rather than copied prose."
+  store_reference_not_duplicate: true
+- class_id: CM-ACTIVE-PROJECT
+  description: "Operational summary of active project/application state; reconstructable from canonical state."
+  store_reference_not_duplicate: true
+- class_id: CM-BLOCKER
+  description: "Known unresolved failure/blocker requiring continued attention."
+  store_reference_not_duplicate: false
+- class_id: CM-CAPABILITY
+  description: "Operational knowledge about available capability behavior/limitations, preferably derived from registry/system state."
+  store_reference_not_duplicate: true
+- class_id: CM-LESSON-CANDIDATE
+  description: "Observed recurring pattern awaiting validation/promotion."
+  store_reference_not_duplicate: false
+- class_id: CM-PROMOTED-LESSON
+  description: "Validated operational lesson."
+  store_reference_not_duplicate: false
+- class_id: CM-HEALTH-DEGRADATION
+  description: "Temporary awareness of source/tool/provider problems with TTL."
+  store_reference_not_duplicate: false
+
+non_durable_by_default:
+- RAW_WORKER_LOGS
+- ONE_OFF_RETRY_DETAILS
+- ENTIRE_PROMPTS
+- EVERY_GRANT_RESEARCHED
+- CLOSED_TASK_CHATTER
+- VERBOSE_TOOL_OUTPUT
+
+lesson_promotion_flow: "CM-LESSON-CANDIDATE requires Book 7 evaluation governance before promotion to CM-PROMOTED-LESSON; no operational lesson self-promotes."

@@ -1,0 +1,31 @@
+# G0 Book 4 - B4.C12 Personal Memory Classes (machine-readable).
+# Persistent relationship continuity WITHOUT infinite autobiographical
+# storage. Canonical domain state is never duplicated here.
+personal_memory_classes_version: "1.0"
+namespace: personal_hermes
+
+classes:
+- class_id: PM-IDENTITY
+  description: "Stable client/organization relationship context that is not otherwise better represented as canonical domain facts."
+  store_reference_not_duplicate: true
+- class_id: PM-PREFERENCE
+  description: "Communication/work preferences. Preferences are NOT business facts."
+  store_reference_not_duplicate: false
+- class_id: PM-GOAL
+  description: "Longer-lived user objectives."
+  store_reference_not_duplicate: false
+- class_id: PM-DECISION
+  description: "Meaningful user choices/commitments not yet fully represented in domain state."
+  store_reference_not_duplicate: true
+- class_id: PM-RELATIONSHIP
+  description: "Relevant partner/funder/contact context, subject to privacy/data policy."
+  store_reference_not_duplicate: true
+- class_id: PM-OPEN_LOOP
+  description: "Unresolved ideas/questions the user expects to revisit."
+  store_reference_not_duplicate: false
+- class_id: PM-EPISODIC_SUMMARY
+  description: "Compressed meaningful interaction episode."
+  store_reference_not_duplicate: false
+
+canonical_substitution_rule: "Do not store as Personal memory when canonical domain state is superior: EIN, grant deadline, award ceiling, verified revenue, application status, source-backed statistic. Store a canonical_ref instead."
+canonical_duplicate_examples: [EIN, GRANT_DEADLINE, AWARD_CEILING, VERIFIED_REVENUE, APPLICATION_STATUS, SOURCE_BACKED_STATISTIC]
