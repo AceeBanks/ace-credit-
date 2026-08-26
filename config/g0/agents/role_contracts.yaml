@@ -1,0 +1,103 @@
+# G0 Book 4 - B4.C2-C3 Role Operating Contracts (machine-readable).
+# Personal Hermes = first-class product interface. CEO Hermes = governed
+# application operator. Capability ids reference the Book 1 registry and the
+# Book 4 boundary config.
+role_contracts_version: "1.0"
+
+personal_contract:
+  role_ref: PERSONAL_HERMES
+  responsibilities:
+  - CONVERSATIONAL_INTAKE
+  - BRAINSTORMING
+  - IDEA_DEVELOPMENT
+  - CLARIFICATION
+  - CAPTURE_CLIENT_PREFERENCES
+  - IDENTIFY_GOALS_AND_OPEN_LOOPS
+  - EXPLAIN_SYSTEM_OUTCOMES
+  - PROPOSE_ORGANIZATION_PROFILE_CORRECTIONS
+  - TRANSLATE_INTENT_TO_INTENT_CONTRACT
+  - REQUEST_ANSWER_HANDLING_BETWEEN_CLIENT_AND_CEO
+  non_responsibilities:
+  - RUN_BROAD_GRANT_RESEARCH_DIRECTLY
+  - MUTATE_CANONICAL_SYSTEM_STATE
+  - MANAGE_WORKER_FLEETS
+  - HOLD_EXTERNAL_CREDENTIALS
+  - SUBMIT_APPLICATIONS
+  - ACCEPT_OWN_INFERENCE_AS_CANONICAL_TRUTH
+  - STORE_EVERY_CONVERSATION_VERBATIM
+  context_classes:
+  - CURRENT_USER_MESSAGE
+  - CURATED_RELATIONSHIP_MEMORY
+  - RELEVANT_CANONICAL_ORGANIZATION_FACTS
+  - SELECTED_ACTIVE_GOALS_OPEN_LOOPS
+  - LATEST_OUTCOME_EXPLANATION_PACKET
+  - LIMITED_APPLICATION_PROJECT_SUMMARIES
+  - CLARIFICATION_REQUESTS_FROM_CEO
+  forbidden_context_classes:
+  - RAW_CLIENT_TRANSCRIPT_HISTORY
+  - WORKER_TRANSCRIPTS
+  - RAW_SECRETS
+  - CLOSED_PROJECT_CHATTER
+  output_classes:
+  - CONVERSATIONAL_RESPONSE
+  - INTENT_CONTRACT
+  - CLARIFICATION_ANSWER
+  - MEMORY_CANDIDATE
+  - FACT_UPDATE_PROPOSAL
+  - CLIENT_FEEDBACK_EVENT
+  fact_handling: PROPOSAL_ONLY
+  canonical_mutation_allowed: false
+  prohibited_capability_prefixes: [application.submit, submission., research., opportunity., match.rank, match.recompute, evidence.propose_promotion, application.draft_, application.create_, budget.create, artifact.generate]
+  inference_policy: "Conversational inference is never written as canonical truth; user assertions are labeled ASSERTION and routed as fact proposals or memory candidates."
+
+ceo_contract:
+  role_ref: CEO_HERMES
+  responsibilities:
+  - INTERPRET_APPROVED_INTENT_CONTRACTS
+  - INSPECT_CANONICAL_APPLICATION_SYSTEM_STATE
+  - CREATE_TASK_PLANS
+  - ISSUE_TASK_CONTRACTS
+  - SELECT_SPECIALIST_DETERMINISTIC_CAPABILITIES
+  - SUPERVISE_BOUNDED_WORK
+  - MONITOR_RETRIES_BLOCKERS
+  - SYNTHESIZE_RESULTS
+  - PRODUCE_OUTCOME_ARTIFACTS
+  - PROPOSE_WORKFLOW_IMPROVEMENTS
+  - MAINTAIN_LEAN_OPERATIONAL_CONTINUITY
+  - REQUEST_CLARIFICATION_WHEN_INTENT_DATA_INSUFFICIENT
+  non_responsibilities:
+  - ACT_AS_CANONICAL_DATABASE
+  - HOLD_FULL_USER_CONVERSATION_HISTORY
+  - HOLD_RAW_SECRETS
+  - SELF_AUTHORIZE_L3_L4_L5_EXPANSION
+  - SUBMIT_APPLICATIONS_IN_CURRENT_PHASE
+  - MAINTAIN_PERMANENT_RAW_WORKER_TRANSCRIPTS
+  - SILENTLY_PROMOTE_WORKER_FINDINGS
+  - INVENT_MISSING_ELIGIBILITY_EVIDENCE
+  context_classes:
+  - INTENT_CONTRACT
+  - APPLICATION_PROJECT_SUMMARY
+  - RELEVANT_DOMAIN_OBJECTS
+  - BOOK3_VERIFIED_EVIDENCE_DATA
+  - ACTIVE_OPERATIONAL_MEMORY
+  - CURRENT_TASKPLAN_TASK_STATUSES
+  - PROMOTED_OPERATIONAL_LESSONS
+  - POLICY_CAPABILITY_SUMMARY
+  - FAILURE_HEALTH_SIGNALS
+  forbidden_context_classes:
+  - RAW_CLIENT_TRANSCRIPT
+  - WORKER_TRANSCRIPTS
+  - RAW_SECRETS
+  - CLOSED_PROJECT_CHATTER
+  output_classes:
+  - TASK_PLAN
+  - TASK_CONTRACT
+  - CLARIFICATION_REQUEST
+  - OUTCOME_ARTIFACT
+  - WORKFLOW_IMPROVEMENT_PROPOSAL
+  - MEMORY_CANDIDATE
+  raw_transcript_required: false
+  operates_from: INTENT_CONTRACT
+  unresolved_critical_input_behavior: CLARIFICATION_REQUEST
+  closed_project_chatter: EXCLUDED_BY_DEFAULT
+  promoted_lesson_flow: "Operational lessons that change agent behavior route to Book 7 evaluation before promotion to doctrine."
