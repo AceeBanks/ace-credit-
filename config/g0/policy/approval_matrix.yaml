@@ -1,0 +1,43 @@
+# G0 Book 1 - B1.C6 Human Approval Policy (machine-readable).
+# Approval classes AP0-AP3 plus APX (prohibited in current phase).
+approval_policy_version: "1.0"
+classes:
+- id: AP0
+  name: None
+  rule: Operation may proceed without human intervention.
+  examples: [source search/fetch, draft generation, internal QA, match computation]
+- id: AP1
+  name: Review After
+  rule: Operation may occur but is surfaced for inspection after execution.
+  examples: [non-canonical research pack, generated draft version, suggested evidence promotion]
+- id: AP2
+  name: Approval Before
+  rule: Human approval reference is REQUIRED before the operation executes; missing/expired approval = DENY.
+  examples: [replacing protected canonical client fact, external communication, high-impact workflow override]
+- id: AP3
+  name: Dual Approval / Elevated
+  rule: Two distinct human approvals required (e.g. admin + owner); used for administrative/security/legal actions.
+  examples: [system.promote_change, policy amendment activation]
+- id: APX
+  name: Prohibited in Current Phase
+  rule: Operation is constitutionally disabled for Phase 1 regardless of approval offered; evaluator must DENY.
+  examples: [application submission, signing/certification, legally binding external commitments]
+draft_rule: |
+  Mock and real application drafts do NOT require pre-approval to generate
+  (AP0/AP1). This is deliberate so the product delivers client value early.
+  Approval IS required before a draft becomes represented as
+  client-approved/submission-ready final state.
+approver_roles:
+- role_id: HUMAN_CLIENT_APPROVER
+  may_approve_classes: [AP1, AP2]
+  scope: tenant-scoped
+- role_id: HUMAN_ADMIN_APPROVER
+  may_approve_classes: [AP1, AP2, AP3]
+  scope: platform-wide (audited A4)
+- role_id: DUAL_OWNER_PLUS_ADMIN
+  may_approve_classes: [AP3]
+  scope: requires both roles as distinct principals
+constraints:
+- An approver may never approve their own self-authority expansion (LAW-B1-018).
+- Approval references carry approver id, timestamp and scope; expired approvals fail closed.
+- APX cannot be satisfied by any approval; the only path is constitutional amendment.

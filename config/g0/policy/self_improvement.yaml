@@ -1,0 +1,42 @@
+# G0 Book 1 - B1.C7 Self-Improvement Governance (machine-readable).
+# Agents may improve the system; they may never unilaterally promote changes,
+# especially not their own authority (LAW-B1-017/018).
+governance_version: "1.0"
+change_classes:
+- {class_id: prompt-change, description: Prompt/skill wording changes.}
+- {class_id: skill-change, description: Skill/tool-wrapper behavior changes.}
+- {class_id: source-adapter-change, description: Registered source adapter logic.}
+- {class_id: extraction-rule-change, description: Candidate eligibility/extraction rules.}
+- {class_id: model-provider-change, description: LLM provider or model swap.}
+- {class_id: capability-policy-change, description: Capability registry / authority / approval changes.}
+- {class_id: schema-domain-change, description: Domain schema or ontology changes.}
+- {class_id: ui-workflow-change, description: Client-facing workflow changes.}
+- {class_id: infrastructure-change, description: Runtime/infrastructure changes.}
+promotion_lifecycle:
+- OBSERVATION
+- CANDIDATE_LESSON
+- CHANGE_PROPOSAL
+- CHANGE_IMPACT_MAP
+- SANDBOX
+- BASELINE_VS_CANDIDATE_EVAL
+- SECURITY_REGRESSION_CHECK
+- APPROVAL
+- VERSIONED_PROMOTION
+- MONITOR
+- ROLLBACK_IF_NEEDED
+actor_permissions:
+  ACTOR-HERMES-CEO:
+    may: [create_observation, propose_lesson, draft_change, request_eval]
+    may_not: [promote_own_authority_increase, disable_audit_security_controls,
+              silently_change_constitutional_laws, deploy_untested_production_code]
+  ACTOR-WORKER:
+    may: [create_observation]
+    may_not: [propose_lesson]   # observations flow up through CEO synthesis only
+  ACTOR-HUMAN-ADMIN:
+    may: [approve_change, run_eval, promote_change, rollback]
+    may_not: []
+hard_rules:
+- A change proposal that increases the proposing agent's own authority requires approval by a human principal OTHER than any agent (LAW-B1-018).
+- No lifecycle step may be skipped; eval evidence must exist before APPROVAL.
+- Failed candidates cannot become active.
+- Rollback metadata is required at promotion time for production promotion.

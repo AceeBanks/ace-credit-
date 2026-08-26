@@ -1,0 +1,57 @@
+# G0 Book 1 - B1.C8 Failure, Degradation & Escalation Law (machine-readable).
+failure_law_version: "1.0"
+failure_classes:
+- class_id: F-AUTH
+  trigger: Missing/invalid permission.
+  action: FAIL_CLOSED
+  degraded_modes: []
+- class_id: F-TENANT
+  trigger: Missing/ambiguous tenant scope.
+  action: FAIL_CLOSED
+  degraded_modes: []
+- class_id: F-SOURCE
+  trigger: Source unavailable/stale/contradictory.
+  action: BOUNDED_RETRY_THEN_ALTERNATE_THEN_UNCERTAINTY
+  degraded_modes: [RETRY_BOUNDED, PARTIAL_WITH_UNCERTAINTY, HUMAN_ESCALATION]
+- class_id: F-SCHEMA
+  trigger: Invalid typed output.
+  action: REPAIR_OR_RETRY_BOUNDED_THEN_FAIL_TASK
+  degraded_modes: [RETRY_BOUNDED, HUMAN_ESCALATION]
+- class_id: F-WORKER
+  trigger: Worker timeout/crash.
+  action: BOUNDED_RETRY_REASSIGN_PRESERVING_TASK_LINEAGE
+  degraded_modes: [RETRY_BOUNDED, HUMAN_ESCALATION]
+- class_id: F-MODEL
+  trigger: Provider/model failure.
+  action: PERMITTED_FALLBACK_IF_CAPABILITY_REQUIREMENTS_REMAIN_SATISFIED
+  degraded_modes: [PARTIAL_WITH_UNCERTAINTY, READ_ONLY]
+- class_id: F-EVIDENCE
+  trigger: Claim cannot be supported.
+  action: OMIT_OR_LABEL_UNSUPPORTED_NEVER_FABRICATE
+  degraded_modes: [PARTIAL_WITH_UNCERTAINTY]
+- class_id: F-BUDGET
+  trigger: Numerical mismatch.
+  action: BLOCK_FINALIZATION_UNTIL_DETERMINISTIC_RECONCILIATION_PASSES
+  degraded_modes: []
+- class_id: F-DEADLINE
+  trigger: Deadline unknown/conflicted.
+  action: BLOCK_READINESS_SUBMISSION_STATUS_REFRESH_OR_ESCALATE
+  degraded_modes: [HUMAN_ESCALATION]
+- class_id: F-QA
+  trigger: Quality failure.
+  action: REPAIR_ITERATION_OR_HUMAN_REVIEW_NEVER_SILENT_FINAL
+  degraded_modes: [HUMAN_ESCALATION]
+valid_actions: [FAIL_CLOSED, BOUNDED_RETRY_THEN_ALTERNATE_THEN_UNCERTAINTY,
+                REPAIR_OR_RETRY_BOUNDED_THEN_FAIL_TASK,
+                BOUNDED_RETRY_REASSIGN_PRESERVING_TASK_LINEAGE,
+                PERMITTED_FALLBACK_IF_CAPABILITY_REQUIREMENTS_REMAIN_SATISFIED,
+                OMIT_OR_LABEL_UNSUPPORTED_NEVER_FABRICATE,
+                BLOCK_FINALIZATION_UNTIL_DETERMINISTIC_RECONCILIATION_PASSES,
+                BLOCK_READINESS_SUBMISSION_STATUS_REFRESH_OR_ESCALATE,
+                REPAIR_ITERATION_OR_HUMAN_REVIEW_NEVER_SILENT_FINAL]
+valid_degraded_modes: [READ_ONLY, PARTIAL_WITH_UNCERTAINTY, RETRY_BOUNDED, HUMAN_ESCALATION]
+invariants:
+- Security/authority uncertainty ALWAYS fails closed (F-AUTH/F-TENANT have no degraded bypass).
+- No failure mode may produce silent canonical mutation.
+- Every capability in the registry declares a failure_mode from valid_failure_classes.
+valid_failure_classes_ref: failure_classes[].class_id
