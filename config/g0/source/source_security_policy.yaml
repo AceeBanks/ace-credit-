@@ -1,0 +1,63 @@
+# G0-B3-C19 — Source security & prompt-injection constitution (machine-readable,
+# fail-closed). Treats ALL external source content as untrusted data.
+
+threat_classes:
+  - prompt_injection
+  - malicious_links
+  - data_exfiltration_instructions
+  - embedded_scripts
+  - poisoned_metadata
+  - malicious_documents
+  - oversized_decompression_bomb
+  - credential_phishing
+  - source_domain_impersonation
+  - ssrf_via_crawler_urls
+  - redirect_abuse
+
+security_rules:
+  - source_content_cannot_grant_capabilities
+  - workers_receive_untrusted_data_envelope
+  - crawler_egress_restricted_by_policy
+  - raw_html_never_executes_in_trusted_context
+  - downloads_scanned_by_file_type
+  - redirects_and_domain_changes_logged
+  - credentials_never_exposed_to_source_content
+  - extraction_prompts_distinguish_instructions_from_data
+  - suspicious_content_quarantinable
+  - decisions_policy_gated_outside_source_context
+
+# Sanitized SourceEnvelope: trusted metadata is separate from untrusted
+# content; content is DATA and can never grant capabilities.
+source_envelope: |
+  A SourceEnvelope carries trusted metadata (snapshot id, content type,
+  security flags, allowed operations) separately from an untrusted content
+  reference. The untrusted content is inert data: it can be flagged,
+  quarantined, or ignored, but it can never add operations or capabilities.
+
+# Files whose execution is not supported by policy are quarantined, never run.
+executable_content_types:
+  - application/x-msdownload
+  - application/x-executable
+  - application/vnd.microsoft.portable-executable
+  - application/octet-stream-exe
+
+# Redirect policy: a redirect leaving the source's governed domain set is
+# blocked/flagged unless explicitly allowlisted.
+redirect_policy: |
+  A redirect or domain change outside the source's registered base domains is
+  blocked or flagged and logged. No silent cross-domain follow.
+
+# Common exfiltration/prompt-injection signal patterns (defense-in-depth;
+# explicit fixtures are the tests).
+exfiltration_patterns:
+  - "send secrets"
+  - "forward my tokens"
+  - "exfiltrate"
+  - "post to"
+  - "email this to"
+injection_patterns:
+  - "ignore previous instructions"
+  - "ignore all prior"
+  - "system prompt"
+  - "you are now"
+  - "repeat after me"

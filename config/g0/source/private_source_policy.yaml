@@ -1,0 +1,44 @@
+# G0-B3-C18 — Private/foundation/corporate source protocol (machine-readable,
+# fail-closed). Supports the client's non-government grant categories without
+# forcing a paid data dependency into the MVP.
+
+# Registration requirements — every private source must satisfy ALL of these
+# before it may be ENABLED for promotion.
+registration_requirements:
+  - issuer_ownership_verified
+  - relevant_pages_identified
+  - update_frequency_estimated
+  - terms_robots_reviewed
+  - crawler_strategy_tested
+  - authority_limited_to_issuer_controlled_facts
+  - historical_winners_only_where_supported
+
+# Private grantmakers may not expose clean identifiers or history. Preserve
+# uncertainty rather than inventing structured certainty.
+uncertainty_rule: |
+  Private grantmakers may not expose clean identifiers or full award history.
+  Preserve uncertainty rather than inventing structured certainty. A missing
+  stable external ID must NOT prevent internal source/opportunity identity.
+
+# A webpage redesign must not silently create a duplicate opportunity.
+identity_continuity_rule: |
+  A webpage redesign must not silently create a duplicate opportunity;
+  identity resolution must support continuity across page changes.
+
+# Old cached/archived pages never outrank the current issuer-controlled page
+# for facts the issuer controls.
+precedence_rule: |
+  An old foundation webpage (or archived copy) never outranks the current
+  issuer-controlled page for facts the issuer controls.
+
+# Optional curated providers may be integrated later after measuring marginal
+# value/cost; they are NEVER mandatory for MVP private-source support.
+optional_curated_providers:
+  - CANDID
+  - OTHER_LICENSED_CURATED
+
+# Source classes a private source may legitimately claim.
+allowed_source_classes:
+  - GOVERNED_WEB
+  - TRUSTED_CURATED
+  - USER_PROVIDED
