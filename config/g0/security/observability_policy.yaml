@@ -1,0 +1,52 @@
+# G0-B6-C23 — Security Observability Policy
+
+policy_id: G0-B6-C23
+version: "1.0"
+
+signal_classes:
+  - auth_failure
+  - denied_authorization
+  - cross_tenant_attempt
+  - secret_redaction_hit
+  - tool_call
+  - unusual_destination_attempt
+  - prompt_injection_detection
+  - revoked_token_use
+  - approval_failure
+  - parser_quarantine_failure
+  - ssrf_block
+  - break_glass_use
+
+alert_classes:
+  - INFO
+  - WARNING
+  - HIGH
+  - CRITICAL_P0
+
+rules:
+  - id: OBS-001
+    text: "Security telemetry prefers IDs/hashes/reason codes over raw sensitive payloads (privacy rule)."
+  - id: OBS-002
+    text: "Auth failures are counted and alert at HIGH on burst."
+  - id: OBS-003
+    text: "Cross-tenant attempts always alert at HIGH or CRITICAL_P0."
+  - id: OBS-004
+    text: "Break-glass use alerts at HIGH and is visible in the security report."
+  - id: OBS-005
+    text: "Secret redaction hits alert immediately (CRITICAL_P0 when a secret value would have left a boundary)."
+  - id: OBS-006
+    text: "Telemetry is tenant-filtered; no cross-tenant observability leakage."
+
+class_thresholds:
+  auth_failure: WARNING
+  denied_authorization: INFO
+  cross_tenant_attempt: HIGH
+  secret_redaction_hit: CRITICAL_P0
+  tool_call: INFO
+  unusual_destination_attempt: HIGH
+  prompt_injection_detection: WARNING
+  revoked_token_use: HIGH
+  approval_failure: WARNING
+  parser_quarantine_failure: WARNING
+  ssrf_block: HIGH
+  break_glass_use: HIGH

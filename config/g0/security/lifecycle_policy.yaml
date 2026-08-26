@@ -1,0 +1,96 @@
+# G0-B6-C20/C21/C22 — Lifecycle, Break-Glass & Revocation Policy
+
+policy_id: G0-B6-C20
+version: "1.0"
+
+token_lifecycle_states:
+  - ISSUED
+  - ACTIVE
+  - EXPIRING
+  - EXPIRED
+  - REVOKED
+  - ROTATED
+  - COMPROMISED
+
+credential_lifecycle_states:
+  - ISSUED
+  - ACTIVE
+  - EXPIRING
+  - EXPIRED
+  - REVOKED
+  - ROTATED
+  - COMPROMISED
+
+rules:
+  - id: LIF-001
+    text: "Session/service tokens are short-lived; refresh requires a valid principal."
+  - id: LIF-002
+    text: "Capability grants are independently expirable from sessions."
+  - id: LIF-003
+    text: "Credential rotation is transparent to agents; old and new secrets never enter agent context."
+  - id: LIF-004
+    text: "Compromise of a credential triggers dependent revocation (grant, session, service identity)."
+  - id: LIF-005
+    text: "Cached authorization decisions have a bounded TTL and are invalidated on revocation."
+  - id: LIF-006
+    text: "Revoked membership invalidates new decisions immediately."
+  - id: LIF-007
+    text: "A compromised credential is blocked even while technically valid."
+
+break_glass_purposes:
+  - tenant_lockout_recovery
+  - security_incident_containment
+  - service_restoration
+  - corrupted_authorization_state_repair
+
+break_glass_rules:
+  - id: BG-001
+    text: "Break-glass requires an explicit break-glass principal and flow; no implicit superuser."
+  - id: BG-002
+    text: "A reason is mandatory for every break-glass action."
+  - id: BG-003
+    text: "Every break-glass action generates an elevated audit event (A4 class)."
+  - id: BG-004
+    text: "Break-glass grants are short-lived and expire automatically."
+  - id: BG-005
+    text: "No silent use; break-glass use is visible in the security report."
+  - id: BG-006
+    text: "Post-event review is required; break-glass cannot bypass immutable legal/client restrictions without a separate process."
+
+revocable_objects:
+  - principal
+  - membership
+  - capability_grant
+  - service_identity
+  - credential
+  - tool_version
+  - integration
+  - approval_token
+  - model_provider_route
+
+revocation_rules:
+  - id: REV-001
+    text: "Disabling a tool blocks all subsequent use of that tool version."
+  - id: REV-002
+    text: "Credential compromise does not require resetting Hermes memory."
+  - id: REV-003
+    text: "A revoked worker grant stops the task safely (fail-closed on next authorization)."
+  - id: REV-004
+    text: "Incident handling preserves decision/audit evidence; evidence is never deleted during recovery."
+  - id: REV-005
+    text: "Revocation takes effect within a defined bound; cached allows cannot outlive the bound."
+
+incident_sequence:
+  - DETECT
+  - CONTAIN
+  - REVOKE
+  - PRESERVE_EVIDENCE
+  - ASSESS_AFFECTED_TENANTS_RESOURCES
+  - ROTATE_REPAIR
+  - REVALIDATE
+  - RESTORE
+  - POSTMORTEM
+
+cache_policy:
+  max_decision_cache_ttl_seconds: 300
+  revocation_invalidation_bound_seconds: 60

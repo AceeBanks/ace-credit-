@@ -1,0 +1,92 @@
+# G0-B6-C24 — Threat Model (STRIDE-like product-specific inventory)
+
+policy_id: G0-B6-C24
+version: "1.0"
+
+actors:
+  - malicious_external_user
+  - compromised_client_account
+  - compromised_admin
+  - prompt_injected_web_source
+  - malicious_uploaded_file
+  - compromised_third_party_api
+  - rogue_buggy_worker
+  - over_permissioned_ceo_hermes
+  - leaked_credential
+  - supply_chain_dependency
+  - internal_misconfiguration
+
+assets:
+  - client_organization_profile
+  - applications_artifacts
+  - private_financial_information
+  - credentials
+  - evidence_source_data
+  - audit_records
+  - authorization_policy
+  - generated_documents
+  - tenant_isolation
+
+threat_classes:
+  - spoofing
+  - tampering
+  - repudiation
+  - information_disclosure
+  - denial_of_service
+  - elevation_of_privilege
+  - prompt_tool_injection
+  - data_poisoning
+  - cross_tenant_inference_leakage
+  - supply_chain_compromise
+
+p0_threats:
+  - id: THR-001
+    class: cross_tenant_inference_leakage
+    attack: "Tenant A guesses Tenant B artifact ID and reads it"
+    control: "tenant-scoped artifact store + authorization check on every read"
+    detection: "denied_authorization / cross_tenant_attempt signals"
+    residual_risk: LOW
+  - id: THR-002
+    class: information_disclosure
+    attack: "Secret appears in agent context, sidechain, or error trace"
+    control: "credentials inaccessible to model; redaction at boundary"
+    detection: "secret_redaction_hit"
+    residual_risk: LOW
+  - id: THR-003
+    class: elevation_of_privilege
+    attack: "Personal Hermes or worker exceeds capability grant"
+    control: "capability grants + default-deny authorization"
+    detection: "denied_authorization"
+    residual_risk: LOW
+  - id: THR-004
+    class: prompt_tool_injection
+    attack: "Source content coerces a tool call or exfiltration"
+    control: "tool authority independent of model prompt"
+    detection: "prompt_injection_detection"
+    residual_risk: LOW
+  - id: THR-005
+    class: tampering
+    attack: "Forged success receipt from compromised integration"
+    control: "integration non-authoritative; evidence rules govern"
+    detection: "unusual_destination_attempt"
+    residual_risk: MEDIUM
+  - id: THR-006
+    class: information_disclosure
+    attack: "SSRF to internal network or cloud metadata endpoint"
+    control: "egress allowlist validated independently of model output"
+    detection: "ssrf_block"
+    residual_risk: LOW
+
+p1_threats:
+  - id: THR-010
+    class: denial_of_service
+    attack: "Quota/rate-limit bypass floods the gateway"
+    control: "per-principal rate limits; bounded caches"
+    detection: "tool_call frequency signal"
+    residual_risk: MEDIUM
+  - id: THR-011
+    class: repudiation
+    attack: "Audit write fails during a protected mutation"
+    control: "fail-closed: mutation aborts if required audit write fails"
+    detection: "approval_failure / observability outage"
+    residual_risk: MEDIUM
