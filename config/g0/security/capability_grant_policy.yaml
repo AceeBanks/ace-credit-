@@ -1,0 +1,57 @@
+# G0-B6-C4 — Capability Grant Model Policy
+# Layered authorization: RBAC role defaults + ABAC context + capability grants.
+
+policy_id: G0-B6-C4
+version: "1.0"
+
+grant_statuses:
+  - ACTIVE
+  - EXPIRED
+  - REVOKED
+  - SUSPENDED
+
+rules:
+  - id: GRANT-001
+    text: "A capability grant is valid only while ACTIVE and within valid_from..expires_at; expired or revoked grants deny (SEC-LAW-010)."
+  - id: GRANT-002
+    text: "A worker grant must be narrower than or equal to the parent's delegable authority; a grant exceeding the parent ceiling is rejected."
+  - id: GRANT-003
+    text: "CEO may delegate only capabilities explicitly marked delegable."
+  - id: GRANT-004
+    text: "Broad roles never bypass narrow resource scope; grant resource constraints always apply."
+  - id: GRANT-005
+    text: "Phase-disabled capabilities cannot be enabled through a grant alone."
+  - id: GRANT-006
+    text: "A grant revoked mid-task blocks the next protected action immediately."
+
+authority_levels:
+  - L0
+  - L1
+  - L2
+  - L3
+  - L4
+  - L5
+
+# capabilities that may be delegated to workers (CEO delegation law)
+delegable_capabilities:
+  - research.run
+  - evidence.ingest_snapshot
+  - draft.section
+  - qa.factuality
+  - eligibility.execute_deterministic
+  - analysis.past_winners
+  - analysis.community_evidence
+  - budget.draft_materials
+
+# capabilities that can never be delegated regardless of grant
+non_delegable_capabilities:
+  - application.move_workflow_state
+  - application.approve
+  - admin.override
+  - credentials.read
+  - egress.send_external
+  - submission.execute
+
+phase_disabled_capabilities:
+  - submission.execute
+  - application.submit

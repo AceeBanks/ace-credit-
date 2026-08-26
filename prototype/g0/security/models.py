@@ -18,6 +18,7 @@ class Principal:
     credential_class: str = "NONE"
     model_or_provider_ref: str | None = None
     parent_task_id: str | None = None
+    authority_level: str = "L0"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -32,4 +33,5 @@ class Principal:
             "credential_class": self.credential_class,
             "model_or_provider_ref": self.model_or_provider_ref,
             "parent_task_id": self.parent_task_id,
+            "authority_level": self.authority_level,
         }

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/security/capability_grant.schema.json",
+  "title": "CapabilityGrant",
+  "description": "G0-B6-C4 — time-boxed, scoped grant of one capability to one principal.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "grant_id",
+    "principal_id",
+    "capability_id",
+    "tenant_id",
+    "authority_level",
+    "valid_from",
+    "expires_at",
+    "issued_by",
+    "status"
+  ],
+  "properties": {
+    "grant_id": {"type": "string", "minLength": 1},
+    "principal_id": {"type": "string", "minLength": 1},
+    "capability_id": {"type": "string", "minLength": 1},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "project_id": {"type": "string"},
+    "resource_constraints": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Narrow resource scope that always applies (GRANT-004)."
+    },
+    "authority_level": {"type": "string", "minLength": 1},
+    "valid_from": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "approval_ref": {"type": "string"},
+    "issued_by": {"type": "string", "minLength": 1},
+    "status": {"type": "string", "minLength": 1}
+  }
+}

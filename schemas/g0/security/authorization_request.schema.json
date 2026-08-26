@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/security/authorization_request.schema.json",
+  "title": "AuthorizationRequest",
+  "description": "G0-B6-C5 — deterministic, inspectable policy evaluation input.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_id",
+    "principal_id",
+    "capability_id",
+    "tenant_id",
+    "resource_type",
+    "resource_id"
+  ],
+  "properties": {
+    "request_id": {"type": "string", "minLength": 1},
+    "principal_id": {"type": "string", "minLength": 1},
+    "capability_id": {"type": "string", "minLength": 1},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "project_id": {"type": "string"},
+    "resource_type": {"type": "string", "minLength": 1},
+    "resource_id": {"type": "string", "minLength": 1},
+    "requested_side_effect": {"type": "string"},
+    "destination": {"type": "string"},
+    "context": {"type": "object", "additionalProperties": true},
+    "approval_refs": {"type": "array", "items": {"type": "string"}},
+    "task_scope": {"type": "string"}
+  }
+}
