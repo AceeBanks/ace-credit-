@@ -1,0 +1,25 @@
+{
+  "checkpoint": "G0-B1-BOOK",
+  "branch": "grant-sector-r0-salvage",
+  "head_sha": "7e571403",
+  "boot_commit": {
+    "sha": "4fbbf186",
+    "message": "G0-B01-BOOT: establish Books 0-1 execution baseline"
+  },
+  "chapter_commits": [
+    {"sha": "b6ac4361", "message": "G0-B1-C1: establish constitutional mission and phase boundaries"},
+    {"sha": "63ae5f86", "message": "G0-B1-C2: freeze constitutional law catalog (30 laws, fail-closed linter)"},
+    {"sha": "aec00b5b", "message": "G0-B1-C3: define actor catalog with authority contracts"},
+    {"sha": "3a751bfd", "message": "G0-B1-C4-C5: define L0-L5 authority model and typed capability registry"},
+    {"sha": "a87f477c", "message": "G0-B1-C6-C8: freeze approvals, self-improvement and failure governance"},
+    {"sha": "02380217", "message": "G0-B1-C9-C16: seal Book 1 with executable policy prototype, coverage, adversarial and integration tests, reality lock"}
+  ],
+  "repair_commits": [
+    {"sha": "7e571403", "message": "G0-B1-REPAIR-01: add executable audit contract, amendment protocol doc; regenerate reality lock"}
+  ],
+  "reality_lock_status": "PASS",
+  "tests_passed": 168,
+  "tests_failed": 0,
+  "ready_for_book2": true,
+  "note": "Self-review is NOT external ratification; Book 2 may begin per plan gate. Book 1 reality lock freshness test guards against stale/hand-edited lock JSON."
+}
