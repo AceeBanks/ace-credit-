@@ -1,0 +1,253 @@
+# G0 Book 1 - Constitutional Law Catalog (machine-readable).
+# Source of truth for the 30 invariant laws; the MD constitution renders from this.
+# Every field below is REQUIRED per Book 1 plan B1.C2 and enforced by
+# tools/g0/validate_constitution.py.
+catalog_version: "1.0"
+valid_enforcement_categories:
+  - deterministic_policy_engine   # evaluated by prototype/g0/policy evaluator
+  - schema_validation             # JSON schemas in schemas/g0/policy
+  - audit_requirement             # audit contract + durable event evidence
+  - governance_protocol           # amendment / self-improvement / approval process
+  - architecture_constraint       # structural design invariant, tested per book
+valid_amendment_statuses: [FROZEN, AMENDABLE_BY_MINOR, AMENDABLE_BY_MAJOR]
+laws:
+- id: LAW-B1-001
+  title: Canonical truth is external to agent memory
+  normative_statement: Personal Hermes, CEO Hermes, worker prompts, sidechains, summaries, model responses and chat histories are not authoritative system state.
+  rationale: Agent context is lossy, mutable and unversioned; enterprise state requires replayable canonical storage outside any model.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [all]
+  downstream_affected: [Book2-domain, Book4-memory, Book5-evidence]
+  amendment_status: FROZEN
+- id: LAW-B1-002
+  title: Durable state must survive agent replacement
+  normative_statement: The product must continue functioning after replacing any agent, model or provider without loss of business state.
+  rationale: Vendor/model churn must never orphan client work.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [system]
+  downstream_affected: [Book2-domain, Book4-memory]
+  amendment_status: FROZEN
+- id: LAW-B1-003
+  title: Tool availability does not grant authority
+  normative_statement: A callable tool is not an allowed operation; authority derives only from registered capability plus policy evaluation.
+  rationale: Prevents technical reach (HTTP/browser/MCP) from becoming effective submission capability.
+  enforcement_category: deterministic_policy_engine
+  affected_capability_classes: [all]
+  downstream_affected: [Book1-policy-engine, all-books]
+  amendment_status: FROZEN
+- id: LAW-B1-004
+  title: Capabilities are explicit and scoped
+  normative_statement: All consequential operations must map to a typed registered capability with tenant/project scope and policy metadata.
+  rationale: Un-typed actions cannot be authorized, audited or denied by default.
+  enforcement_category: deterministic_policy_engine
+  affected_capability_classes: [all]
+  downstream_affected: [Book1-capability-registry]
+  amendment_status: FROZEN
+- id: LAW-B1-005
+  title: Unknown authority fails closed
+  normative_statement: Missing policy information yields DENY; permission is never inferred from absence of rules.
+  rationale: Fail-open defaults make security posture dependent on configuration completeness.
+  enforcement_category: deterministic_policy_engine
+  affected_capability_classes: [all]
+  downstream_affected: [Book1-policy-engine]
+  amendment_status: FROZEN
+- id: LAW-B1-006
+  title: Deterministic constraints use deterministic evaluation
+  normative_statement: Eligibility, arithmetic, dates, identifiers, requirement completion and policy constraints are decided deterministically after normalization, never by model judgment.
+  rationale: Replays and audits require identical outputs for identical inputs.
+  enforcement_category: deterministic_policy_engine
+  affected_capability_classes: [eligibility, budget, qa]
+  downstream_affected: [Book3-data, G1-production]
+  amendment_status: FROZEN
+- id: LAW-B1-007
+  title: Evidence precedes factual promotion
+  normative_statement: Claims used operationally require lineage and status; unsupported claims remain labeled non-canonical.
+  rationale: Fabricated facts in grant applications carry legal and reputational risk.
+  enforcement_category: audit_requirement
+  affected_capability_classes: [evidence, research]
+  downstream_affected: [Book5-evidence]
+  amendment_status: FROZEN
+- id: LAW-B1-008
+  title: Conflicts remain visible until resolved
+  normative_statement: Contradictory truth is surfaced and tracked, never silently overwritten.
+  rationale: Silent conflict resolution hides material errors (e.g. wrong deadline).
+  enforcement_category: audit_requirement
+  affected_capability_classes: [evidence, opportunity, organization]
+  downstream_affected: [Book5-evidence]
+  amendment_status: FROZEN
+- id: LAW-B1-009
+  title: Personal and CEO cognition remain separated
+  normative_statement: Personal Hermes and CEO Hermes share no unbounded mutable memory; exchange happens through typed contracts.
+  rationale: Prevents relationship-context leakage into operations and vice versa.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [system]
+  downstream_affected: [Book4-memory]
+  amendment_status: FROZEN
+- id: LAW-B1-010
+  title: Workers are bounded, disposable and non-sovereign
+  normative_statement: Workers receive task-scoped context and capabilities only; they inherit no CEO authority beyond their TaskContract scope.
+  rationale: Unbounded delegation recreates sovereign agents at scale.
+  enforcement_category: deterministic_policy_engine
+  affected_capability_classes: [all-worker-executed]
+  downstream_affected: [Book1-authority-model, Book4-memory]
+  amendment_status: FROZEN
+- id: LAW-B1-011
+  title: Full worker traces do not pollute parent context
+  normative_statement: Parent agents receive bounded results; complete worker traces stay in sidechains/artifacts.
+  rationale: Context pollution degrades parent reasoning and inflates cost.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [system]
+  downstream_affected: [Book4-memory]
+  amendment_status: FROZEN
+- id: LAW-B1-012
+  title: Human sovereignty over high-consequence action
+  normative_statement: Submission, certification, signing, external commitments and equivalents require explicit human authority and approval.
+  rationale: Legally material acts demand accountable humans.
+  enforcement_category: governance_protocol
+  affected_capability_classes: [submission, communication]
+  downstream_affected: [Book1-approval-policy, G1-production]
+  amendment_status: FROZEN
+- id: LAW-B1-013
+  title: Safe drafting is an early authorized capability
+  normative_statement: Research, analysis, proposal/business-plan/pitch-deck/budget/goal-sheet drafting and QA are permitted at L2 under valid task scope, without pre-approval.
+  rationale: Core client value must not wait for submission infrastructure.
+  enforcement_category: deterministic_policy_engine
+  affected_capability_classes: [application, research, qa, budget, artifact]
+  downstream_affected: [Book8-drafting, Draft-Milestones-D0-D2]
+  amendment_status: FROZEN
+- id: LAW-B1-014
+  title: Secrets remain outside conversational memory
+  normative_statement: Raw credentials are prohibited in Hermes memory, prompts, ordinary logs, sidechains and Git.
+  rationale: Conversational stores are leak-prone and broadly readable.
+  enforcement_category: schema_validation
+  affected_capability_classes: [all]
+  downstream_affected: [Book6-security, Book4-memory]
+  amendment_status: FROZEN
+- id: LAW-B1-015
+  title: Tenant boundaries are mandatory
+  normative_statement: Missing or ambiguous tenant scope blocks governed resource access.
+  rationale: Multi-client isolation is a hard enterprise requirement.
+  enforcement_category: deterministic_policy_engine
+  affected_capability_classes: [all-tenant-scoped]
+  downstream_affected: [Book1-policy-engine, Book2-domain]
+  amendment_status: FROZEN
+- id: LAW-B1-016
+  title: Consequential actions are auditable
+  normative_statement: Actor, capability, target, tenant, request and approval lineage must be recorded durably for consequential actions.
+  rationale: Accountability requires reconstructable action history independent of logs.
+  enforcement_category: audit_requirement
+  affected_capability_classes: [A2-A4-audit-class]
+  downstream_affected: [Book1-audit, G1-production]
+  amendment_status: FROZEN
+- id: LAW-B1-017
+  title: No silent production self-modification
+  normative_statement: System changes follow candidate -> eval -> promotion with recorded evidence.
+  rationale: Ungoverned self-modification invalidates every other control.
+  enforcement_category: governance_protocol
+  affected_capability_classes: [system]
+  downstream_affected: [Book1-self-improvement, Book7-eval]
+  amendment_status: FROZEN
+- id: LAW-B1-018
+  title: Agents cannot ratify expansion of their own authority
+  normative_statement: Authority/policy changes require human or designated-control-plane ratification, never agent self-activation.
+  rationale: Self-ratification collapses the sovereignty boundary.
+  enforcement_category: governance_protocol
+  affected_capability_classes: [system]
+  downstream_affected: [Book1-self-improvement]
+  amendment_status: FROZEN
+- id: LAW-B1-019
+  title: Source revisions are immutable lineage events
+  normative_statement: Prior source state is preserved as immutable revision history; no destructive rewrite.
+  rationale: Auditing and dispute resolution need historical source snapshots.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [opportunity]
+  downstream_affected: [Book3-data, Book5-evidence]
+  amendment_status: FROZEN
+- id: LAW-B1-020
+  title: Material source changes invalidate dependencies
+  normative_statement: Deadline, eligibility, amount, requirement or cancellation changes trigger downstream re-evaluation of dependent artifacts.
+  rationale: Stale derived artifacts produce wrong applications.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [opportunity, application, eligibility]
+  downstream_affected: [Book3-data, Book8-drafting]
+  amendment_status: AMENDABLE_BY_MINOR
+- id: LAW-B1-021
+  title: Interoperability does not surrender internal semantics
+  normative_statement: External standards map to internal models; they do not dictate internal meaning.
+  rationale: CommonGrants-style compatibility must not become sovereignty.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [opportunity, artifact]
+  downstream_affected: [Book2-domain, Book3-data]
+  amendment_status: AMENDABLE_BY_MINOR
+- id: LAW-B1-022
+  title: External provider IDs are not internal primary sovereignty
+  normative_statement: Stable internal identities remain provider-independent; provider IDs are secondary mappings.
+  rationale: Provider renumbering must not corrupt entity identity.
+  enforcement_category: schema_validation
+  affected_capability_classes: [organization, opportunity]
+  downstream_affected: [Book2-domain]
+  amendment_status: FROZEN
+- id: LAW-B1-023
+  title: Quality checks cannot fabricate facts
+  normative_statement: Humanization/style passes may rewrite form but never silently alter supported factual content.
+  rationale: Style passes are the most likely silent fact-corruption vector.
+  enforcement_category: deterministic_policy_engine
+  affected_capability_classes: [qa]
+  downstream_affected: [Book8-drafting]
+  amendment_status: FROZEN
+- id: LAW-B1-024
+  title: Research visibility is a product obligation
+  normative_statement: Grant-specific research that materially informs a match or application must be representable to the user, not hidden in agent context.
+  rationale: Client trust and reviewability require visible reasoning substrate.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [research, match]
+  downstream_affected: [Book8-drafting, UI-plane]
+  amendment_status: AMENDABLE_BY_MINOR
+- id: LAW-B1-025
+  title: Proposal and business plan remain distinct artifacts
+  normative_statement: Shared canonical facts may feed both documents, but neither is a template copy of the other.
+  rationale: The two serve different audiences with different structure and evidence emphasis.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [application]
+  downstream_affected: [Book8-drafting]
+  amendment_status: AMENDABLE_BY_MINOR
+- id: LAW-B1-026
+  title: Dynamic grant alignment is required
+  normative_statement: Founder-story framing, mission/executive/vision alignment, measurable outcomes and budget justification derive from the actual opportunity, not generic repeated prose.
+  rationale: Generic boilerplate demonstrably reduces award probability.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [application, match]
+  downstream_affected: [Book8-drafting]
+  amendment_status: AMENDABLE_BY_MINOR
+- id: LAW-B1-027
+  title: Impact and community-benefit evidence is a first-class grant criterion
+  normative_statement: Proposal content must be capable of grounding community impact in verifiable evidence consistent with client scope.
+  rationale: Impact narrative is decisive in community-focused grant programs.
+  enforcement_category: architecture_constraint
+  affected_capability_classes: [research, application, evidence]
+  downstream_affected: [Book5-evidence, Book8-drafting]
+  amendment_status: AMENDABLE_BY_MINOR
+- id: LAW-B1-028
+  title: Quality screening is advisory where inherently uncertain
+  normative_statement: AI-detection or stylistic classifiers may inform rewrites but never become authoritative factual-quality gates.
+  rationale: Inherently uncertain classifiers must not veto supported facts.
+  enforcement_category: governance_protocol
+  affected_capability_classes: [qa]
+  downstream_affected: [Book7-eval]
+  amendment_status: AMENDABLE_BY_MINOR
+- id: LAW-B1-029
+  title: Replay beats memory
+  normative_statement: Critical decisions must be reproducible from durable state and evidence without relying on hidden historical model context.
+  rationale: Disputes and post-mortems cannot depend on vanished conversations.
+  enforcement_category: audit_requirement
+  affected_capability_classes: [all-consequential]
+  downstream_affected: [Book5-evidence, Book1-audit]
+  amendment_status: FROZEN
+- id: LAW-B1-030
+  title: Phase extension cannot weaken existing authority controls
+  normative_statement: Later outreach/tracking/submission features enter through the same capability, audit, identity and approval model; no bypass paths.
+  rationale: Extension pressure is the classic route around safety architecture.
+  enforcement_category: governance_protocol
+  affected_capability_classes: [all]
+  downstream_affected: [all-future-books]
+  amendment_status: FROZEN
