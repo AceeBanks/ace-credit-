@@ -1,0 +1,59 @@
+# G0 Book 4 - B4.C17 Compaction Policy (machine-readable).
+# Safer semantic compaction with mandatory anchor preservation. Compaction is
+# never allowed to change facts, convert uncertainty to certainty, or drop
+# anchors.
+compaction_policy_version: "1.0"
+
+stages:
+- STAGE0_NO_COMPACTION
+- STAGE1_DROP_DISPOSABLE_REDUNDANT
+- STAGE2_SNIP_HISTORICAL_LOW_VALUE
+- STAGE3_MICRO_SUMMARIZE_EPISODES_TASKS
+- STAGE4_COLLAPSE_INACTIVE_PROJECT_CONTEXT
+- STAGE5_MODEL_ASSISTED_SEMANTIC_COMPACTION
+
+stage_triggers:
+  STAGE1: "over budget with disposable/redundant context (duplicates, stale tool output, already-promoted detail)"
+  STAGE2: "historical low-value detail present; preserve references/metadata"
+  STAGE3: "older interaction groups convertible to bounded summaries"
+  STAGE4: "inactive closed-project history replaceable by project summary + artifact/evidence refs"
+  STAGE5: "last resort; schema-constrained, evaluated, with source refs and anchor preservation"
+
+mandatory_anchors:
+- TENANT_USER_IDENTITY_REFS
+- ACTIVE_INTENT_OBJECTIVE
+- AUTHORITY_SCOPE
+- EXACT_ACTIVE_OPPORTUNITY_REVISION
+- UNRESOLVED_CRITICAL_CLARIFICATION
+- ELIGIBILITY_STATE
+- DEADLINE_CRITICAL_STATE
+- ACTIVE_BLOCKERS
+- HUMAN_APPROVALS_DENIALS
+- SOURCE_EVIDENCE_REFS_FOR_CURRENT_TASK
+- SAFETY_SECURITY_CONSTRAINTS
+
+rules:
+- rule_id: COMPACT-001
+  title: Anchors never compacted
+  rule: "Mandatory anchors survive every stage including stage 5; dropping an anchor is an assembly error."
+  enforcement: MUST
+- rule_id: COMPACT-002
+  title: Factual preservation
+  rule: "Factual numbers, dates, amounts and revision ids are preserved verbatim; compaction may never change $75,000 to $750,000."
+  enforcement: MUST
+- rule_id: COMPACT-003
+  title: Uncertainty preserved
+  rule: "Compaction cannot silently convert uncertainty to certainty."
+  enforcement: MUST
+- rule_id: COMPACT-004
+  title: Manifest required
+  rule: "Every compaction records a CompactionManifest: what was removed, summarized, anchors retained, generator/version, source refs, before/after budget."
+  enforcement: MUST
+
+manifest_fields:
+- REMOVED_ITEMS
+- SUMMARIZED_ITEMS
+- ANCHORS_RETAINED
+- SUMMARY_GENERATOR_VERSION
+- SOURCE_REFS
+- BEFORE_AFTER_BUDGET

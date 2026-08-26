@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/reconstruction_manifest.schema.json",
+  "title": "ReconstructionManifest",
+  "description": "B4.C19 — Records the exact durable objects used to rebuild a role's context after a cold restart. Proves the system is not secretly dependent on hidden conversational state.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reconstruction_id",
+    "role",
+    "tenant_id",
+    "project_id",
+    "objects_used",
+    "excluded_objects",
+    "raw_chat_required",
+    "reconstructed_at"
+  ],
+  "properties": {
+    "reconstruction_id": {"type": "string"},
+    "role": {"type": "string", "enum": ["PERSONAL_HERMES", "CEO_HERMES", "WORKER_AGENT"]},
+    "tenant_id": {"type": "string"},
+    "project_id": {"type": ["string", "null"]},
+    "objects_used": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Exact durable objects (refs) used to rebuild context."
+    },
+    "excluded_objects": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Archived raw chat and anything not required for basic operation."
+    },
+    "raw_chat_required": {"type": "boolean", "const": false},
+    "reconstructed_at": {"type": "string", "format": "date-time"}
+  }
+}
