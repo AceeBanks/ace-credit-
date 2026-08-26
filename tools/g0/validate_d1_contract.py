@@ -53,16 +53,11 @@ REQUIRED_METRICS = {
     "MOCK_PROPOSAL_CONSISTENT_WITH_EXACT_OPPORTUNITY_REVISION",
 }
 
+D1_CONTRACT_PATH = AGENTS_CONFIG_DIR / "d1_mock_draft_contract.yaml"
 
-def main() -> int:
+
+def validate(data: dict) -> tuple[bool, dict]:
     errors: list[str] = []
-    try:
-        data = load_yaml(AGENTS_CONFIG_DIR / "d1_mock_draft_contract.yaml")
-    except ValidationFailure as exc:
-        errors.append(str(exc))
-        _, report = finish("d1_contract", False, {"errors": errors})
-        return emit(report)
-
     if data.get("label") != "MOCK_NON_SUBMISSION":
         errors.append("label must be MOCK_NON_SUBMISSION")
     if data.get("authority_ceiling") != "L2":
@@ -87,13 +82,25 @@ def main() -> int:
     if missing_metrics:
         errors.append(f"success_metrics missing: {sorted(missing_metrics)}")
 
-    _, report = finish("d1_contract", not errors, {
+    return finish("d1_contract", not errors, {
         "errors": errors,
         "fixture_requirements": len(fixtures),
         "outputs": len(outputs),
         "restrictions": len(restrictions),
         "success_metrics": len(metrics),
     })
+
+
+def load() -> dict:
+    return load_yaml(D1_CONTRACT_PATH)
+
+
+def main() -> int:
+    try:
+        ok, report = validate(load())
+    except ValidationFailure as exc:
+        ok, report = False, {"validator": "d1_contract",
+                             "status": "FAIL", "errors": [str(exc)]}
     return emit(report)
 
 

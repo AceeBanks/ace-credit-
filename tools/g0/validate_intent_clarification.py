@@ -110,9 +110,11 @@ def validate_clarification_schema(errors: list[str]) -> None:
         errors.append("clarification schema: blocking must be boolean")
 
 
-def validate_clarification_policy(errors: list[str]) -> None:
+def validate_clarification_policy(errors: list[str],
+                                  cfg: dict | None = None) -> None:
     try:
-        data = load_yaml(AGENTS_CONFIG_DIR / "clarification_policy.yaml")
+        data = cfg if cfg is not None else load_yaml(
+            AGENTS_CONFIG_DIR / "clarification_policy.yaml")
     except ValidationFailure as exc:
         errors.append(str(exc))
         return

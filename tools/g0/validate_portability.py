@@ -44,20 +44,21 @@ DELETION_SEMANTICS = {
     "PRESERVE_REQUIRED_CANONICAL_AUDIT_EVIDENCE_SEPARATELY",
 }
 
-
-def _load(name: str, errors: list[str]) -> dict | None:
-    try:
-        return load_yaml(AGENTS_CONFIG_DIR / name)
-    except ValidationFailure as exc:
-        errors.append(str(exc))
-        return None
+SKILL_PATH = AGENTS_CONFIG_DIR / "skill_boundaries.yaml"
+MODEL_PATH = AGENTS_CONFIG_DIR / "model_independence.yaml"
+PRIVACY_PATH = AGENTS_CONFIG_DIR / "privacy_scope.yaml"
 
 
-def main() -> int:
+def validate(data: dict) -> tuple[bool, dict]:
+    """Validate the three portability configs at once.
+
+    `data` maps stem -> parsed config: {"skill_boundaries": ..., ...}.
+    """
     errors: list[str] = []
-
-    skills = _load("skill_boundaries.yaml", errors)
-    if skills is not None:
+    skills = data.get("skill_boundaries")
+    if not skills:
+        errors.append("skill_boundaries config missing")
+    else:
         personal = set(skills.get("personal_skill_domains", []))
         ceo = set(skills.get("ceo_skill_domains", []))
         if personal != PERSONAL_DOMAINS:
@@ -82,8 +83,10 @@ def main() -> int:
         if {"SKILL-001", "SKILL-002"} - rules:
             errors.append("skill rules must include SKILL-001 and SKILL-002")
 
-    models = _load("model_independence.yaml", errors)
-    if models is not None:
+    models = data.get("model_independence")
+    if not models:
+        errors.append("model_independence config missing")
+    else:
         sep = models.get("identity_separation", {})
         agent_ids = set(sep.get("agent_identity", []))
         model_exec = set(sep.get("model_execution", []))
@@ -100,8 +103,10 @@ def main() -> int:
         if {"MODEL-001", "MODEL-002", "MODEL-003"} - rules:
             errors.append("model rules must include MODEL-001..003")
 
-    privacy = _load("privacy_scope.yaml", errors)
-    if privacy is not None:
+    privacy = data.get("privacy_scope")
+    if not privacy:
+        errors.append("privacy_scope config missing")
+    else:
         dims = set(privacy.get("scope_dimensions", []))
         if dims != SCOPE_DIMENSIONS:
             errors.append(f"scope_dimensions must be exactly "
@@ -117,10 +122,26 @@ def main() -> int:
         if not privacy.get("role_duplication_rule"):
             errors.append("role_duplication_rule must be declared")
 
-    _, report = finish("portability", not errors, {
+    return finish("portability", not errors, {
         "errors": errors,
         "configs": ["skill_boundaries", "model_independence", "privacy_scope"],
     })
+
+
+def load_all() -> dict:
+    return {
+        "skill_boundaries": load_yaml(SKILL_PATH),
+        "model_independence": load_yaml(MODEL_PATH),
+        "privacy_scope": load_yaml(PRIVACY_PATH),
+    }
+
+
+def main() -> int:
+    try:
+        ok, report = validate(load_all())
+    except ValidationFailure as exc:
+        ok, report = False, {"validator": "portability",
+                             "status": "FAIL", "errors": [str(exc)]}
     return emit(report)
 
 

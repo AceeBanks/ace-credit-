@@ -68,9 +68,11 @@ def _check_schema(name: str, required: list[str], errors: list[str]) -> None:
         errors.append(f"{name}: missing required fields {missing_req}")
 
 
-def validate_worker_context_policy(errors: list[str]) -> None:
+def validate_worker_context_policy(errors: list[str],
+                                   cfg: dict | None = None) -> None:
     try:
-        data = load_yaml(AGENTS_CONFIG_DIR / "worker_context_policy.yaml")
+        data = cfg if cfg is not None else load_yaml(
+            AGENTS_CONFIG_DIR / "worker_context_policy.yaml")
     except ValidationFailure as exc:
         errors.append(str(exc))
         return

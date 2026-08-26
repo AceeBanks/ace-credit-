@@ -46,15 +46,11 @@ REQUIRED_METRICS = {
     "CLIENT_CONFUSION_AFTER_EXPLANATION",
 }
 
+FEEDBACK_POLICY_PATH = AGENTS_CONFIG_DIR / "feedback_policy.yaml"
 
-def main() -> int:
+
+def validate(data: dict) -> tuple[bool, dict]:
     errors: list[str] = []
-    try:
-        data = load_yaml(AGENTS_CONFIG_DIR / "feedback_policy.yaml")
-    except ValidationFailure as exc:
-        errors.append(str(exc))
-        return emit(finish("feedback_loop", False, {"errors": errors})[1])
-
     types = set(data.get("feedback_types", []))
     if types != REQUIRED_FEEDBACK_TYPES:
         errors.append(f"feedback_types must be exactly "
@@ -90,12 +86,24 @@ def main() -> int:
     if missing:
         errors.append(f"coadaptation_metrics missing: {sorted(missing)}")
 
-    _, report = finish("feedback_loop", not errors, {
+    return finish("feedback_loop", not errors, {
         "errors": errors,
         "feedback_types": len(types),
         "routing_entries": len(routing),
         "coadaptation_metrics": len(metrics),
     })
+
+
+def load() -> dict:
+    return load_yaml(FEEDBACK_POLICY_PATH)
+
+
+def main() -> int:
+    try:
+        ok, report = validate(load())
+    except ValidationFailure as exc:
+        ok, report = False, {"validator": "feedback_loop",
+                             "status": "FAIL", "errors": [str(exc)]}
     return emit(report)
 
 

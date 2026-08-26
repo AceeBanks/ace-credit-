@@ -1,0 +1,48 @@
+{
+  "book": "G0-B4",
+  "status": "PASS",
+  "dual_hermes_boundary_ratified": true,
+  "personal_contract_complete": true,
+  "ceo_contract_complete": true,
+  "intent_contract_tests_pass": true,
+  "clarification_protocol_pass": true,
+  "task_contract_tests_pass": true,
+  "sidechain_isolation_pass": true,
+  "outcome_explanation_separation_pass": true,
+  "personal_memory_policy_pass": true,
+  "ceo_memory_policy_pass": true,
+  "worker_stateless_default": true,
+  "promotion_supersession_tests_pass": true,
+  "compaction_anchor_tests_pass": true,
+  "cold_reconstruction_pass": true,
+  "multi_project_isolation_pass": true,
+  "multi_tenant_memory_isolation_pass": true,
+  "secret_memory_tests_pass": true,
+  "d1_mock_draft_ready": true,
+  "adversarial_p0_pass": true,
+  "p0_open": 0,
+  "d1_mock_draft_unlocked": true,
+  "ready_for_book5": true,
+  "evidence": {
+    "test_results": {
+      "exit_code": 0,
+      "passed": 275,
+      "failed": 0,
+      "summary": "275 passed, 1 skipped in 5.53s",
+      "scope": "tests/g0/book4 excluding G0_B4_REALITY_LOCK.json freshness self-test"
+    },
+    "adversarial_results": {
+      "exit_code": 0,
+      "passed": 30,
+      "failed": 0,
+      "summary": "30 passed in 0.17s",
+      "scope": "tests/g0/book4/test_adversarial_context_pollution.py (A1-A25 + catalog guards)"
+    },
+    "config_count": 16,
+    "validator_checks": {
+      "feedback_policy": true,
+      "portability_policies": true,
+      "adversarial_catalog": true
+    }
+  }
+}

@@ -66,8 +66,7 @@ def _check(name: str, required: list[str], errors: list[str]) -> None:
     return schema
 
 
-def main() -> int:
-    errors: list[str] = []
+def validate(errors: list[str]) -> None:
     _check("worker_result.schema.json", WORKER_REQUIRED, errors)
     _check("sidechain_manifest.schema.json", SIDECHAIN_REQUIRED, errors)
     _check("outcome_artifact.schema.json", OUTCOME_REQUIRED, errors)
@@ -91,6 +90,10 @@ def main() -> int:
     if "client_action_required" not in oc_props:
         errors.append("outcome_artifact must mark client_action_required")
 
+
+def main() -> int:
+    errors: list[str] = []
+    validate(errors)
     _, report = finish("sidechain_synthesis", not errors, {
         "errors": errors,
         "schemas": ["worker_result", "sidechain_manifest", "outcome_artifact"],

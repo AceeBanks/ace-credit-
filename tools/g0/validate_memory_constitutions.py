@@ -45,9 +45,11 @@ REQUIRED_CEO_NON_DURABLE = {
 }
 
 
-def validate_personal_classes(errors: list[str]) -> None:
+def validate_personal_classes(errors: list[str],
+                             cfg: dict | None = None) -> None:
     try:
-        data = load_yaml(AGENTS_CONFIG_DIR / "personal_memory_classes.yaml")
+        data = cfg if cfg is not None else load_yaml(
+            AGENTS_CONFIG_DIR / "personal_memory_classes.yaml")
     except ValidationFailure as exc:
         errors.append(str(exc))
         return
@@ -63,9 +65,11 @@ def validate_personal_classes(errors: list[str]) -> None:
         errors.append("personal canonical_duplicate_examples must be declared")
 
 
-def validate_ceo_classes(errors: list[str]) -> None:
+def validate_ceo_classes(errors: list[str],
+                         cfg: dict | None = None) -> None:
     try:
-        data = load_yaml(AGENTS_CONFIG_DIR / "ceo_memory_classes.yaml")
+        data = cfg if cfg is not None else load_yaml(
+            AGENTS_CONFIG_DIR / "ceo_memory_classes.yaml")
     except ValidationFailure as exc:
         errors.append(str(exc))
         return
@@ -84,9 +88,11 @@ def validate_ceo_classes(errors: list[str]) -> None:
         errors.append("ceo lesson_promotion_flow must require Book 7 eval")
 
 
-def validate_ttl_policy(errors: list[str]) -> None:
+def validate_ttl_policy(errors: list[str],
+                        cfg: dict | None = None) -> None:
     try:
-        data = load_yaml(AGENTS_CONFIG_DIR / "memory_ttl_policy.yaml")
+        data = cfg if cfg is not None else load_yaml(
+            AGENTS_CONFIG_DIR / "memory_ttl_policy.yaml")
     except ValidationFailure as exc:
         errors.append(str(exc))
         return

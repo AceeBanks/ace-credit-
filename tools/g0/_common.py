@@ -21,6 +21,7 @@ RATIFICATION_CONFIG_DIR = Path("config/g0/ratification")
 POLICY_CONFIG_DIR = Path("config/g0/policy")
 DOMAIN_CONFIG_DIR = Path("config/g0/domain")
 SOURCE_CONFIG_DIR = Path("config/g0/source")
+AGENTS_CONFIG_DIR = Path("config/g0/agents")
 
 
 class ValidationFailure(Exception):

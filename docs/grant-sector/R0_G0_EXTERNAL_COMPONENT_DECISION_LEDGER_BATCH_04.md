@@ -40,3 +40,20 @@ Personal Hermes
 ```
 
 Any candidate that adds generalized autonomy without reducing a known engineering gap should be classified REFERENCE/DEFER/REJECT.
+## Batch 05 — Book 4 (Dual-Hermes) decisions
+
+**Date:** 2026-08-26  **Book:** 4 (Dual-Hermes cognition, memory & bounded work)
+
+| Component | Decision | Target Book(s) | Reason |
+|---|---|---|---|
+| CompozyOS | DEFER (no adoption) | 4,6,9 | Book 4 implemented the full protocol core (IntentContract, TaskContract, sidechains, memory constitutions) as in-repo prototypes/schemas; no runtime substrate needed yet. Revisit only when a ratified runtime study requires it. |
+| QM | DEFER (reference only) | 4,6,9 | Scoped-session/sandbox patterns remain reference material; Book 4 boundaries are executable without them. |
+| Headlong | Reference only | 4,7 | Trajectory DAG / compaction ideas observed; shared-mind model remains rejected. |
+| blader/humanizer | RESERVE for Book 7/8 | 7,8 | BOUNDED STYLE_TRANSFORM CANDIDATE only; must never receive authority to change canonical facts/evidence. Explicitly NOT integrated in Books 4-6 per mission notice. |
+
+**Rule reaffirmed:** no external component adopted in Book 4. Every Book 4
+contract (boundary, intent, task, sidechain, memory, compaction,
+reconstruction, portability, D1 mock draft) is implemented with in-repo
+schemas/configs/prototypes/tests. Graph/vector systems remain projections;
+no candidate becomes canonical truth without a ratified ADR + bake-off
+(Book 5).

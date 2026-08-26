@@ -49,9 +49,11 @@ RECONSTRUCTION_REQUIRED = ["reconstruction_id", "role", "tenant_id",
                            "raw_chat_required", "reconstructed_at"]
 
 
-def validate_compaction_policy(errors: list[str]) -> None:
+def validate_compaction_policy(errors: list[str],
+                               cfg: dict | None = None) -> None:
     try:
-        data = load_yaml(AGENTS_CONFIG_DIR / "compaction_policy.yaml")
+        data = cfg if cfg is not None else load_yaml(
+            AGENTS_CONFIG_DIR / "compaction_policy.yaml")
     except ValidationFailure as exc:
         errors.append(str(exc))
         return
