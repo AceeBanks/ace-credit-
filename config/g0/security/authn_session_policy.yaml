@@ -1,0 +1,36 @@
+# G0-B6-C6 — Authentication Strategy & Session Model Policy
+
+policy_id: G0-B6-C6
+version: "1.0"
+
+human_auth_requirements:
+  - secure_session_token_model
+  - mfa_ready_for_privileged_roles
+  - account_recovery_process
+  - session_revocation
+  - invitation_membership_acceptance
+  - audit_privileged_login_events
+
+session_properties:
+  - short_lived_access
+  - refresh_or_reauth_policy
+  - server_side_tenant_binding
+  - principal_status_checked_each_use
+  - privilege_elevation_requires_reevaluation
+
+rules:
+  - id: AUTH-001
+    text: "Tenant context is bound server-side; a client-supplied tenant parameter cannot change the session's tenant."
+  - id: AUTH-002
+    text: "A revoked session is blocked immediately, including refresh."
+  - id: AUTH-003
+    text: "Expired service tokens are blocked; rotation happens without agent prompt changes."
+  - id: AUTH-004
+    text: "Service tokens authenticate services; they can never impersonate human approval."
+  - id: AUTH-005
+    text: "Privilege elevation triggers re-evaluation of the full authorization chain."
+
+token_lifetimes_seconds:
+  access_token: 900
+  refresh_token: 2592000
+  service_token: 3600

@@ -1,0 +1,34 @@
+# G0-B6-C7 — Service Identity & Workload Identity Policy
+
+policy_id: G0-B6-C7
+version: "1.0"
+
+service_identities:
+  - id: svc-source-grants-gov
+    minimum_capabilities: [evidence.ingest_snapshot, source.read]
+  - id: svc-source-georgia-opb
+    minimum_capabilities: [evidence.ingest_snapshot, source.read]
+  - id: svc-evidence
+    minimum_capabilities: [evidence.read, evidence.write]
+  - id: svc-eligibility
+    minimum_capabilities: [eligibility.execute_deterministic]
+  - id: svc-tool-gateway
+    minimum_capabilities: [tool.dispatch]
+  - id: svc-worker-runtime
+    minimum_capabilities: [worker.execute]
+
+rules:
+  - id: SVC-001
+    text: "Each service receives only its minimum capability set; no shared omnipotent backend secret."
+  - id: SVC-002
+    text: "Service identity appears in audit events for every action."
+  - id: SVC-003
+    text: "A service can be revoked independently without affecting other services."
+  - id: SVC-004
+    text: "Credentials rotate without requiring agent prompt changes."
+  - id: SVC-005
+    text: "A source adapter can never call application-mutation capabilities."
+  - id: SVC-006
+    text: "The worker runtime may read only credentials inside its granted capability; arbitrary vault reads are denied."
+
+no_shared_omnipotent_secret: true
