@@ -1,0 +1,58 @@
+# G0-B5-C3 — Evidence graph edge families (machine-readable).
+# Edges cannot create facts that do not exist in the governed layer.
+
+edge_families:
+  - family: source_lineage
+    edge_types: [EXTRACTED_FROM, NORMALIZED_FROM, OBSERVED_IN, DERIVED_FROM]
+  - family: evidence_semantics
+    edge_types: [SUPPORTS, CONTRADICTS, CORROBORATES, SUPERSEDES, QUALIFIES, MEASURES]
+  - family: decision_lineage
+    edge_types: [DECISION_USED, DECISION_PRODUCED, EVALUATED_AGAINST, EXPLAINED_BY]
+  - family: application_lineage
+    edge_types: [REQUIREMENT_SATISFIED_BY, ARTIFACT_USES, BUDGET_SUPPORTS, QA_CHECKED, REVIEWED_BY]
+  - family: dependency_semantics
+    edge_types: [DEPENDS_ON, INVALIDATES, REQUIRES_RECOMPUTE]
+
+# endpoint compatibility: which (from_ref_type, to_ref_type) pairs are legal
+edge_endpoint_rules:
+  - edge_type: EXTRACTED_FROM
+    from_types: [EXTRACTION_EVENT]
+    to_types: [SOURCE_SNAPSHOT]
+  - edge_type: NORMALIZED_FROM
+    from_types: [EVIDENCE_CLAIM]
+    to_types: [EXTRACTION_EVENT, SOURCE_SNAPSHOT]
+  - edge_type: SUPPORTS
+    from_types: [EVIDENCE_CLAIM, SOURCE_SNAPSHOT, STATISTIC_OBSERVATION, RESEARCH_FINDING, HUMAN_APPROVAL]
+    to_types: [EVIDENCE_CLAIM, CANONICAL_FACT, REQUIREMENT, ELIGIBILITY_DECISION, MATCH_DECISION]
+  - edge_type: CONTRADICTS
+    from_types: [EVIDENCE_CLAIM, CANONICAL_FACT, SOURCE_SNAPSHOT, STATISTIC_OBSERVATION]
+    to_types: [EVIDENCE_CLAIM, CANONICAL_FACT]
+  - edge_type: CORROBORATES
+    from_types: [EVIDENCE_CLAIM, SOURCE_SNAPSHOT, STATISTIC_OBSERVATION]
+    to_types: [EVIDENCE_CLAIM]
+  - edge_type: SUPERSEDES
+    from_types: [CANONICAL_FACT, EVIDENCE_CLAIM, ELIGIBILITY_DECISION, ARTIFACT_VERSION, POLICY_DECISION]
+    to_types: [CANONICAL_FACT, EVIDENCE_CLAIM, ELIGIBILITY_DECISION, ARTIFACT_VERSION, POLICY_DECISION]
+  - edge_type: DECISION_USED
+    from_types: [ELIGIBILITY_DECISION, MATCH_DECISION, QA_RESULT, POLICY_DECISION]
+    to_types: [EVIDENCE_CLAIM, CANONICAL_FACT, STATISTIC_OBSERVATION, ELIGIBILITY_RULE, REQUIREMENT, SOURCE_SNAPSHOT]
+  - edge_type: DECISION_PRODUCED
+    from_types: [ELIGIBILITY_DECISION, MATCH_DECISION, QA_RESULT, POLICY_DECISION]
+    to_types: [ARTIFACT_VERSION, BUDGET_VERSION, RESEARCH_FINDING]
+  - edge_type: DEPENDS_ON
+    from_types: [ARTIFACT_VERSION, BUDGET_VERSION, ELIGIBILITY_DECISION, MATCH_DECISION, QA_RESULT, REQUIREMENT]
+    to_types: [CANONICAL_FACT, EVIDENCE_CLAIM, STATISTIC_OBSERVATION, ELIGIBILITY_RULE, REQUIREMENT, SOURCE_SNAPSHOT, ARTIFACT_VERSION]
+  - edge_type: INVALIDATES
+    from_types: [SOURCE_SNAPSHOT, CANONICAL_FACT, EVIDENCE_CLAIM, STATISTIC_OBSERVATION]
+    to_types: [ARTIFACT_VERSION, ELIGIBILITY_DECISION, MATCH_DECISION, BUDGET_VERSION, REQUIREMENT, RESEARCH_FINDING]
+  - edge_type: REQUIRES_RECOMPUTE
+    from_types: [SOURCE_SNAPSHOT, CANONICAL_FACT, EVIDENCE_CLAIM, STATISTIC_OBSERVATION]
+    to_types: [ARTIFACT_VERSION, ELIGIBILITY_DECISION, MATCH_DECISION, BUDGET_VERSION, RESEARCH_FINDING]
+
+hard_rules:
+  - id: GRAPH-001
+    text: "Edges cannot create facts that do not exist in the governed domain/evidence layer."
+  - id: GRAPH-002
+    text: "Cross-tenant edges are denied."
+  - id: GRAPH-003
+    text: "Tombstoning a node does not silently orphan historical decision replay."

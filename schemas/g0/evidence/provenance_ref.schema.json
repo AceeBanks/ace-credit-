@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://grant-sector.g0/schemas/evidence/provenance_ref.schema.json",
+  "title": "ProvenanceRef",
+  "description": "Common reference vocabulary for tracing data and outputs. Every supported ref_type resolves to a typed governed object or an explicit tombstone.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ref_id", "ref_type", "entity_type", "entity_id", "tenant_id", "content_hash"],
+  "properties": {
+    "ref_id": {"type": "string", "minLength": 1},
+    "ref_type": {
+      "type": "string",
+      "enum": [
+        "SOURCE_SNAPSHOT", "EXTRACTION_EVENT", "NORMALIZATION_EVENT",
+        "EVIDENCE_CLAIM", "CANONICAL_FACT", "STATISTIC_OBSERVATION",
+        "ELIGIBILITY_RULE", "ELIGIBILITY_DECISION", "MATCH_DECISION",
+        "REQUIREMENT", "RESEARCH_FINDING", "BUDGET_VERSION",
+        "ARTIFACT_VERSION", "QA_RESULT", "POLICY_DECISION",
+        "HUMAN_APPROVAL", "OUTCOME_FEEDBACK"
+      ]
+    },
+    "entity_type": {"type": "string", "minLength": 1},
+    "entity_id": {"type": "string", "minLength": 1},
+    "version_or_revision_id": {"type": ["string", "null"]},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "content_hash": {"type": "string", "pattern": "^[a-f0-9]{8,64}$"},
+    "observed_at": {"type": ["string", "null"], "format": "date-time"},
+    "effective_at": {"type": ["string", "null"], "format": "date-time"},
+    "locator": {
+      "type": ["object", "null"],
+      "additionalProperties": true,
+      "description": "URL+snapshot hash, PDF page, HTML selector, JSON pointer, CSV row, cell range, text span, section id. Aids review; does not replace immutable snapshot identity.",
+      "properties": {
+        "kind": {"type": "string", "enum": ["URL_SNAPSHOT", "PDF_PAGE", "HTML_SELECTOR", "JSON_POINTER", "CSV_ROW", "CELL_RANGE", "TEXT_SPAN", "SECTION_ID"]},
+        "value": {"type": "string"}
+      },
+      "required": ["kind", "value"]
+    },
+    "tombstoned": {"type": "boolean", "default": false}
+  }
+}

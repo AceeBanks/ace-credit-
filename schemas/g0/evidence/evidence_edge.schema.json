@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://grant-sector.g0/schemas/evidence/evidence_edge.schema.json",
+  "title": "EvidenceEdge",
+  "description": "Typed relationship between two provenance refs. Edges cannot create facts that do not exist in the governed domain/evidence layer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["edge_id", "edge_type", "from_ref", "to_ref", "tenant_scope", "created_at", "created_by", "status"],
+  "properties": {
+    "edge_id": {"type": "string", "minLength": 1},
+    "edge_type": {
+      "type": "string",
+      "enum": [
+        "EXTRACTED_FROM", "NORMALIZED_FROM", "OBSERVED_IN", "DERIVED_FROM",
+        "SUPPORTS", "CONTRADICTS", "CORROBORATES", "SUPERSEDES", "QUALIFIES", "MEASURES",
+        "DECISION_USED", "DECISION_PRODUCED", "EVALUATED_AGAINST", "EXPLAINED_BY",
+        "REQUIREMENT_SATISFIED_BY", "ARTIFACT_USES", "BUDGET_SUPPORTS", "QA_CHECKED", "REVIEWED_BY",
+        "DEPENDS_ON", "INVALIDATES", "REQUIRES_RECOMPUTE"
+      ]
+    },
+    "from_ref": {"$ref": "provenance_ref.schema.json"},
+    "to_ref": {"$ref": "provenance_ref.schema.json"},
+    "tenant_scope": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "created_by": {"type": "string", "minLength": 1},
+    "method": {"type": ["string", "null"], "description": "how this edge was derived (governed method id/version)"},
+    "confidence_dimensions": {"type": "object", "additionalProperties": {"type": "number"}},
+    "valid_from": {"type": ["string", "null"], "format": "date-time"},
+    "valid_to": {"type": ["string", "null"], "format": "date-time"},
+    "status": {"type": "string", "enum": ["ACTIVE", "SUPERSEDED", "INVALIDATED", "TOMBSTONED"]}
+  }
+}
