@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/clarification_request.schema.json",
+  "title": "ClarificationRequest",
+  "description": "B4.C5 — Allows CEO to obtain missing information without becoming a second independent client relationship. Blocking vs non-blocking is explicit. why_needed may be translated into user-friendly language by Personal Hermes; it is never an excuse for Personal to answer on the client's behalf using inference.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "clarification_id",
+    "intent_id",
+    "requesting_actor",
+    "question_type",
+    "question",
+    "why_needed",
+    "blocking",
+    "expected_answer_type",
+    "created_at"
+  ],
+  "properties": {
+    "clarification_id": {"type": "string"},
+    "intent_id": {"type": "string"},
+    "requesting_actor": {
+      "type": "string",
+      "enum": ["CEO_HERMES", "PERSONAL_HERMES"]
+    },
+    "question_type": {
+      "type": "string",
+      "enum": [
+        "MISSING_REQUIRED_INPUT",
+        "AMBIGUOUS_INPUT",
+        "CONFLICTING_INPUT",
+        "ELIGIBILITY_CRITICAL",
+        "SCOPE_CONFIRMATION",
+        "PREFERENCE_CONFIRMATION"
+      ]
+    },
+    "question": {"type": "string"},
+    "why_needed": {"type": "string"},
+    "blocking": {"type": "boolean"},
+    "expected_answer_type": {
+      "type": "string",
+      "enum": ["FREE_TEXT", "SINGLE_CHOICE", "DATE", "MONEY", "BOOLEAN", "LOCATION"]
+    },
+    "allowed_context_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Context refs the answering role may consult without opening raw transcript."
+    },
+    "answerable_from_canonical_state": {
+      "type": "boolean",
+      "description": "Set true when the requesting actor verified the answer is NOT already available from canonical state / personal memory (duplicate-avoidance)."
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "answered_at": {"type": ["string", "null"], "format": "date-time"},
+    "answer_ref": {"type": ["string", "null"]}
+  }
+}

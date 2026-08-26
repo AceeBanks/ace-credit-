@@ -1,0 +1,54 @@
+# G0 Book 4 - B4.C5 Clarification Policy (machine-readable).
+# Governs how CEO obtains missing information without becoming a second
+# independent client relationship.
+clarification_policy_version: "1.0"
+
+question_types:
+- MISSING_REQUIRED_INPUT
+- AMBIGUOUS_INPUT
+- CONFLICTING_INPUT
+- ELIGIBILITY_CRITICAL
+- SCOPE_CONFIRMATION
+- PREFERENCE_CONFIRMATION
+
+expected_answer_types: [FREE_TEXT, SINGLE_CHOICE, DATE, MONEY, BOOLEAN, LOCATION]
+
+rules:
+- rule_id: CLARIFY-001
+  title: No avoidable questions
+  rule: "The requesting actor must verify the answer is not already available from canonical state or Personal memory before issuing a ClarificationRequest; duplicate-avoidance is enforced (answerable_from_canonical_state flag)."
+  enforcement: MUST
+- rule_id: CLARIFY-002
+  title: Personal never answers on behalf of client by inference
+  rule: "Personal Hermes must not answer an eligibility-critical or factual question from inference; it asks the client or routes back an explicit inference-labeled note."
+  enforcement: MUST
+- rule_id: CLARIFY-003
+  title: Blocking is explicit
+  rule: "Every ClarificationRequest marks blocking true/false; blocking eligibility-critical questions gate eligible status and draft readiness until answered."
+  enforcement: MUST
+- rule_id: CLARIFY-004
+  title: User-friendly translation
+  rule: "why_needed may be translated into user-friendly language by Personal Hermes; translation must not distort the underlying question or its blocking status."
+  enforcement: SHOULD
+- rule_id: CLARIFY-005
+  title: Answers amend intent versions
+  rule: "A ClarificationAnswer updates the IntentContract as a new version (supersedes_intent_id), never by silently mutating the prior intent history."
+  enforcement: MUST
+- rule_id: CLARIFY-006
+  title: Escalation on repeated blockers
+  rule: "If the same blocking question remains unanswered across configured retries, CEO escalates to human review rather than guessing or silently dropping the constraint."
+  enforcement: MUST
+
+blocking_effects:
+  eligibility_critical_unanswered: BLOCK_ELIGIBILITY_AND_DRAFT_READINESS
+  non_blocking_unanswered: CONTINUE_WITH_FLAG
+
+answer_sources:
+- CANONICAL_STATE
+- PERSONAL_MEMORY
+- CLIENT_DIRECT
+- EXPLICIT_INFERENCE_LABELED
+
+escalation:
+  max_repeat_blocking_questions: 2
+  escalation_flow: HUMAN_REVIEW_QUEUE

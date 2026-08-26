@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/intent_contract.schema.json",
+  "title": "IntentContract",
+  "description": "B4.C4 — The central boundary translating human conversation into operational work. Raw conversation is LINKED via source_conversation_refs, never embedded wholesale. Known canonical facts are referenced via known_facts_refs. User assertions are labeled ASSERTION until promoted. Authority scope is explicit. Unresolved critical questions remain visible in open_questions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "intent_id",
+    "tenant_id",
+    "client_actor_id",
+    "organization_id",
+    "intent_type",
+    "objective",
+    "authority_scope",
+    "confidence_state",
+    "created_at"
+  ],
+  "properties": {
+    "intent_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "client_actor_id": {"type": "string"},
+    "organization_id": {"type": "string"},
+    "intent_type": {
+      "type": "string",
+      "enum": [
+        "EXPLORE_IDEA",
+        "FIND_GRANTS",
+        "ASSESS_OPPORTUNITY",
+        "BUILD_APPLICATION",
+        "UPDATE_PROFILE",
+        "REVIEW_DRAFT",
+        "RESEARCH_FUNDER",
+        "RESEARCH_WINNERS",
+        "EXPLAIN_RESULT",
+        "OTHER_CONTROLLED_EXTENSION"
+      ]
+    },
+    "objective": {"type": "string"},
+    "desired_outcome": {"type": "string"},
+    "constraints": {"type": "array", "items": {"type": "string"}},
+    "known_facts_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "References to canonical Book 2/3 facts, never embedded copies."
+    },
+    "user_assertions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assertion_id", "statement", "status"],
+        "properties": {
+          "assertion_id": {"type": "string"},
+          "statement": {"type": "string"},
+          "status": {"const": "ASSERTION"},
+          "fact_proposal_ref": {"type": ["string", "null"]}
+        }
+      },
+      "description": "User statements labeled ASSERTION until promoted; never canonical by construction."
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Unresolved critical questions must remain visible."
+    },
+    "non_goals": {"type": "array", "items": {"type": "string"}},
+    "priority": {"type": "string", "enum": ["LOW", "NORMAL", "HIGH", "CRITICAL"]},
+    "deadline_or_time_horizon": {"type": ["string", "null"]},
+    "authority_scope": {
+      "type": "string",
+      "enum": ["EXPLORE_ONLY", "RESEARCH_ONLY", "RESEARCH_AND_DRAFT_ONLY", "PREPARE_ONLY"]
+    },
+    "requested_capabilities": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Requested capability ids; DISABLED-phase requests are normalized or rejected by the intent builder."
+    },
+    "confidence_state": {
+      "type": "string",
+      "enum": ["HIGH", "MEDIUM", "LOW"]
+    },
+    "source_conversation_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Opaque refs into archived conversation for audit; never enter CEO active context."
+    },
+    "normalization_notes": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Notes from intent building/normalization (e.g. submission capability normalized to prepare-only)."
+    },
+    "version": {"type": "integer", "minimum": 1},
+    "supersedes_intent_id": {"type": ["string", "null"]},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}
