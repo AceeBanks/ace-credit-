@@ -1,7 +1,7 @@
 # G0 Book 0 — Test Report & Reality Lock Report
 
 **Test command:** `python -m pytest tests/g0/book0 -q`
-**Result:** **50 passed, 0 failed, 0 blocked, 0 skipped** (as recorded in `G0_B0_REALITY_LOCK.json`)
+**Result:** **51 passed, 0 failed, 0 blocked, 0 skipped** (full suite; the Reality Lock's inner derivation run records 50 passed + 1 self-excluded freshness test — see `tests.scope` in `G0_B0_REALITY_LOCK.json`)
 
 ## Coverage by chapter
 
@@ -11,7 +11,7 @@
 | `test_decision_register.py` | 12 | Register soundness; every required category covered; no phantom lineage; conditions required for conditional ratifications; negative fixtures for all defect classes |
 | `test_contradictions.py` | 10 | All ten mandated probes present; zero open P0 enforced by gate; OPEN P0 fixture fails validation; phantom sources/decisions fail |
 | `test_freeze_registers.py` | 13 | All three non-goal kinds present; ten mandated candidates with baselines/kill criteria/licenses; premature ADOPTED status fails gate |
-| `test_reality_lock.py` | 8 | Lock is DERIVED: open P0, missing category, stale authority, premature adoption, failing or missing tests each flip readiness to FAIL |
+| `test_reality_lock.py` | 9 | Lock is DERIVED: open P0, missing category, stale authority, premature adoption, failing or missing tests each flip readiness to FAIL; committed lock file must equal honest regeneration (REPAIR-01 stale-lock defense) |
 
 ## Adversarial design notes
 

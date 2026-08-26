@@ -39,6 +39,11 @@ from tools.g0.validate_freeze_registers import (
     validate_non_goals,
 )
 
+COMMITTED_LOCK_PATH = (
+    _ROOT / "docs" / "grant-sector" / "g0" / "00-ratification"
+    / "G0_B0_REALITY_LOCK.json"
+)
+
 CONFIGS = {
     "manifest": RATIFICATION_CONFIG_DIR / "artifact_manifest.yaml",
     "decisions": RATIFICATION_CONFIG_DIR / "decision_register.yaml",
@@ -57,9 +62,14 @@ VALIDATORS = {
 
 
 def _run_book0_tests() -> dict:
+    import os
+
+    # Recursion guard: the lock-freshness test itself invokes this builder;
+    # the inner pytest run must skip it or we recurse forever.
+    env = {**os.environ, "G0_SKIP_LOCK_FRESHNESS": "1"}
     proc = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/g0/book0", "-q", "--tb=no"],
-        cwd=_ROOT, capture_output=True, text=True, timeout=300,
+        cwd=_ROOT, capture_output=True, text=True, timeout=300, env=env,
     )
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     match = re.search(r"(\d+) passed", tail[0])
@@ -69,6 +79,9 @@ def _run_book0_tests() -> dict:
         "passed": int(match.group(1)) if match else 0,
         "failed": int(failed.group(1)) if failed else (1 if proc.returncode else 0),
         "summary": tail[0],
+        # The lock-freshness self-test is excluded from this inner run (it would
+        # recurse); the FULL suite including it must pass separately.
+        "scope": "tests/g0/book0 excluding G0_B0_REALITY_LOCK.json freshness self-test",
     }
 
 
@@ -146,6 +159,16 @@ def compute_lock(
         "ready_for_book1_ratification": ready,
     }
     return lock
+
+
+def build_live_lock() -> dict:
+    """Load the live registers AND run the Book 0 test suite.
+
+    Used by the freshness test to prove the committed lock file still matches
+    what an honest regeneration from repository evidence produces.
+    """
+    data = {name: load_yaml(CONFIGS[name]) for name in CONFIGS}
+    return compute_lock(data, test_results=_run_book0_tests())
 
 
 def main(argv: list[str]) -> int:

@@ -8,11 +8,19 @@ explicitly True.
 from __future__ import annotations
 
 import copy
+import json
+import os
 from pathlib import Path
 
+import pytest
 import yaml
 
-from tools.g0.build_book0_reality_lock import CONFIGS, compute_lock
+from tools.g0.build_book0_reality_lock import (
+    COMMITTED_LOCK_PATH,
+    build_live_lock,
+    compute_lock,
+    CONFIGS,
+)
 
 _ROOT = Path(__file__).resolve().parents[3]
 
@@ -96,6 +104,32 @@ def test_failing_tests_block_readiness():
                         test_results={"exit_code": 1, "passed": 40, "failed": 2,
                                       "summary": "40 passed, 2 failed"})
     assert lock["status"] == "FAIL"
+
+
+@pytest.mark.skipif(
+    os.environ.get("G0_SKIP_LOCK_FRESHNESS") == "1",
+    reason="recursion guard: inner lock-build pytest runs skip this test",
+)
+def test_committed_lock_matches_regeneration():
+    """REPAIR-01 (stale-lock attack): the COMMITTED lock file must equal what an
+    honest regeneration from live repository evidence produces right now.
+    A hand-edited or stale lock fails this test — PASS cannot be faked by
+    editing JSON."""
+    committed = json.loads(COMMITTED_LOCK_PATH.read_text(encoding="utf-8"))
+    fresh = build_live_lock()
+
+    def normalize(lock: dict) -> dict:
+        lock = copy.deepcopy(lock)
+        if isinstance(lock.get("tests"), dict):
+            # duration string varies run-to-run; counts are compared exactly
+            lock["tests"].pop("summary", None)
+        return lock
+
+    assert normalize(committed) == normalize(fresh), (
+        "Committed G0_B0_REALITY_LOCK.json is stale or hand-edited; "
+        "regenerate it with tools/g0/build_book0_reality_lock.py"
+    )
+    assert committed["status"] == "PASS"
 
 
 def test_readiness_is_conjunction_not_assertion():
