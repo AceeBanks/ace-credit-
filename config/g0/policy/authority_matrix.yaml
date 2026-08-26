@@ -1,0 +1,55 @@
+# G0 Book 1 - B1.C4 Authority Ladder + ceilings (machine-readable).
+# Authority defined independently of tools; ceilings per actor from the plan §7.
+ladder_version: "1.0"
+levels:
+- level: L0
+  name: Observe
+  allowed: [read organization profile, inspect matched grants, view source evidence, inspect application state]
+  forbidden: [mutation, external communication, submission]
+- level: L1
+  name: Propose
+  allowed: [ask clarifying questions, propose program idea, propose grant shortlist, prepare task plan, propose profile correction]
+  forbidden: [governed mutation except explicitly-labeled non-canonical draft/proposal state]
+- level: L2
+  name: Safe Execute
+  allowed: [search registered grant sources, ingest/snapshot opportunities, parse solicitations,
+            run research, extract candidate eligibility rules, execute deterministic eligibility,
+            rank/match, analyze past winners, gather community evidence, draft proposal sections,
+            draft full mock proposal, draft business plan, draft pitch deck, draft budget/financial materials,
+            produce partnerships/testimonial placeholders only from verified inputs, create goal sheets,
+            run QA/humanization, generate internal artifacts]
+  forbidden: [external send, sign, certify, submit, silently overwrite protected canonical client facts]
+- level: L3
+  name: Managed Execute
+  allowed: [move application workflow state, accept verified organization profile update,
+            mark requirement satisfied, promote approved evidence/fact, archive/supersede records]
+  forbidden: [external action without approval policy]
+- level: L4
+  name: External Action
+  allowed: [send outreach, update CRM, transmit approved non-binding materials, request information from funder]
+  forbidden: [legally binding commitments]   # requires approval policy
+- level: L5
+  name: Submission / Legally Material
+  allowed: []                                # NONE enabled in Phase 1
+  forbidden: [submit application, certify truthfulness, apply signature,
+              bind organization to terms, attest to compliance]
+  phase_status: DISABLED
+
+actor_ceilings:
+  ACTOR-HUMAN-CLIENT: HUMAN_SOVEREIGN
+  ACTOR-HUMAN-ADMIN: HUMAN_SOVEREIGN
+  ACTOR-HERMES-PERSONAL: L1
+  ACTOR-HERMES-CEO: L2
+  ACTOR-WORKER: L2                 # task-scoped
+  ACTOR-DETERMINISTIC-SERVICE: L3  # narrow predefined transitions only
+  ACTOR-SOURCE-ADAPTER: L2         # source operations only
+  ACTOR-POLICY-ENGINE: L3
+  ACTOR-CANONICAL-DATABASE: L3
+  ACTOR-ARTIFACT-STORE: L2
+  ACTOR-EXTERNAL-INTEGRATION: DISABLED
+  ACTOR-OUTREACH-AGENT: DISABLED   # future
+  ACTOR-SUBMISSION-AGENT: DISABLED # future; disabled in Phase 1
+  ACTOR-TRACKER-AGENT: DISABLED    # future
+
+# Level ordering used by the evaluator; DISABLED is below everything.
+level_order: [DISABLED, L0, L1, L2, L3, L4, L5]
