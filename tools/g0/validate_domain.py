@@ -161,6 +161,49 @@ def validate_identifier_namespaces(data: dict, entity_types: dict | None = None)
     })
 
 
+RELATIONSHIP_FIELDS = (
+    "relationship_type", "source_entity_types", "target_entity_types",
+    "cardinality", "directed", "temporal", "attributes",
+    "provenance_required",
+)
+
+
+def validate_relationships(data: dict, entity_types: dict | None = None) -> tuple[bool, dict]:
+    """B2.C6 — relationship catalog: required fields, unique types, endpoint
+    types resolve, cardinality values are valid."""
+    errors: list[str] = []
+    catalog = entity_types or {}
+    entities = {e.get("entity_type") for e in catalog.get("entity_types", [])}
+    entities |= set(data.get("external_entity_types") or [])
+    valid_card = set(data.get("valid_cardinalities") or [])
+    rels = data.get("relationship_types") or []
+    seen: set[str] = set()
+    for r in rels:
+        rt = r.get("relationship_type")
+        if not rt:
+            errors.append("relationship missing relationship_type")
+            continue
+        missing = [f for f in RELATIONSHIP_FIELDS if f not in r or r.get(f) is None]
+        if missing:
+            errors.append(f"{rt}: missing fields {missing}")
+        if rt in seen:
+            errors.append(f"{rt}: duplicate relationship type")
+        seen.add(rt)
+        if r.get("cardinality") not in valid_card:
+            errors.append(f"{rt}: unknown cardinality '{r.get('cardinality')}'")
+        for side in ("source_entity_types", "target_entity_types"):
+            for et in r.get(side) or []:
+                if et not in entities:
+                    errors.append(f"{rt}: endpoint type '{et}' unknown")
+    return finish("domain_relationships", not errors, {
+        "errors": errors, "relationship_count": len(seen),
+    })
+
+
+def load_relationships() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "relationship_types.yaml")
+
+
 def load_identifier_namespaces() -> dict:
     return load_yaml(DOMAIN_CONFIG_DIR / "identifier_namespaces.yaml")
 

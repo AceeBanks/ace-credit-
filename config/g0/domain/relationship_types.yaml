@@ -1,0 +1,37 @@
+# G0 Book 2 - B2.C6 Relationship Catalog (machine-readable).
+# Typed edges instead of ad hoc foreign-key meaning. Endpoint types resolve
+# against config/g0/domain/entity_types.yaml plus declared external types
+# (SourceSnapshot is owned by Book 3 but its edges are typed here).
+relationship_types_version: "1.0"
+external_entity_types: [SourceSnapshot]
+valid_cardinalities: ["1:1", "1:N", "N:1", "N:M"]
+relationship_types:
+# --- Organization relationships ---
+- {relationship_type: ORGANIZATION_HAS_CONTACT, source_entity_types: [Organization], target_entity_types: [Person], cardinality: "1:N", directed: true, temporal: true, attributes: [role, email], provenance_required: false}
+- {relationship_type: ORGANIZATION_HAS_PARTNER, source_entity_types: [Organization], target_entity_types: [Organization], cardinality: "N:M", directed: false, temporal: true, attributes: [role_scope], provenance_required: true, no_self_loop: true}
+- {relationship_type: ORGANIZATION_HAS_FISCAL_SPONSOR, source_entity_types: [Organization], target_entity_types: [Organization], cardinality: "N:M", directed: true, temporal: true, attributes: [], provenance_required: true, no_self_loop: true}
+- {relationship_type: ORGANIZATION_OPERATES_PROGRAM, source_entity_types: [Organization], target_entity_types: [Program], cardinality: "N:M", directed: true, temporal: true, attributes: [role], provenance_required: false}
+# --- Funding relationships ---
+- {relationship_type: FUNDER_OFFERS_PROGRAM, source_entity_types: [Organization], target_entity_types: [Program], cardinality: "N:M", directed: true, temporal: true, attributes: [], provenance_required: false}
+- {relationship_type: PROGRAM_HAS_OPPORTUNITY, source_entity_types: [Program], target_entity_types: [GrantOpportunity], cardinality: "1:N", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: OPPORTUNITY_HAS_REVISION, source_entity_types: [GrantOpportunity], target_entity_types: [OpportunityRevision], cardinality: "1:N", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: AWARD_FUNDED_BY, source_entity_types: [Award], target_entity_types: [Organization], cardinality: "N:1", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: AWARD_RECEIVED_BY, source_entity_types: [Award], target_entity_types: [Organization], cardinality: "N:1", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: AWARD_UNDER_PROGRAM, source_entity_types: [Award], target_entity_types: [Program], cardinality: "N:1", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: AWARD_LINKED_TO_OPPORTUNITY, source_entity_types: [Award], target_entity_types: [GrantOpportunity], cardinality: "N:1", directed: true, temporal: false, attributes: [], provenance_required: false}
+# --- Application relationships ---
+- {relationship_type: APPLICATION_FOR_ORGANIZATION, source_entity_types: [ApplicationProject], target_entity_types: [Organization], cardinality: "N:1", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: APPLICATION_TARGETS_OPPORTUNITY_REVISION, source_entity_types: [ApplicationProject], target_entity_types: [OpportunityRevision], cardinality: "N:1", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: APPLICATION_HAS_REQUIREMENT, source_entity_types: [ApplicationProject], target_entity_types: [Requirement], cardinality: "1:N", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: APPLICATION_HAS_ARTIFACT, source_entity_types: [ApplicationProject], target_entity_types: [Artifact], cardinality: "1:N", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: APPLICATION_HAS_BUDGET, source_entity_types: [ApplicationProject], target_entity_types: [Budget], cardinality: "1:N", directed: true, temporal: false, attributes: [], provenance_required: false}
+- {relationship_type: APPLICATION_USES_EVIDENCE, source_entity_types: [ApplicationProject], target_entity_types: [EvidenceClaim], cardinality: "N:M", directed: true, temporal: false, attributes: [], provenance_required: true}
+- {relationship_type: APPLICATION_HAS_OUTCOME, source_entity_types: [ApplicationProject], target_entity_types: [OutcomeFeedback], cardinality: "1:N", directed: true, temporal: false, attributes: [], provenance_required: false}
+# --- Evidence relationships ---
+- {relationship_type: CLAIM_ASSERTED_BY_SOURCE_SNAPSHOT, source_entity_types: [EvidenceClaim], target_entity_types: [SourceSnapshot], cardinality: "N:1", directed: true, temporal: false, attributes: [], provenance_required: true}
+- {relationship_type: FACT_SUPPORTED_BY_CLAIM, source_entity_types: [CanonicalFact], target_entity_types: [EvidenceClaim], cardinality: "1:N", directed: true, temporal: false, attributes: [], provenance_required: true}
+- {relationship_type: FACT_CONTRADICTED_BY_CLAIM, source_entity_types: [CanonicalFact], target_entity_types: [EvidenceClaim], cardinality: "1:N", directed: true, temporal: false, attributes: [], provenance_required: true}
+- {relationship_type: STATISTIC_DERIVED_FROM_SOURCE, source_entity_types: [StatisticObservation], target_entity_types: [SourceSnapshot], cardinality: "1:1", directed: true, temporal: false, attributes: [], provenance_required: true}
+- {relationship_type: ARTIFACT_USES_FACT, source_entity_types: [Artifact], target_entity_types: [CanonicalFact], cardinality: "N:M", directed: true, temporal: false, attributes: [], provenance_required: true}
+- {relationship_type: ARTIFACT_USES_STATISTIC, source_entity_types: [Artifact], target_entity_types: [StatisticObservation], cardinality: "N:M", directed: true, temporal: false, attributes: [], provenance_required: true}
+- {relationship_type: REQUIREMENT_SUPPORTED_BY_ARTIFACT, source_entity_types: [Requirement], target_entity_types: [Artifact], cardinality: "N:M", directed: true, temporal: false, attributes: [], provenance_required: true}
