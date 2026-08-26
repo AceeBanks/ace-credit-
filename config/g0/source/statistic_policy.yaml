@@ -1,0 +1,113 @@
+# G0-B3-C15 — StatisticObservation data policy (machine-readable, fail-closed).
+# Makes quantitative community/impact evidence safe for grant writing.
+
+required_dimensions:
+  - metric_code
+  - metric_label
+  - value
+  - unit
+  - geography_type
+  - geography_id
+  - geography_label
+  - population_scope
+  - reference_period_start
+  - reference_period_end
+  - dataset_name
+  - dataset_vintage
+  - estimate_type
+  - margin_of_error
+  - confidence_interval
+  - methodology_ref
+  - source_snapshot_ref
+  - quality_state
+
+geography_types:
+  - city
+  - county
+  - tract
+  - block_group
+  - state
+  - national
+  - custom_region
+
+# A statistic must not silently cross geography levels.
+geography_match_rule: |
+  A statistic may not silently cross geography levels (e.g., a Fulton County
+  statistic must not be described as a City of Atlanta statistic; a statewide
+  statistic must not be represented as a local-county fact).
+
+population_scopes:
+  - all_persons
+  - children_under_18
+  - single_parent_households
+  - labor_force_participants
+  - school_age_population
+
+estimate_types:
+  - direct_estimate
+  - model_based_estimate
+  - percent_estimate
+  - aggregate
+  - survey_estimate
+
+time_rules:
+  - reference_period
+  - dataset_release_vintage
+  - retrieval_time
+
+# Derived statistics must carry transformation lineage.
+derived_stat_rule: |
+  If the platform computes a derived rate/aggregation, record transformation
+  lineage (formula + parent observations) so the derived stat replays.
+
+# Client-facing narrative may not overstate precision beyond methodology; MOE
+# and estimate caveats must be available to QA/generation.
+proposal_use_rule: |
+  Client-facing narrative must not overstate precision beyond source
+  methodology. Margin-of-error/estimate caveats must be available.
+
+quality_states:
+  - VERIFIED
+  - CANDIDATE
+  - FLAGGED
+  - REJECTED
+
+# Real fixture rows used by the validator and tests: census/statistical shapes
+# that must satisfy every required dimension. Semantic examples, not live data.
+statistic_fixtures:
+  - metric_code: pov_rate_county
+    metric_label: "Poverty rate"
+    value: 14.8
+    unit: percent
+    geography_type: county
+    geography_id: "13121"
+    geography_label: "Fulton County, GA"
+    population_scope: all_persons
+    reference_period_start: "2023-01-01"
+    reference_period_end: "2023-12-31"
+    dataset_name: "Census ACS 5-Year"
+    dataset_vintage: "2023"
+    estimate_type: percent_estimate
+    margin_of_error: 0.9
+    confidence_interval: [13.9, 15.7]
+    methodology_ref: "census-acs-2023-5yr-methodology"
+    source_snapshot_ref: "snap_census_acs_13121_2023"
+    quality_state: VERIFIED
+  - metric_code: median_hh_income_state
+    metric_label: "Median household income"
+    value: 71640.0
+    unit: usd
+    geography_type: state
+    geography_id: "13"
+    geography_label: "Georgia"
+    population_scope: all_persons
+    reference_period_start: "2022-01-01"
+    reference_period_end: "2022-12-31"
+    dataset_name: "Census SAIPE"
+    dataset_vintage: "2022"
+    estimate_type: model_based_estimate
+    margin_of_error: 1200.0
+    confidence_interval: [70440.0, 72840.0]
+    methodology_ref: "census-saipe-2022-methodology"
+    source_snapshot_ref: "snap_saipe_ga_2022"
+    quality_state: VERIFIED

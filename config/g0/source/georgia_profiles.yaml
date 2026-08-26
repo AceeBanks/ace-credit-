@@ -1,0 +1,80 @@
+# G0-B3-C17 — Georgia source profiles (machine-readable, fail-closed).
+# Makes Georgia the first state-level source fabric proof. Georgia-specific
+# fields must normalize into the same Book 2 core domain — never a
+# "GeorgiaGrant" root entity.
+
+source_profiles:
+  ga_opb_grants_portal:
+    name: "Georgia OPB / Georgia Grants Portal"
+    role: "current state opportunities/programs; state grant portal identifiers; application/status ecosystem; awarded-grant records"
+    priority_facts:
+      - opportunity_title
+      - opportunity_status
+      - opportunity_deadline
+      - funder_identity
+      - recipient_identity
+    identifier_namespaces: [GA_PORTAL]
+    capture_method: HTML
+    expected_revision_semantics: page_snapshot_on_change
+    freshness_policy_ref: active_opportunity
+    rate_limit_auth_notes: "public portal; crawler-governed"
+    fixture_examples: [fixture_ga_opb_opportunity]
+    fallbacks: [ga_dca]
+    crawled_state_rule: true
+
+  ga_opb_active_grant_programs:
+    name: "GA OPB Active Grant Programs / Awarded Grants"
+    role: "program and historical award/winner fixtures"
+    priority_facts: [historical_award_amount, recipient_identity]
+    identifier_namespaces: [GA_PORTAL]
+    capture_method: HTML
+    expected_revision_semantics: award_record_fixed_absent_correction
+    freshness_policy_ref: historical_fixed
+    rate_limit_auth_notes: "public"
+    fixture_examples: [fixture_ga_awarded_grant]
+    fallbacks: []
+
+  ga_dca:
+    name: "Georgia Department of Community Affairs"
+    role: "agency-specific opportunities / NOFOs"
+    priority_facts: [opportunity_title, funder_identity]
+    identifier_namespaces: [GA_PORTAL]
+    capture_method: HTML
+    expected_revision_semantics: page_snapshot_on_change
+    freshness_policy_ref: active_opportunity
+    rate_limit_auth_notes: "public"
+    fixture_examples: [fixture_ga_dca_nofo]
+    fallbacks: []
+
+  ga_gema_hs:
+    name: "GEMA / HS"
+    role: "second agency-source pattern"
+    priority_facts: [opportunity_title, funder_identity]
+    identifier_namespaces: [GA_PORTAL]
+    capture_method: HTML
+    expected_revision_semantics: page_snapshot_on_change
+    freshness_policy_ref: active_opportunity
+    rate_limit_auth_notes: "public"
+    fixture_examples: []
+    fallbacks: []
+
+  ga_epd_domain_agency:
+    name: "Georgia EPD (or other domain agency)"
+    role: "test heterogeneous source shapes"
+    priority_facts: [program_aln, funder_identity]
+    identifier_namespaces: [GA_PORTAL]
+    capture_method: HTML
+    expected_revision_semantics: page_snapshot_on_change
+    freshness_policy_ref: active_opportunity
+    rate_limit_auth_notes: "public"
+    fixture_examples: []
+    fallbacks: []
+
+# Crawled-state rule for sources without structured APIs:
+#   Registered source -> Crawl4AI/browser capture -> raw snapshot -> parser/
+#   extractor -> normalized candidate -> validation/promotion. No crawling
+#   directly into CanonicalFact.
+crawled_state_rule: "no crawling directly into CanonicalFact; capture then normalize then promote"
+
+# Any portal-specific IDs are stored as namespaced external identifiers.
+georgia_identifier_policy: "portal-specific IDs stored as namespaced external identifiers"

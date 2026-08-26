@@ -1,0 +1,97 @@
+# G0-B3-C16 — Federal source profiles (machine-readable, fail-closed).
+# Defines the first authoritative federal data lanes in enough detail for
+# fixture-backed tests and G1 implementation.
+
+source_profiles:
+  grants_gov_simpler:
+    name: "Grants.gov / Simpler.Grants.gov"
+    role: "active/historical opportunities; opportunity metadata; eligibility/application info; revision data"
+    priority_facts:
+      - opportunity_title
+      - opportunity_status
+      - opportunity_deadline
+      - opportunity_award_ceiling
+      - opportunity_eligibility
+      - opportunity_required_attachments
+      - funder_identity
+      - program_aln
+    identifier_namespaces: [GRANTS_GOV_OPPORTUNITY, ALN]
+    capture_method: API_JSON
+    expected_revision_semantics: opportunity_revision_on_amendment
+    freshness_policy_ref: active_opportunity
+    rate_limit_auth_notes: "public API; no auth"
+    fixture_examples: [fixture_grantsgov_opportunity]
+    known_caveats: ["some fields only in details endpoint"]
+    fallbacks: [SAM_Assistance_Listings]
+
+  sam_assistance_listings:
+    name: "SAM Assistance Listings"
+    role: "durable federal program/assistance-listing context"
+    priority_facts: [program_aln, funder_identity]
+    identifier_namespaces: [ALN]
+    capture_method: API_JSON
+    expected_revision_semantics: durable_program_context
+    freshness_policy_ref: durable_low_frequency
+    rate_limit_auth_notes: "public API"
+    fixture_examples: [fixture_sam_aln]
+    fallbacks: []
+
+  usaspending:
+    name: "USAspending"
+    role: "federal awards/transactions; recipient/winner history; amounts/geography/program"
+    priority_facts: [historical_award_amount, recipient_identity]
+    identifier_namespaces: [UEI, USA_SPENDING_AWARD, FAIN]
+    capture_method: API_JSON
+    expected_revision_semantics: monthly_award_facts
+    freshness_policy_ref: historical_fixed
+    rate_limit_auth_notes: "public API; paginated"
+    fixture_examples: [fixture_usaspending_award]
+    fallbacks: [SAM_Subaward]
+
+  irs_eo_bmf_990:
+    name: "IRS EO/BMF/990"
+    role: "nonprofit legal/status/filing information"
+    priority_facts: [tax_exempt_status, legal_organization_name, organization_financial_filings]
+    identifier_namespaces: [EIN]
+    capture_method: HTML
+    expected_revision_semantics: annual_filing_vintage
+    freshness_policy_ref: irs_annual_filing
+    rate_limit_auth_notes: "public; robots-constrained"
+    fixture_examples: [fixture_irs_eo]
+    fallbacks: []
+
+  federal_audit_clearinghouse:
+    name: "Federal Audit Clearinghouse"
+    role: "federal award/audit capacity history"
+    priority_facts: [historical_award_amount, organization_financial_filings]
+    identifier_namespaces: [UEI]
+    capture_method: API_JSON
+    expected_revision_semantics: annual_report_vintage
+    freshness_policy_ref: annual_statistic
+    rate_limit_auth_notes: "public API"
+    fixture_examples: []
+    fallbacks: []
+
+  census_acs_saipe:
+    name: "Census ACS / SAIPE"
+    role: "demographic/economic/community-need statistics"
+    priority_facts: [community_statistics]
+    identifier_namespaces: [FIPS]
+    capture_method: API_JSON
+    expected_revision_semantics: dataset_vintage
+    freshness_policy_ref: acs_saipe
+    rate_limit_auth_notes: "public API; key optional"
+    fixture_examples: [fixture_census_acs]
+    fallbacks: []
+
+  bls_bea_cdc_usda_nces_hud:
+    name: "BLS / BEA / CDC / USDA / NCES / HUD"
+    role: "domain-specific impact/context statistics"
+    priority_facts: [community_statistics]
+    identifier_namespaces: [FIPS]
+    capture_method: API_JSON
+    expected_revision_semantics: dataset_vintage
+    freshness_policy_ref: annual_statistic
+    rate_limit_auth_notes: "public APIs"
+    fixture_examples: []
+    fallbacks: []
