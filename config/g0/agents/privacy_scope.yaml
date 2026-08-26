@@ -1,0 +1,26 @@
+# G0 Book 4 - B4.C25 Privacy, Memory Scope & Deletion Interface (machine-readable).
+# Book 4 defines logical behavior; Book 6/production defines exact security/
+# legal retention. Every memory record resolves to explicit scope.
+privacy_scope_version: "1.0"
+
+scope_dimensions:
+- USER
+- TENANT
+- ORGANIZATION
+- PROJECT_APPLICATION
+- AGENT_ROLE
+- PRIVACY_CLASS
+
+privacy_classes:
+- PUBLIC
+- TENANT_PRIVATE
+- TENANT_SHARED_APPROVED
+- RESTRICTED_SENSITIVE
+
+deletion_semantics:
+- EXCLUDE_FROM_FUTURE_RETRIEVAL
+- SUPERSEDE_OR_CORRECT
+- REMOVE_USER_SPECIFIC_SUBJECT_TO_RETENTION_AUDIT
+- PRESERVE_REQUIRED_CANONICAL_AUDIT_EVIDENCE_SEPARATELY
+
+role_duplication_rule: "Deleted Personal memory must not remain retrievable merely because CEO cached a copy; role duplication is minimized by refs."

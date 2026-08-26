@@ -1,0 +1,28 @@
+# G0 Book 4 - B4.C24 Multi-Model / Provider Independence (machine-readable).
+# Dual Hermes is a LOGICAL architecture, not tied to one model/provider.
+# Agent identity is separate from model execution metadata.
+model_independence_version: "1.0"
+
+identity_separation:
+  agent_identity:
+  - PERSONAL_HERMES_IDENTITY
+  - CEO_HERMES_IDENTITY
+  - WORKER_ROLE_IDENTITY
+  model_execution:
+  - MODEL_PROVIDER
+  - MODEL_VERSION
+  - RUNTIME_SESSION_ID
+
+rules:
+- rule_id: MODEL-001
+  title: Provider swap preserves identity
+  rule: "Changing the model/provider behind a role does not merge or change memory namespaces or agent identity."
+  enforcement: MUST
+- rule_id: MODEL-002
+  title: Fallback capability requirement
+  rule: "A model fallback must still satisfy the required structured-output/tool capability; otherwise the operation degrades in a controlled way (never silently expands authority)."
+  enforcement: MUST
+- rule_id: MODEL-003
+  title: Model metadata stays out of identity
+  rule: "Model execution metadata is stored in sidechain/audit, never in agent identity."
+  enforcement: MUST

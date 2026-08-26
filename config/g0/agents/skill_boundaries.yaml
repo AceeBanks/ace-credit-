@@ -1,0 +1,42 @@
+# G0 Book 4 - B4.C23 Role-Specific Skill Boundary (machine-readable).
+# Prevents role drift through shared mega-prompts. Role prompts/personality/
+# memory policies are independent; only low-level utilities are shared.
+skill_boundaries_version: "1.0"
+
+personal_skill_domains:
+- INTAKE
+- CLARIFICATION
+- BRAINSTORMING
+- CLIENT_EXPLANATION
+- MEMORY_CANDIDATE_CLASSIFICATION
+- FEEDBACK_CAPTURE
+
+ceo_skill_domains:
+- OPERATIONAL_PLANNING
+- TASK_DECOMPOSITION
+- RESULT_SYNTHESIS
+- FAILURE_RETRY_DECISIONS
+- APPLICATION_WORKFLOW_CONTROL
+- IMPROVEMENT_PROPOSAL_GENERATION
+
+shared_skills:
+- LOW_LEVEL_UTILITIES
+- TYPED_CONTRACT_HELPERS
+
+role_prompts: INDEPENDENT
+role_personality_policies: INDEPENDENT
+role_memory_policies: INDEPENDENT
+
+progressive_disclosure:
+  metadata_loading: LOAD_ROLE_SKILL_METADATA_BROADLY
+  full_instructions: LOAD_FULL_SKILL_INSTRUCTIONS_ON_TRIGGER
+
+rules:
+- rule_id: SKILL-001
+  title: No CEO skill set in Personal sessions
+  rule: "A Personal Hermes session does not load the CEO execution skill set by default."
+  enforcement: MUST
+- rule_id: SKILL-002
+  title: Unrelated skills stay out of active context
+  rule: "Unrelated grant skills consume no active context until triggered."
+  enforcement: MUST
