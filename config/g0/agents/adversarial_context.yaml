@@ -1,0 +1,99 @@
+# G0-B4-C26 — Adversarial context & memory test suite (A1-A25)
+# Machine-readable scenario catalog with REQUIRED fail-closed outcomes.
+# Config of truth: tests/g0/book4/test_adversarial_context_pollution.py
+# Validator: tools/g0/validate_adversarial_context.py
+
+adversarial_scenarios:
+  - id: A1
+    name: raw_history_flood
+    expectation: "current grant intent/context remains bounded and correct despite months of irrelevant chat"
+  - id: A2
+    name: worker_transcript_pollution
+    expectation: "CEO receives bounded WorkerResult; full trace stays in sidechain"
+  - id: A3
+    name: compaction_loses_deadline
+    expectation: "mandatory anchor protection prevents deadline loss"
+  - id: A4
+    name: compaction_changes_amount
+    expectation: "factual preservation check fails compaction on amount drift"
+  - id: A5
+    name: preference_vs_canonical_fact
+    expectation: "preference cannot override canonical fact"
+  - id: A6
+    name: old_vs_new_preference
+    expectation: "new explicit preference supersedes old"
+  - id: A7
+    name: ceo_asks_canonical_question
+    expectation: "clarification policy detects avoidable request against canonical facts"
+  - id: A8
+    name: personal_answers_by_inference
+    expectation: "inferred answer labeled or user clarification requested"
+  - id: A9
+    name: worker_requests_broader_capability
+    expectation: "no self-expansion of worker capability"
+  - id: A10
+    name: ceo_passes_full_conversation
+    expectation: "context policy rejects prohibited full-conversation class to worker"
+  - id: A11
+    name: secret_in_transcript
+    expectation: "redaction/policy failure before memory or sidechain persistence"
+  - id: A12
+    name: cold_reset
+    expectation: "operational state reconstructs without raw memory"
+  - id: A13
+    name: closed_project_memory_bleed
+    expectation: "closed project excluded from new application context"
+  - id: A14
+    name: same_client_two_projects
+    expectation: "context bundle uses correct project scope; no cross-project contamination"
+  - id: A15
+    name: two_tenants_similar_names
+    expectation: "no memory crosses tenant boundary"
+  - id: A16
+    name: agent_identity_model_confusion
+    expectation: "model change leaves role/memory identity unchanged"
+  - id: A17
+    name: intent_drift
+    expectation: "new IntentContract version/amendment; CEO not silently operating stale objective"
+  - id: A18
+    name: worker_result_contradiction
+    expectation: "CEO uses evidence/conflict protocol, not summary majority vote"
+  - id: A19
+    name: memory_candidate_spam
+    expectation: "promotion filter rejects low-value records"
+  - id: A20
+    name: operational_lesson_self_promotion
+    expectation: "requires Book 7 evaluation; not auto-promoted"
+  - id: A21
+    name: forget_that_preference
+    expectation: "memory suppressed/superseded per retention policy"
+  - id: A22
+    name: mock_draft_as_submitted
+    expectation: "explanation/artifact state validator rejects"
+  - id: A23
+    name: ceo_bypasses_personal
+    expectation: "operational clarification uses protocol; relationship memory stays Personal-owned"
+  - id: A24
+    name: personal_launches_worker
+    expectation: "denied by capability/path policy"
+  - id: A25
+    name: sidechain_lost
+    expectation: "audit/replay quality state degraded/blocked where required"
+
+# Context-assembly invariants the adversarial suite relies on (C10-C11 policy).
+context_invariants:
+  - id: I1
+    name: bounded_worker_context
+    expectation: "TaskContract context is bounded; prohibited classes never passed"
+  - id: I2
+    name: anchor_preservation
+    expectation: "mandatory anchors survive compaction"
+  - id: I3
+    name: factual_preservation
+    expectation: "amounts/dates/deadlines cannot drift during reduction"
+  - id: I4
+    name: capability_no_self_expansion
+    expectation: "worker cannot request broader capability"
+  - id: I5
+    name: project_scoped_context
+    expectation: "context bundle strictly scoped to one project"
