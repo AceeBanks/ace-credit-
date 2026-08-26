@@ -1,0 +1,114 @@
+{
+  "book": "G0-B0",
+  "status": "PASS",
+  "artifact_manifest_complete": true,
+  "all_major_decisions_classified": true,
+  "p0_open_zero": true,
+  "prototype_candidates_bounded": true,
+  "non_goals_frozen": true,
+  "supersession_cycles_zero": true,
+  "stale_authority_absent": true,
+  "book0_tests_all_pass": true,
+  "p0_open": 0,
+  "supersession_cycles": 0,
+  "stale_authority_detected": false,
+  "decision_count": 43,
+  "contradiction_count": 11,
+  "candidate_count": 10,
+  "non_goal_count": 15,
+  "tests": {
+    "exit_code": 0,
+    "passed": 50,
+    "failed": 0,
+    "summary": "50 passed in 7.74s"
+  },
+  "validator_reports": {
+    "manifest": {
+      "validator": "validate_artifact_manifest",
+      "status": "PASS",
+      "artifact_count": 23,
+      "unique_ids": 23,
+      "authority_class_counts": {
+        "binding_candidate": 6,
+        "architecture_evidence": 2,
+        "research_evidence": 7,
+        "reject_ledger": 1,
+        "amendment": 1,
+        "provisional_downstream_draft": 6
+      },
+      "stale_content": [],
+      "supersession_cycles": [],
+      "ok": true
+    },
+    "decisions": {
+      "validator": "validate_decision_register",
+      "status": "PASS",
+      "decision_count": 43,
+      "unique_ids": 43,
+      "status_counts": {
+        "RATIFIED": 22,
+        "RATIFIED_WITH_CONDITION": 10,
+        "DEFERRED": 1,
+        "PROTOTYPE_REQUIRED": 7,
+        "REJECTED": 3
+      },
+      "categories_covered": [
+        "Georgia-first",
+        "Hermes",
+        "architecture",
+        "client Phase 1",
+        "control/governance",
+        "data/source",
+        "evidence",
+        "external repositories",
+        "licensing",
+        "memory/context",
+        "mock drafting milestones",
+        "parsing",
+        "reject ledger",
+        "research",
+        "security",
+        "submission boundary"
+      ],
+      "missing_categories": [],
+      "phantom_source_ids": [],
+      "supersession_cycles": [],
+      "ok": true
+    },
+    "contradictions": {
+      "validator": "validate_contradictions",
+      "status": "PASS",
+      "contradiction_count": 11,
+      "unique_ids": 11,
+      "severity_counts": {
+        "P1": 7,
+        "P0": 3,
+        "P2": 1
+      },
+      "open_p0": [],
+      "open_p1_p2": [],
+      "ok": true
+    },
+    "non_goals": {
+      "validator": "validate_non_goals",
+      "status": "PASS",
+      "non_goal_count": 15,
+      "kinds_present": [
+        "explicitly_rejected",
+        "future_extension_point",
+        "intentionally_deferred"
+      ],
+      "ok": true
+    },
+    "candidates": {
+      "validator": "validate_prototype_candidates",
+      "status": "PASS",
+      "candidate_count": 10,
+      "unique_ids": 10,
+      "adopted_at_book0": [],
+      "ok": true
+    }
+  },
+  "errors": [],
+  "ready_for_book1_ratification": true
+}

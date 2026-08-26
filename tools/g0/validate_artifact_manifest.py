@@ -37,7 +37,8 @@ KNOWN_STATUS = {"active", "superseded", "withdrawn", "archived"}
 
 def validate(config_path) -> tuple[bool, dict]:
     errors: list[str] = []
-    data = load_yaml(config_path)
+    # Accept either a config path or an already-loaded mapping for test fixtures.
+    data = config_path if isinstance(config_path, dict) else load_yaml(config_path)
 
     require(isinstance(data, dict), errors, "manifest must be a mapping")
     if not isinstance(data, dict):
