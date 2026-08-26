@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/policy/actor.schema.json",
+  "title": "G0 Actor",
+  "type": "object",
+  "required": ["actor_id", "actor_type", "tenant_scopes", "authority_ceiling", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {"type": "string", "minLength": 1},
+    "actor_type": {"enum": [
+      "ACTOR-HUMAN-CLIENT", "ACTOR-HUMAN-ADMIN", "ACTOR-HERMES-PERSONAL",
+      "ACTOR-HERMES-CEO", "ACTOR-WORKER", "ACTOR-DETERMINISTIC-SERVICE",
+      "ACTOR-SOURCE-ADAPTER", "ACTOR-POLICY-ENGINE", "ACTOR-CANONICAL-DATABASE",
+      "ACTOR-ARTIFACT-STORE", "ACTOR-EXTERNAL-INTEGRATION", "ACTOR-OUTREACH-AGENT",
+      "ACTOR-SUBMISSION-AGENT", "ACTOR-TRACKER-AGENT"]},
+    "tenant_scopes": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^tenant-[a-z0-9][a-z0-9-]*$"},
+      "description": "Empty means platform-infrastructure actor with no tenant identity."
+    },
+    "project_scopes": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "authority_ceiling": {"enum": ["DISABLED", "L0", "L1", "L2", "L3", "L4", "L5"]},
+    "task_contract_ref": {
+      "type": ["string", "null"],
+      "description": "Required for ACTOR-WORKER instances; identifies the bounding TaskContract."
+    },
+    "status": {"enum": ["ACTIVE", "SUSPENDED", "DISABLED"]}
+  },
+  "allOf": [{
+    "if": {"properties": {"actor_type": {"const": "ACTOR-WORKER"}}, "required": ["actor_type"]},
+    "then": {"required": ["task_contract_ref"],
+             "properties": {"task_contract_ref": {"type": "string", "minLength": 1}}}
+  }]
+}

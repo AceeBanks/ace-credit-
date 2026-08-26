@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/policy/approval_policy.schema.json",
+  "title": "G0 Approval Reference",
+  "type": "object",
+  "required": ["approval_id", "approver_principal", "approver_role", "approval_class",
+               "scope_tenant_id", "decided_at", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "approval_id": {"type": "string"},
+    "approver_principal": {
+      "type": "string",
+      "description": "Human principal id. Agents may NEVER appear here (LAW-B1-018)."
+    },
+    "approver_role": {"enum": ["HUMAN_CLIENT_APPROVER", "HUMAN_ADMIN_APPROVER",
+                               "DUAL_OWNER_PLUS_ADMIN"]},
+    "co_approver_principal": {
+      "type": ["string", "null"],
+      "description": "Required distinct second principal for AP3."
+    },
+    "approval_class": {"enum": ["AP1", "AP2", "AP3"],
+                       "description": "APX cannot be approved; AP0 needs no record."},
+    "scope_tenant_id": {"type": "string"},
+    "scope_project_id": {"type": ["string", "null"]},
+    "subject_capability_id": {"type": "string"},
+    "decided_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": ["string", "null"], "format": "date-time"},
+    "status": {"enum": ["VALID", "EXPIRED", "REVOKED"]}
+  }
+}

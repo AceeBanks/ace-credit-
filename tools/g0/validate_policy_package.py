@@ -45,6 +45,7 @@ def validate(data: dict) -> tuple[bool, dict]:
     caps = data["capabilities"].get("capabilities", [])
     approvals = {c.get("id") for c in data["approvals"].get("classes", [])}
     failures = {f.get("class_id") for f in data["failures"].get("failure_classes", [])}
+    valid_audit = set(data["capabilities"].get("valid_audit_classes") or [])
 
     def level_rank(level: object) -> int:
         try:
@@ -75,6 +76,8 @@ def validate(data: dict) -> tuple[bool, dict]:
             errors.append(f"{where}: unknown approval class '{cap.get('approval_policy')}'")
         if cap.get("failure_mode") not in failures:
             errors.append(f"{where}: unknown failure mode '{cap.get('failure_mode')}'")
+        if valid_audit and cap.get("audit_class") not in valid_audit:
+            errors.append(f"{where}: unknown audit class '{cap.get('audit_class')}'")
 
         min_level = cap.get("minimum_level")
         status = cap.get("phase_status")

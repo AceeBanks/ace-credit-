@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/policy/capability.schema.json",
+  "title": "G0 Capability",
+  "type": "object",
+  "required": ["capability_id", "family", "minimum_level", "allowed_actor_types",
+               "resource_types", "approval_policy", "side_effect_class", "phase_status"],
+  "additionalProperties": true,
+  "properties": {
+    "capability_id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$"},
+    "family": {"enum": ["organization", "opportunity", "eligibility", "matching",
+                        "research", "evidence", "application", "budget", "qa",
+                        "artifact", "communication", "submission", "system"]},
+    "description": {"type": "string"},
+    "minimum_level": {"enum": ["L0", "L1", "L2", "L3", "L4", "L5"]},
+    "allowed_actor_types": {"type": "array", "items": {"type": "string"}},
+    "resource_types": {"type": "array", "items": {"type": "string"}},
+    "requires_tenant_scope": {"type": "boolean"},
+    "requires_project_scope": {"type": "boolean"},
+    "approval_policy": {"enum": ["AP0", "AP1", "AP2", "AP3", "APX"]},
+    "side_effect_class": {"enum": ["READ_ONLY", "INTERNAL_WRITE", "CANONICAL_MUTATION",
+                                   "EXTERNAL_ACTION", "LEGALLY_MATERIAL"]},
+    "reversibility": {"enum": ["TRIVIAL", "RECOVERABLE", "HARD"]},
+    "audit_class": {"enum": ["A0", "A1", "A2", "A3", "A4"]},
+    "rate_limit_class": {"type": "string"},
+    "failure_mode": {"type": "string"},
+    "phase_status": {"enum": ["ENABLED", "DISABLED", "FUTURE"]}
+  }
+}

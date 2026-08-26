@@ -4,7 +4,7 @@
 catalog_version: "1.0"
 valid_authority_levels: [L0, L1, L2, L3, L4, L5]
 valid_statuses: [ACTIVE, DISABLED, FUTURE]
-valid_audit_classes: [A1, A2, A3, A4]
+valid_audit_classes: [A0, A1, A2, A3, A4]   # A0 telemetry-only (B1.C9)
 actors:
 - actor_type: ACTOR-HUMAN-CLIENT
   purpose: Provides business concept/profile; reviews outputs; supplies/corrects facts; authorizes consequential external actions where policy requires.

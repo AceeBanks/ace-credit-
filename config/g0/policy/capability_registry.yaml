@@ -5,7 +5,7 @@
 registry_version: "1.0"
 valid_side_effect_classes: [READ_ONLY, INTERNAL_WRITE, CANONICAL_MUTATION, EXTERNAL_ACTION, LEGALLY_MATERIAL]
 valid_reversibilities: [TRIVIAL, RECOVERABLE, HARD]
-valid_audit_classes: [A1, A2, A3, A4]
+valid_audit_classes: [A0, A1, A2, A3, A4]   # A0 telemetry-only (B1.C9)
 valid_approval_classes: [AP0, AP1, AP2, AP3, APX]
 valid_phase_statuses: [ENABLED, DISABLED, FUTURE]
 capabilities:
@@ -35,7 +35,7 @@ capabilities:
   resource_types: [organization_profile]
   requires_tenant_scope: true
   requires_project_scope: false
-  approval_policy: AP2   # acceptance is human-approved; proposal itself lands as non-canonical
+  approval_policy: AP1   # proposal is non-canonical, review-after; acceptance is human-approved (AP2)
   side_effect_class: INTERNAL_WRITE
   reversibility: RECOVERABLE
   audit_class: A1

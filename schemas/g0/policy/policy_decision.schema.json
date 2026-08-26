@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/policy/policy_decision.schema.json",
+  "title": "G0 Policy Decision",
+  "type": "object",
+  "required": ["decision", "reason_code", "actor_id", "capability_id",
+               "tenant_id", "evaluated_at", "evaluator_version"],
+  "additionalProperties": false,
+  "properties": {
+    "decision": {"enum": ["ALLOW", "DENY", "REQUIRE_APPROVAL"]},
+    "reason_code": {"enum": [
+      "UNKNOWN_ACTOR", "DISABLED_ACTOR", "TENANT_SCOPE_MISSING", "TENANT_SCOPE_DENIED",
+      "UNKNOWN_CAPABILITY", "CAPABILITY_DISABLED", "ACTOR_TYPE_DENIED",
+      "INSUFFICIENT_AUTHORITY", "RESOURCE_SCOPE_DENIED", "TASK_SCOPE_DENIED",
+      "APPROVAL_REQUIRED", "APPROVAL_INVALID", "EXPLICIT_DENY", "ALLOW"]},
+    "actor_id": {"type": ["string", "null"]},
+    "actor_type": {"type": ["string", "null"]},
+    "capability_id": {"type": ["string", "null"]},
+    "tenant_id": {"type": ["string", "null"]},
+    "project_id": {"type": ["string", "null"]},
+    "resource_type": {"type": ["string", "null"]},
+    "resource_id": {"type": ["string", "null"]},
+    "detail": {"type": "string"},
+    "approval_ref": {"type": ["string", "null"],
+                     "description": "Approval record consumed by this decision, when any."},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "evaluator_version": {"type": "string"}
+  },
+  "allOf": [{
+    "if": {"properties": {"decision": {"const": "ALLOW"}}, "required": ["decision"]},
+    "then": {"properties": {"reason_code": {"const": "ALLOW"}}}
+  }]
+}

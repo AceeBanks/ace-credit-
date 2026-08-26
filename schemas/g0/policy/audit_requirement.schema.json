@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/policy/audit_requirement.schema.json",
+  "title": "G0 Audit Event (minimum contract, B1.C9)",
+  "type": "object",
+  "required": ["event_id", "timestamp", "actor_id", "actor_type", "tenant_id",
+               "project_id", "capability_id", "authority_level", "request_id",
+               "result_status", "policy_decision_ref", "audit_class"],
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {"type": "string"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "actor_id": {"type": "string", "minLength": 1},
+    "actor_type": {"type": "string", "minLength": 1},
+    "tenant_id": {"type": ["string", "null"]},
+    "project_id": {"type": ["string", "null"]},
+    "capability_id": {"type": "string"},
+    "authority_level": {"type": "string"},
+    "resource_type": {"type": ["string", "null"]},
+    "resource_id": {"type": ["string", "null"]},
+    "request_id": {"type": "string", "minLength": 1,
+                   "description": "Correlates the originating request; mandatory."},
+    "approval_ref": {"type": ["string", "null"]},
+    "input_artifact_refs": {"type": "array", "items": {"type": "string"}},
+    "output_artifact_refs": {"type": "array", "items": {"type": "string"}},
+    "source_refs": {"type": "array", "items": {"type": "string"}},
+    "result_status": {"enum": ["SUCCESS", "FAILURE", "BLOCKED", "DEGRADED"]},
+    "error_class": {"enum": [null, "F-AUTH", "F-TENANT", "F-SOURCE", "F-SCHEMA",
+                             "F-WORKER", "F-MODEL", "F-EVIDENCE", "F-BUDGET",
+                             "F-DEADLINE", "F-QA"]},
+    "policy_decision_ref": {"type": "string",
+                            "description": "Link to the PolicyDecision that authorized/blocked the action."},
+    "audit_class": {"enum": ["A0", "A1", "A2", "A3", "A4"]},
+    "redacted_fields_note": {"type": "string"}
+  },
+  "allOf": [{
+    "if": {"properties": {"audit_class": {"enum": ["A2", "A3", "A4"]}},
+           "required": ["audit_class"]},
+    "then": {
+      "properties": {},
+      "note": "A2-A4 events are DURABLE: writers must persist to canonical audit storage, never only to logs. Enforced by writer contract + tests."
+    }
+  }]
+}
