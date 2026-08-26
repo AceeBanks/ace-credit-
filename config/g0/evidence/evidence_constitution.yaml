@@ -1,0 +1,84 @@
+# G0-B5-C1 — Evidence & Decision Constitutional Laws (machine-readable).
+# Config of truth: docs/grant-sector/g0/05-evidence/G0_B5_EVIDENCE_CONSTITUTION.md
+# Validator: tools/g0/validate_evidence_constitution.py
+
+evidence_constitution_version: "1.0"
+
+laws:
+  - id: EVID-LAW-001
+    name: lineage_capable_claims
+    text: "Every material operational claim used in eligibility, matching, drafting, budget, readiness or explanation must trace to evidence or be explicitly labeled assumption/user assertion/unknown."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-002
+    name: generated_text_is_not_evidence
+    text: "Model output can propose claims or synthesize evidence; it cannot become evidence solely through generation."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-003
+    name: evidence_retains_source_identity
+    text: "Normalization does not sever SourceSnapshot/extraction lineage."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-004
+    name: explicit_promotion
+    text: "Claim to CanonicalFact requires a governed promotion/resolution event."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-005
+    name: contradictory_evidence_retained
+    text: "Resolution does not delete the losing claim."
+    enforcement: APPEND_ONLY
+  - id: EVID-LAW-006
+    name: decisions_pin_exact_inputs
+    text: "Decision records reference exact revisions/versions used."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-007
+    name: replay_uses_historical_state
+    text: "Replaying a historical decision must not silently substitute current facts/sources."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-008
+    name: retrieval_is_non_authoritative
+    text: "Retrieved content must still pass evidence/policy checks before operational use."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-009
+    name: derived_claims_retain_derivation_lineage
+    text: "Calculations and transformations identify upstream evidence and deterministic method/version."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-010
+    name: tenant_scoped_evidence
+    text: "No cross-tenant evidence leakage through graph/vector/retrieval layers."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-011
+    name: public_private_distinguishable
+    text: "Public evidence and private client evidence remain distinguishable; visibility and sharing policy must be explicit."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-012
+    name: explanation_reflects_decision_evidence
+    text: "User-facing explanation cannot cite a convenient source that was not part of or compatible with the actual decision basis."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-013
+    name: amendments_trigger_dependency_review
+    text: "The evidence graph must support selective invalidation."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-014
+    name: confidence_cannot_override_contradiction
+    text: "A high similarity/model score cannot silently resolve conflicting authoritative evidence."
+    enforcement: FAIL_CLOSED
+  - id: EVID-LAW-015
+    name: physical_storage_replaceable
+    text: "No external framework owns canonical entity identity or constitutional semantics."
+    enforcement: FAIL_CLOSED
+
+required_law_ids:
+  - EVID-LAW-001
+  - EVID-LAW-002
+  - EVID-LAW-003
+  - EVID-LAW-004
+  - EVID-LAW-005
+  - EVID-LAW-006
+  - EVID-LAW-007
+  - EVID-LAW-008
+  - EVID-LAW-009
+  - EVID-LAW-010
+  - EVID-LAW-011
+  - EVID-LAW-012
+  - EVID-LAW-013
+  - EVID-LAW-014
+  - EVID-LAW-015
