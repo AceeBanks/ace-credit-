@@ -1,0 +1,30 @@
+{
+  "checkpoint": "G0-B2-RATIFY",
+  "branch": "grant-sector-r0-salvage",
+  "head_sha": "6620fcd7",
+  "boot_commit": {
+    "sha": "05f86978",
+    "message": "G0-B2-C1: freeze grant-domain ubiquitous language"
+  },
+  "chapter_commits": [
+    {"sha": "05f86978", "message": "G0-B2-C1: freeze grant-domain ubiquitous language"},
+    {"sha": "5c1b3cd0", "message": "G0-B2-C2: ratify core entity boundary decisions"},
+    {"sha": "7c89ba5c", "message": "G0-B2-C3: define core grant-domain entity catalog"},
+    {"sha": "b4d0a45e", "message": "G0-B2-C4-C5: freeze identity and external identifier semantics"},
+    {"sha": "aeee7fbe", "message": "G0-B2-C6: define typed domain relationship catalog"},
+    {"sha": "9027ef5e", "message": "G0-B2-C7: freeze domain state machines and transition semantics"},
+    {"sha": "7f6b0678", "message": "G0-B2-C8-C9: define revision and fact-evidence semantics"},
+    {"sha": "a0b7813d", "message": "G0-B2-C10-C13: define eligibility, requirement, budget and document production ontology"},
+    {"sha": "d1c8e20f", "message": "G0-B2-C14-C15: define outcome model and CommonGrants interoperability contract"},
+    {"sha": "6e1b4e7c", "message": "G0-B2-C16-C17: prove extension and Georgia-federal fixture architecture"},
+    {"sha": "abd9aea1", "message": "G0-B2-C18-C19: prove client vision coverage and D0 shadow-draft readiness"},
+    {"sha": "95c3c512", "message": "G0-B2-C20-C21: prove adversarial domain suite and book integration"},
+    {"sha": "6620fcd7", "message": "G0-B2-BOOK: seal Book 2 with derived reality lock"}
+  ],
+  "repair_commits": [],
+  "reality_lock_status": "PASS",
+  "tests_passed": 439,
+  "tests_failed": 0,
+  "ready_for_book3": true,
+  "note": "No bounded review repairs were required: every band landed green and the derived Book 2 Reality Lock computed PASS at first full build. Self-review is NOT external ratification; Book 3 may begin per plan gate. Book 2 reality lock freshness test guards against stale/hand-edited lock JSON. CommonGrants mapping rows remain pending schema vendor (see G0_B2_COMMON_GRANTS_MAPPING.md) — recorded, not blocking."
+}
