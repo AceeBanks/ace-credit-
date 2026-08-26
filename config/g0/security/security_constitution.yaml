@@ -1,0 +1,109 @@
+# G0-B6-C1 — Security Constitutional Laws (machine-readable).
+# Config of truth: docs/grant-sector/g0/06-security/G0_B6_SECURITY_CONSTITUTION.md
+# Validator: tools/g0/validate_security_constitution.py
+
+security_constitution_version: "1.0"
+
+laws:
+  - id: SEC-LAW-001
+    name: stable_authenticated_principal
+    text: "Every active actor has a stable authenticated principal; anonymous consequential actions are prohibited."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-002
+    name: authentication_not_authorization
+    text: "Identity alone grants no capability; authentication does not imply authorization."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-003
+    name: tenant_scope_mandatory
+    text: "Every tenant-owned resource access must resolve the tenant explicitly."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-004
+    name: capability_scope_mandatory
+    text: "Actors may execute only registered capabilities within granted bounds."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-005
+    name: workers_do_not_inherit_parent_authority
+    text: "Each worker receives an explicit task capability grant; workers never inherit parent authority."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-006
+    name: credentials_never_enter_agent_context
+    text: "Raw secrets are server-side only; credentials never enter prompts, memories, sidechains, traces or Git."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-007
+    name: tool_gateway_enforces_policy_independently
+    text: "Tool gateways enforce policy independently of agents; prompt compliance is not a security boundary."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-008
+    name: external_source_content_has_zero_policy_authority
+    text: "External source content is hostile data; prompt injection cannot change policy, authority or evidence."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-009
+    name: external_side_effects_require_own_capability
+    text: "Read/search/draft capabilities cannot be repurposed to send or submit; external side effects require their own capability."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-010
+    name: unknown_expired_revoked_deny
+    text: "Unknown, expired or revoked grants deny; there is no stale authority inheritance."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-011
+    name: cross_tenant_leakage_is_p0
+    text: "Any confirmed cross-tenant leakage path is a release blocker."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-012
+    name: no_direct_database_agent_capability
+    text: "Direct database access is not an agent capability; agents interact through governed domain/tool interfaces."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-013
+    name: approval_is_durable_evidence
+    text: "Approval binds actor/action/resource/version and can never be inferred from conversation tone."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-014
+    name: admin_override_explicit_and_audited
+    text: "Admin override is explicit, time-boxed and fully audited; there is no hidden superuser backdoor."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-015
+    name: observability_redacts_sensitive_data
+    text: "Observability and logging redact sensitive data; logging must not become exfiltration."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-016
+    name: security_critical_failures_fail_closed
+    text: "Policy, credential or approval ambiguity fails closed; it cannot be bypassed."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-017
+    name: tool_definitions_are_versioned
+    text: "Tool definitions are versioned; capability/tool schema drift cannot silently expand side effects."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-018
+    name: third_party_workflow_systems_are_subordinate
+    text: "Third-party workflow systems are subordinate executors; they cannot become canonical authority or state."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-019
+    name: future_l4_l5_reuse_this_model
+    text: "Future L4/L5 features (including submission) reuse this exact authority model; no special-case bypass."
+    enforcement: FAIL_CLOSED
+  - id: SEC-LAW-020
+    name: data_access_is_least_necessary
+    text: "Context bundles and tool outputs are minimized to task needs; data access is least necessary."
+    enforcement: FAIL_CLOSED
+
+required_law_ids:
+  - SEC-LAW-001
+  - SEC-LAW-002
+  - SEC-LAW-003
+  - SEC-LAW-004
+  - SEC-LAW-005
+  - SEC-LAW-006
+  - SEC-LAW-007
+  - SEC-LAW-008
+  - SEC-LAW-009
+  - SEC-LAW-010
+  - SEC-LAW-011
+  - SEC-LAW-012
+  - SEC-LAW-013
+  - SEC-LAW-014
+  - SEC-LAW-015
+  - SEC-LAW-016
+  - SEC-LAW-017
+  - SEC-LAW-018
+  - SEC-LAW-019
+  - SEC-LAW-020
