@@ -1,0 +1,66 @@
+# G0-B3-C13-C14 — Dependency invalidation + external identifier verification
+# (fail-closed).
+
+invalidation_states:
+  - CURRENT
+  - STALE_RECOMPUTE_REQUIRED
+  - STALE_REVIEW_REQUIRED
+  - INVALID
+  - SUPERSEDED
+
+# Downstream artifacts and the upstream fact classes they depend on.
+dependencies:
+  eligibility_decision:
+    - opportunity_deadline
+    - opportunity_eligibility
+    - organization_financial_filings
+    - opportunity_required_attachments
+  match_explanation:
+    - opportunity_deadline
+    - opportunity_eligibility
+    - opportunity_matching_cost_share
+    - opportunity_award_ceiling
+  requirement_set:
+    - opportunity_deadline
+    - opportunity_required_attachments
+  draft_context_bundle:
+    - requirements
+    - organization_financial_filings
+  proposal_section:
+    - requirements
+    - community_statistics
+    - historical_award_amount
+  budget:
+    - opportunity_award_ceiling
+    - opportunity_award_floor
+    - opportunity_matching_cost_share
+  submission_package:
+    - requirements
+    - opportunity_submission_instructions
+
+verification_states:
+  - UNVERIFIED
+  - USER_ASSERTED
+  - SOURCE_ASSERTED
+  - VERIFIED_OFFICIAL
+  - CONFLICTED
+  - EXPIRED/SUPERSEDED
+
+verification_methods:
+  - USER_PROVIDED
+  - SOURCE_MATCH
+  - OFFICIAL_RECORD_MATCH
+  - GEOGRAPHY_RESOLVER
+  - ISSUER_PORTAL
+
+# An external ID claimed in chat is UNVERIFIED; it never becomes verified
+# automatically.
+chat_claim_rule: "external ID claimed in chat does not become verified automatically"
+
+# Identifier namespaces (mirrors Book 2 identifier_namespaces.yaml).
+identifier_namespaces:
+  - ein
+  - uei
+  - fips
+  - georgia_portal_id
+  - cg_identifier
