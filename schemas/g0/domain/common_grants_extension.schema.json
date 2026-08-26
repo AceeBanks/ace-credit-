@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CommonGrantsExtension",
+  "description": "B2.C3 core entity \u2014 CommonGrantsExtension (identity prefix cgx_)",
+  "type": "object",
+  "properties": {
+    "extension_id": {
+      "type": "string"
+    },
+    "internal_entity": {
+      "type": "string"
+    },
+    "internal_field": {
+      "type": "string"
+    },
+    "mapping_class": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "extension_id",
+    "internal_entity",
+    "internal_field",
+    "mapping_class",
+    "value"
+  ],
+  "additionalProperties": false
+}

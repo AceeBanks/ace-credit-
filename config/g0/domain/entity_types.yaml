@@ -1,0 +1,349 @@
+# G0 Book 2 - B2.C3 Core Entity Catalog (machine-readable source of truth).
+# Every root entity: identity prefix, scope, key fields, revision/state
+# linkage. tools/g0/generate_domain_schemas.py derives schemas/g0/domain/*.json
+# from this file; tools/g0/validate_domain.py validates it fail-closed.
+entity_catalog_version: "1.0"
+enums:
+  OrganizationKind: [nonprofit, business, government_entity, educational_institution, tribal_entity, fiscal_sponsor, foundation, other_governed_extension]
+  RoleType: [funder, applicant, recipient, partner, fiscal_sponsor]
+  EntityStatus: [ACTIVE, INACTIVE, PENDING, SUPERSEDED]
+  ResolutionStatus: [MATCH_CONFIRMED, MATCH_PROBABLE_REVIEW, DISTINCT_CONFIRMED, UNRESOLVED]
+  ClaimStatus: [PROPOSED, VERIFIED, CONFLICTED, RETRACTED]
+  FactPromotionState: [PROPOSED, PROMOTED, CONFLICTED, SUPERSEDED, RETIRED]
+  EligibilityStatus: [ELIGIBLE, INELIGIBLE, CONDITIONAL, UNKNOWN]
+  RequirementType: [narrative, attachment, form, certification, budget, eligibility_proof, partnership_support, financial, formatting, deadline_submission, other]
+  ArtifactType: [research_report, match_explanation, application_blueprint, grant_proposal, business_plan, pitch_deck, budget_financial, partnership_material, testimonial_material, goal_sheet, qa_report, submission_package, client_explanation]
+  ArtifactStatus: [DRAFT, QA_PENDING, REVIEW_REQUIRED, APPROVED_INTERNAL, SUBMISSION_READY, SUPERSEDED, MOCK]
+  OutcomeType: [SUBMITTED, AWARDED, REJECTED, WITHDRAWN, REVISION_REQUESTED, NOT_SUBMITTED, UNKNOWN]
+  VerificationState: [UNVERIFIED, CLAIMED, VERIFIED, CONFLICTED]
+  Money: "decimal string, never float (B2.C12)"
+
+entity_types:
+- entity_type: Organization
+  identity_prefix: org_
+  identity_scope: global
+  glossary_term: Organization
+  revisioned_by: null
+  state_machine: null
+  schema_file: organization.schema.json
+  fields:
+  - {name: organization_id, type: string, required: true}
+  - {name: organization_kind, type: enum, ref: OrganizationKind, required: true}
+  - {name: legal_name, type: string, required: true}
+  - {name: preferred_display_name, type: string, required: false}
+  - {name: status, type: enum, ref: EntityStatus, required: true}
+  - {name: jurisdiction, type: string, required: false}
+  - {name: formation_date, type: date, required: false}
+  - {name: primary_location, type: string, required: false}
+
+- entity_type: Person
+  identity_prefix: person_
+  identity_scope: global
+  glossary_term: Person
+  revisioned_by: null
+  state_machine: null
+  schema_file: person.schema.json
+  fields:
+  - {name: person_id, type: string, required: true}
+  - {name: full_name, type: string, required: true}
+  - {name: role_titles, type: string_array, required: false}
+
+- entity_type: OrganizationRole
+  identity_prefix: role_
+  identity_scope: contextual
+  glossary_term: OrganizationRole
+  revisioned_by: null
+  state_machine: null
+  schema_file: organization_role.schema.json
+  fields:
+  - {name: role_id, type: string, required: true}
+  - {name: organization_id, type: string, required: true}
+  - {name: role_type, type: enum, ref: RoleType, required: true}
+  - {name: target_ref, type: string, required: false}
+  - {name: valid_from, type: date, required: false}
+  - {name: valid_to, type: date, required: false}
+
+- entity_type: ExternalIdentifier
+  identity_prefix: extid_
+  identity_scope: per namespace
+  glossary_term: ExternalIdentifier
+  revisioned_by: null
+  state_machine: null
+  schema_file: external_identifier.schema.json
+  fields:
+  - {name: namespace, type: string, required: true}
+  - {name: value, type: string, required: true}
+  - {name: entity_type, type: string, required: true}
+  - {name: issuer, type: string, required: false}
+  - {name: valid_from, type: date, required: false}
+  - {name: valid_to, type: date, required: false}
+  - {name: verification_state, type: enum, ref: VerificationState, required: true}
+  - {name: source_lineage, type: string, required: false}
+
+- entity_type: Program
+  identity_prefix: program_
+  identity_scope: global
+  glossary_term: Program
+  revisioned_by: null
+  state_machine: null
+  schema_file: program.schema.json
+  fields:
+  - {name: program_id, type: string, required: true}
+  - {name: name, type: string, required: true}
+  - {name: assistance_listing, type: string, required: false}
+  - {name: agency, type: string, required: false}
+  - {name: status, type: enum, ref: EntityStatus, required: true}
+
+- entity_type: GrantOpportunity
+  identity_prefix: opp_
+  identity_scope: global
+  glossary_term: GrantOpportunity
+  revisioned_by: OpportunityRevision
+  state_machine: opportunity
+  schema_file: grant_opportunity.schema.json
+  fields:
+  - {name: opportunity_id, type: string, required: true}
+  - {name: program_id, type: string, required: false}
+  - {name: title, type: string, required: true}
+  - {name: status, type: enum, ref: EntityStatus, required: true}
+  - {name: funding_instrument, type: string, required: false}
+  - {name: funding_category, type: string, required: false}
+
+- entity_type: OpportunityRevision
+  identity_prefix: opp_rev_
+  identity_scope: global
+  glossary_term: OpportunityRevision
+  revisioned_by: null
+  state_machine: null
+  schema_file: opportunity_revision.schema.json
+  fields:
+  - {name: revision_id, type: string, required: true}
+  - {name: opportunity_id, type: string, required: true}
+  - {name: revision_number, type: integer, required: true}
+  - {name: terms_hash, type: string, required: true}
+  - {name: deadline, type: date, required: false}
+  - {name: funding_ceiling, type: money, required: false}
+  - {name: material_change, type: boolean, required: true}
+
+- entity_type: EligibilityRule
+  identity_prefix: rule_
+  identity_scope: per rule
+  glossary_term: EligibilityRule
+  revisioned_by: null
+  state_machine: null
+  schema_file: eligibility_rule.schema.json
+  fields:
+  - {name: rule_id, type: string, required: true}
+  - {name: rule_type, type: string, required: true}
+  - {name: subject_type, type: string, required: true}
+  - {name: operator, type: string, required: true}
+  - {name: expected_value, type: string, required: true}
+  - {name: unit_or_namespace, type: string, required: false}
+  - {name: required_fact_types, type: string_array, required: false}
+  - {name: severity, type: string, required: true}
+
+- entity_type: EligibilityDecision
+  identity_prefix: eldec_
+  identity_scope: per evaluation
+  glossary_term: EligibilityDecision
+  revisioned_by: null
+  state_machine: eligibility_decision
+  schema_file: eligibility_decision.schema.json
+  fields:
+  - {name: decision_id, type: string, required: true}
+  - {name: organization_id, type: string, required: true}
+  - {name: opportunity_revision_id, type: string, required: true}
+  - {name: rule_set_id, type: string, required: true}
+  - {name: rule_set_version, type: integer, required: true}
+  - {name: result, type: enum, ref: EligibilityStatus, required: true}
+  - {name: explanation, type: string, required: false}
+
+- entity_type: Award
+  identity_prefix: award_
+  identity_scope: global
+  glossary_term: Award
+  revisioned_by: null
+  state_machine: null
+  schema_file: award.schema.json
+  fields:
+  - {name: award_id, type: string, required: true}
+  - {name: funder_id, type: string, required: true}
+  - {name: recipient_id, type: string, required: true}
+  - {name: amount, type: money, required: true}
+  - {name: currency, type: string, required: true}
+  - {name: award_date, type: date, required: false}
+  - {name: program_id, type: string, required: false}
+  - {name: opportunity_id, type: string, required: false}
+
+- entity_type: ApplicationProject
+  identity_prefix: app_
+  identity_scope: global
+  glossary_term: ApplicationProject
+  revisioned_by: ApplicationRevision
+  state_machine: application_project
+  schema_file: application_project.schema.json
+  fields:
+  - {name: project_id, type: string, required: true}
+  - {name: organization_id, type: string, required: true}
+  - {name: opportunity_id, type: string, required: true}
+  - {name: opportunity_revision_id, type: string, required: true}
+  - {name: state, type: string, required: true}
+
+- entity_type: ApplicationRevision
+  identity_prefix: app_rev_
+  identity_scope: global
+  glossary_term: ApplicationRevision
+  revisioned_by: null
+  state_machine: null
+  schema_file: application_revision.schema.json
+  fields:
+  - {name: app_revision_id, type: string, required: true}
+  - {name: project_id, type: string, required: true}
+  - {name: revision_number, type: integer, required: true}
+  - {name: opportunity_revision_id, type: string, required: true}
+  - {name: content_hash, type: string, required: true}
+
+- entity_type: Requirement
+  identity_prefix: req_
+  identity_scope: per opportunity revision
+  glossary_term: Requirement
+  revisioned_by: null
+  state_machine: requirement
+  schema_file: requirement.schema.json
+  fields:
+  - {name: requirement_id, type: string, required: true}
+  - {name: opportunity_revision_id, type: string, required: true}
+  - {name: requirement_type, type: enum, ref: RequirementType, required: true}
+  - {name: source_location, type: string, required: false}
+  - {name: mandatory, type: boolean, required: true}
+  - {name: prompt, type: string, required: false}
+  - {name: state, type: string, required: true}
+
+- entity_type: Budget
+  identity_prefix: budget_
+  identity_scope: per application project
+  glossary_term: Budget
+  revisioned_by: BudgetVersion
+  state_machine: null
+  schema_file: budget.schema.json
+  fields:
+  - {name: budget_id, type: string, required: true}
+  - {name: project_id, type: string, required: true}
+  - {name: version, type: integer, required: true}
+  - {name: currency, type: string, required: true}
+  - {name: total, type: money, required: true}
+
+- entity_type: CanonicalFact
+  identity_prefix: fact_
+  identity_scope: per fact
+  glossary_term: CanonicalFact
+  revisioned_by: null
+  state_machine: canonical_fact
+  schema_file: canonical_fact.schema.json
+  fields:
+  - {name: fact_id, type: string, required: true}
+  - {name: subject, type: string, required: true}
+  - {name: predicate, type: string, required: true}
+  - {name: value, type: string, required: true}
+  - {name: value_type, type: string, required: true}
+  - {name: scope, type: string, required: false}
+  - {name: effective_from, type: date, required: false}
+  - {name: effective_to, type: date, required: false}
+  - {name: promotion_state, type: enum, ref: FactPromotionState, required: true}
+  - {name: supporting_claim_ids, type: string_array, required: false}
+
+- entity_type: EvidenceClaim
+  identity_prefix: claim_
+  identity_scope: per claim
+  glossary_term: EvidenceClaim
+  revisioned_by: null
+  state_machine: null
+  schema_file: evidence_claim.schema.json
+  fields:
+  - {name: claim_id, type: string, required: true}
+  - {name: proposition, type: string, required: true}
+  - {name: subject, type: string, required: true}
+  - {name: predicate, type: string, required: true}
+  - {name: value, type: string, required: true}
+  - {name: source_snapshot_id, type: string, required: false}
+  - {name: status, type: enum, ref: ClaimStatus, required: true}
+  - {name: value_type, type: string, required: false}
+
+- entity_type: StatisticObservation
+  identity_prefix: stat_
+  identity_scope: per observation
+  glossary_term: StatisticObservation
+  revisioned_by: null
+  state_machine: null
+  schema_file: statistic_observation.schema.json
+  fields:
+  - {name: stat_id, type: string, required: true}
+  - {name: metric, type: string, required: true}
+  - {name: value, type: number, required: true}
+  - {name: unit, type: string, required: true}
+  - {name: geography, type: string, required: true}
+  - {name: reference_period, type: string, required: true}
+  - {name: population, type: string, required: false}
+  - {name: dataset_version, type: string, required: false}
+  - {name: methodology, type: string, required: false}
+
+- entity_type: Artifact
+  identity_prefix: artifact_
+  identity_scope: global
+  glossary_term: Artifact
+  revisioned_by: ArtifactVersion
+  state_machine: artifact
+  schema_file: artifact.schema.json
+  fields:
+  - {name: artifact_id, type: string, required: true}
+  - {name: artifact_type, type: enum, ref: ArtifactType, required: true}
+  - {name: logical_name, type: string, required: true}
+  - {name: status, type: enum, ref: ArtifactStatus, required: true}
+  - {name: project_id, type: string, required: false}
+  - {name: current_version_ref, type: string, required: false}
+
+- entity_type: OutcomeFeedback
+  identity_prefix: outcome_
+  identity_scope: per outcome
+  glossary_term: OutcomeFeedback
+  revisioned_by: null
+  state_machine: null
+  schema_file: outcome_feedback.schema.json
+  fields:
+  - {name: outcome_id, type: string, required: true}
+  - {name: outcome_type, type: enum, ref: OutcomeType, required: true}
+  - {name: observed_at, type: datetime, required: true}
+  - {name: project_id, type: string, required: false}
+  - {name: award_id, type: string, required: false}
+  - {name: verified_at, type: datetime, required: false}
+  - {name: reason_codes, type: string_array, required: false}
+
+- entity_type: Relationship
+  identity_prefix: rel_
+  identity_scope: linked
+  glossary_term: Relationship
+  revisioned_by: null
+  state_machine: null
+  schema_file: relationship.schema.json
+  fields:
+  - {name: relationship_id, type: string, required: true}
+  - {name: relationship_type, type: string, required: true}
+  - {name: source_ref, type: string, required: true}
+  - {name: target_ref, type: string, required: true}
+  - {name: tenant_id, type: string, required: false}
+  - {name: valid_from, type: date, required: false}
+  - {name: valid_to, type: date, required: false}
+
+- entity_type: CommonGrantsExtension
+  identity_prefix: cgx_
+  identity_scope: per mapping
+  glossary_term: CommonGrantsExtension
+  revisioned_by: null
+  state_machine: null
+  schema_file: common_grants_extension.schema.json
+  fields:
+  - {name: extension_id, type: string, required: true}
+  - {name: internal_entity, type: string, required: true}
+  - {name: internal_field, type: string, required: true}
+  - {name: mapping_class, type: string, required: true}
+  - {name: value, type: string, required: true}

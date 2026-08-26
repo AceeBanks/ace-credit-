@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Artifact",
+  "description": "B2.C3 core entity \u2014 Artifact (identity prefix artifact_)",
+  "type": "object",
+  "properties": {
+    "artifact_id": {
+      "type": "string"
+    },
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "application_blueprint",
+        "budget_financial",
+        "business_plan",
+        "client_explanation",
+        "goal_sheet",
+        "grant_proposal",
+        "match_explanation",
+        "partnership_material",
+        "pitch_deck",
+        "qa_report",
+        "research_report",
+        "submission_package",
+        "testimonial_material"
+      ]
+    },
+    "logical_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "APPROVED_INTERNAL",
+        "DRAFT",
+        "MOCK",
+        "QA_PENDING",
+        "REVIEW_REQUIRED",
+        "SUBMISSION_READY",
+        "SUPERSEDED"
+      ]
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "current_version_ref": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "artifact_id",
+    "artifact_type",
+    "logical_name",
+    "status"
+  ],
+  "additionalProperties": false
+}

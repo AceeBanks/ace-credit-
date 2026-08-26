@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Budget",
+  "description": "B2.C3 core entity \u2014 Budget (identity prefix budget_)",
+  "type": "object",
+  "properties": {
+    "budget_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "total": {
+      "type": "string",
+      "pattern": "^\\d+(\\.\\d{1,2})?$",
+      "description": "fixed-point decimal as string; float money is prohibited (B2.C12)"
+    }
+  },
+  "required": [
+    "budget_id",
+    "project_id",
+    "version",
+    "currency",
+    "total"
+  ],
+  "additionalProperties": false
+}

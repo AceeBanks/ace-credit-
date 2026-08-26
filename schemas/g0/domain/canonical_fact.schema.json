@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanonicalFact",
+  "description": "B2.C3 core entity \u2014 CanonicalFact (identity prefix fact_)",
+  "type": "object",
+  "properties": {
+    "fact_id": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "predicate": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    },
+    "value_type": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "effective_from": {
+      "type": "string",
+      "format": "date"
+    },
+    "effective_to": {
+      "type": "string",
+      "format": "date"
+    },
+    "promotion_state": {
+      "type": "string",
+      "enum": [
+        "CONFLICTED",
+        "PROMOTED",
+        "PROPOSED",
+        "RETIRED",
+        "SUPERSEDED"
+      ]
+    },
+    "supporting_claim_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "fact_id",
+    "subject",
+    "predicate",
+    "value",
+    "value_type",
+    "promotion_state"
+  ],
+  "additionalProperties": false
+}

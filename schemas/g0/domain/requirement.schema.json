@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Requirement",
+  "description": "B2.C3 core entity \u2014 Requirement (identity prefix req_)",
+  "type": "object",
+  "properties": {
+    "requirement_id": {
+      "type": "string"
+    },
+    "opportunity_revision_id": {
+      "type": "string"
+    },
+    "requirement_type": {
+      "type": "string",
+      "enum": [
+        "attachment",
+        "budget",
+        "certification",
+        "deadline_submission",
+        "eligibility_proof",
+        "financial",
+        "form",
+        "formatting",
+        "narrative",
+        "other",
+        "partnership_support"
+      ]
+    },
+    "source_location": {
+      "type": "string"
+    },
+    "mandatory": {
+      "type": "boolean"
+    },
+    "prompt": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "requirement_id",
+    "opportunity_revision_id",
+    "requirement_type",
+    "mandatory",
+    "state"
+  ],
+  "additionalProperties": false
+}

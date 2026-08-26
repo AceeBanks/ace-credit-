@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApplicationProject",
+  "description": "B2.C3 core entity \u2014 ApplicationProject (identity prefix app_)",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "opportunity_id": {
+      "type": "string"
+    },
+    "opportunity_revision_id": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "organization_id",
+    "opportunity_id",
+    "opportunity_revision_id",
+    "state"
+  ],
+  "additionalProperties": false
+}

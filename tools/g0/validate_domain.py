@@ -63,6 +63,70 @@ def validate_glossary(glossary: dict) -> tuple[bool, dict]:
     })
 
 
+ENTITY_FIELDS = ("entity_type", "identity_prefix", "identity_scope",
+                 "glossary_term", "revisioned_by", "state_machine",
+                 "schema_file", "fields")
+SCALAR_TYPES = {"string", "integer", "boolean", "number", "date", "datetime",
+                "money", "string_array"}
+IDENTITY_PREFIXES = ("org_", "person_", "role_", "extid_", "program_", "opp_",
+                     "opp_rev_", "rule_", "eldec_", "award_", "app_",
+                     "app_rev_", "req_", "budget_", "fact_", "claim_", "stat_",
+                     "artifact_", "outcome_", "rel_", "cgx_")
+
+
+def validate_entity_types(catalog: dict) -> tuple[bool, dict]:
+    """B2.C3 — entity catalog: required fields, unique prefixes, valid field
+    types, enum refs resolve, identity prefixes follow the B2.C4 scheme."""
+    errors: list[str] = []
+    enums = catalog.get("enums") or {}
+    types = catalog.get("entity_types") or []
+    seen: set[str] = set()
+    prefixes: set[str] = set()
+    for ent in types:
+        et = ent.get("entity_type")
+        if not et:
+            errors.append("entity entry missing entity_type")
+            continue
+        # revisioned_by/state_machine may legitimately be null (leaf entities);
+        # every other field must be present and non-null.
+        nullable = {"revisioned_by", "state_machine"}
+        missing = [f for f in ENTITY_FIELDS
+                   if f not in ent or (ent.get(f) is None and f not in nullable)]
+        if missing:
+            errors.append(f"{et}: missing fields {missing}")
+        if et in seen:
+            errors.append(f"{et}: duplicate entity type")
+        seen.add(et)
+        prefix = ent.get("identity_prefix")
+        if prefix:
+            if prefix in prefixes:
+                errors.append(f"{et}: duplicate identity prefix '{prefix}'")
+            prefixes.add(prefix)
+            if prefix not in IDENTITY_PREFIXES:
+                errors.append(f"{et}: identity prefix '{prefix}' not in B2.C4 scheme")
+        for f in ent.get("fields") or []:
+            fname = f.get("name")
+            ftype = f.get("type")
+            if not fname or not ftype:
+                errors.append(f"{et}: field missing name/type")
+                continue
+            if ftype == "enum":
+                ref = f.get("ref")
+                if ref not in enums:
+                    errors.append(f"{et}.{fname}: enum ref '{ref}' unresolved")
+            elif ftype not in SCALAR_TYPES:
+                errors.append(f"{et}.{fname}: unknown field type '{ftype}'")
+    return finish("domain_entity_types", not errors, {
+        "errors": errors,
+        "entity_count": len(seen),
+        "schema_files": [e.get("schema_file") for e in types if e.get("schema_file")],
+    })
+
+
+def load_entity_types() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "entity_types.yaml")
+
+
 def load_glossary() -> dict:
     return load_yaml(DOMAIN_CONFIG_DIR / "glossary.yaml")
 

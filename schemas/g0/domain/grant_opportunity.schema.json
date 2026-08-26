@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GrantOpportunity",
+  "description": "B2.C3 core entity \u2014 GrantOpportunity (identity prefix opp_)",
+  "type": "object",
+  "properties": {
+    "opportunity_id": {
+      "type": "string"
+    },
+    "program_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE",
+        "PENDING",
+        "SUPERSEDED"
+      ]
+    },
+    "funding_instrument": {
+      "type": "string"
+    },
+    "funding_category": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "opportunity_id",
+    "title",
+    "status"
+  ],
+  "additionalProperties": false
+}

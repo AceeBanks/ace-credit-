@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Person",
+  "description": "B2.C3 core entity \u2014 Person (identity prefix person_)",
+  "type": "object",
+  "properties": {
+    "person_id": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "role_titles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "person_id",
+    "full_name"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExternalIdentifier",
+  "description": "B2.C3 core entity \u2014 ExternalIdentifier (identity prefix extid_)",
+  "type": "object",
+  "properties": {
+    "namespace": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string"
+    },
+    "issuer": {
+      "type": "string"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date"
+    },
+    "valid_to": {
+      "type": "string",
+      "format": "date"
+    },
+    "verification_state": {
+      "type": "string",
+      "enum": [
+        "CLAIMED",
+        "CONFLICTED",
+        "UNVERIFIED",
+        "VERIFIED"
+      ]
+    },
+    "source_lineage": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "namespace",
+    "value",
+    "entity_type",
+    "verification_state"
+  ],
+  "additionalProperties": false
+}

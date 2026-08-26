@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OutcomeFeedback",
+  "description": "B2.C3 core entity \u2014 OutcomeFeedback (identity prefix outcome_)",
+  "type": "object",
+  "properties": {
+    "outcome_id": {
+      "type": "string"
+    },
+    "outcome_type": {
+      "type": "string",
+      "enum": [
+        "AWARDED",
+        "NOT_SUBMITTED",
+        "REJECTED",
+        "REVISION_REQUESTED",
+        "SUBMITTED",
+        "UNKNOWN",
+        "WITHDRAWN"
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "award_id": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "outcome_id",
+    "outcome_type",
+    "observed_at"
+  ],
+  "additionalProperties": false
+}

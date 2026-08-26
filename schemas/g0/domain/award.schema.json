@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Award",
+  "description": "B2.C3 core entity \u2014 Award (identity prefix award_)",
+  "type": "object",
+  "properties": {
+    "award_id": {
+      "type": "string"
+    },
+    "funder_id": {
+      "type": "string"
+    },
+    "recipient_id": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "string",
+      "pattern": "^\\d+(\\.\\d{1,2})?$",
+      "description": "fixed-point decimal as string; float money is prohibited (B2.C12)"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "award_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "program_id": {
+      "type": "string"
+    },
+    "opportunity_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "award_id",
+    "funder_id",
+    "recipient_id",
+    "amount",
+    "currency"
+  ],
+  "additionalProperties": false
+}

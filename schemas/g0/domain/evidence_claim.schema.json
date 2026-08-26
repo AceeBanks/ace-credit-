@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvidenceClaim",
+  "description": "B2.C3 core entity \u2014 EvidenceClaim (identity prefix claim_)",
+  "type": "object",
+  "properties": {
+    "claim_id": {
+      "type": "string"
+    },
+    "proposition": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "predicate": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    },
+    "source_snapshot_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "CONFLICTED",
+        "PROPOSED",
+        "RETRACTED",
+        "VERIFIED"
+      ]
+    },
+    "value_type": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "claim_id",
+    "proposition",
+    "subject",
+    "predicate",
+    "value",
+    "status"
+  ],
+  "additionalProperties": false
+}

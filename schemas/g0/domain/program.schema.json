@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Program",
+  "description": "B2.C3 core entity \u2014 Program (identity prefix program_)",
+  "type": "object",
+  "properties": {
+    "program_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "assistance_listing": {
+      "type": "string"
+    },
+    "agency": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE",
+        "PENDING",
+        "SUPERSEDED"
+      ]
+    }
+  },
+  "required": [
+    "program_id",
+    "name",
+    "status"
+  ],
+  "additionalProperties": false
+}

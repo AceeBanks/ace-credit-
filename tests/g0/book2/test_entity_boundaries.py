@@ -1,11 +1,24 @@
-"""B2.C2 tests — Entity Boundary ADR scenarios.
+"""B2.C2-C3 tests — Entity Boundary ADR scenarios + Core Entity Catalog.
 
 Every high-cost boundary decision (ADR-B2-001..010) is proven against a
-concrete multi-role / historical scenario without duplicate truth.
+concrete multi-role / historical scenario without duplicate truth. The
+catalog tests prove the machine-readable entity catalog is sound and the
+derived JSON schemas stay in lockstep with it and the glossary.
 """
 from __future__ import annotations
 
+import json
 from decimal import Decimal
+from pathlib import Path
+
+import jsonschema
+import yaml
+
+from tools.g0.validate_domain import load_entity_types, validate_entity_types
+from tools.g0.generate_domain_schemas import generate_schemas
+
+_ROOT = Path(__file__).resolve().parents[3]
+SCHEMA_DIR = _ROOT / "schemas/g0/domain"
 
 from prototype.g0.domain.models import (
     ApplicationProject,
@@ -153,6 +166,109 @@ def test_person_is_distinct_from_contact_relationship():
     contact2 = OrganizationContact("contact-2", p.person_id, ORG_B.organization_id,
                                    "Board Advisor")
     assert contact2.person_id == p.person_id
+
+
+# --- B2.C3 core entity catalog ----------------------------------------------------------
+
+def _catalog():
+    return load_entity_types()
+
+
+def test_live_entity_catalog_passes():
+    ok, report = validate_entity_types(_catalog())
+    assert ok, report["errors"]
+    assert report["entity_count"] == 21
+
+
+def test_entity_catalog_has_required_root_entities():
+    types = {e["entity_type"] for e in _catalog()["entity_types"]}
+    required = {"Organization", "Person", "OrganizationRole", "ExternalIdentifier",
+                "Program", "GrantOpportunity", "OpportunityRevision", "Award",
+                "EligibilityRule", "EligibilityDecision", "ApplicationProject",
+                "ApplicationRevision", "Requirement", "Budget", "CanonicalFact",
+                "EvidenceClaim", "StatisticObservation", "Artifact",
+                "OutcomeFeedback", "Relationship", "CommonGrantsExtension"}
+    assert required <= types, f"missing: {sorted(required - types)}"
+
+
+def test_identity_prefixes_follow_b2_c4_scheme():
+    for ent in _catalog()["entity_types"]:
+        prefix = ent["identity_prefix"]
+        semantic = {"Organization": "org_", "Person": "person_",
+                    "GrantOpportunity": "opp_", "OpportunityRevision": "opp_rev_",
+                    "ApplicationProject": "app_", "ApplicationRevision": "app_rev_",
+                    "Award": "award_", "CanonicalFact": "fact_",
+                    "EvidenceClaim": "claim_", "StatisticObservation": "stat_",
+                    "Artifact": "artifact_", "OutcomeFeedback": "outcome_"}
+        if ent["entity_type"] in semantic:
+            assert prefix == semantic[ent["entity_type"]], ent["entity_type"]
+
+
+def test_revisioned_entities_link_to_their_revision_type():
+    rev = {e["entity_type"]: e["revisioned_by"] for e in _catalog()["entity_types"]}
+    assert rev["GrantOpportunity"] == "OpportunityRevision"
+    assert rev["ApplicationProject"] == "ApplicationRevision"
+    assert rev["Artifact"] == "ArtifactVersion"
+
+
+def test_every_schema_root_type_exists_in_glossary():
+    """B2.C1 requirement: every schema root type exists in glossary."""
+    glossary = yaml.safe_load((_ROOT / "config/g0/domain/glossary.yaml")
+                              .read_text(encoding="utf-8"))
+    terms = {t["term"] for t in glossary["terms"]}
+    catalog = load_entity_types()
+    for ent in catalog["entity_types"]:
+        assert ent["entity_type"] in terms, ent["entity_type"]
+        assert ent["glossary_term"] in terms, ent["entity_type"]
+
+
+def test_all_committed_schemas_are_derived_and_current():
+    catalog = _catalog()
+    expected = generate_schemas(catalog)
+    assert len(expected) == 21
+    for name, schema in expected.items():
+        path = SCHEMA_DIR / name
+        assert path.exists(), f"missing schema {name}"
+        assert json.loads(path.read_text(encoding="utf-8")) == schema
+
+
+def test_schema_validates_sample_instances():
+    catalog = _catalog()
+    for ent in catalog["entity_types"]:
+        path = SCHEMA_DIR / ent["schema_file"]
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        instance = {}
+        for f in ent["fields"]:
+            if not f.get("required"):
+                continue
+            if f["type"] == "string":
+                instance[f["name"]] = "sample"
+            elif f["type"] == "integer":
+                instance[f["name"]] = 1
+            elif f["type"] == "boolean":
+                instance[f["name"]] = True
+            elif f["type"] == "number":
+                instance[f["name"]] = 1.5
+            elif f["type"] == "money":
+                instance[f["name"]] = "1000.00"
+            elif f["type"] in ("date", "datetime"):
+                instance[f["name"]] = "2026-08-01"
+            elif f["type"] == "string_array":
+                instance[f["name"]] = ["a"]
+            elif f["type"] == "enum":
+                instance[f["name"]] = catalog["enums"][f["ref"]][0]
+        jsonschema.validate(instance, schema)  # raises on failure
+
+
+def test_money_is_string_not_number_in_schemas():
+    """B2.C12: float money is prohibited — schema forbids number type for money."""
+    for ent in _catalog()["entity_types"]:
+        for f in ent["fields"]:
+            if f["type"] == "money":
+                schema = json.loads((SCHEMA_DIR / ent["schema_file"])
+                                    .read_text(encoding="utf-8"))
+                assert schema["properties"][f["name"]]["type"] == "string"
+                assert "pattern" in schema["properties"][f["name"]]
 
 
 # cross-cutting: version lineage ------------------------------------------------------

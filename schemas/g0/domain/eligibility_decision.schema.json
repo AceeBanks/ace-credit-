@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EligibilityDecision",
+  "description": "B2.C3 core entity \u2014 EligibilityDecision (identity prefix eldec_)",
+  "type": "object",
+  "properties": {
+    "decision_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "opportunity_revision_id": {
+      "type": "string"
+    },
+    "rule_set_id": {
+      "type": "string"
+    },
+    "rule_set_version": {
+      "type": "integer"
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "CONDITIONAL",
+        "ELIGIBLE",
+        "INELIGIBLE",
+        "UNKNOWN"
+      ]
+    },
+    "explanation": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "decision_id",
+    "organization_id",
+    "opportunity_revision_id",
+    "rule_set_id",
+    "rule_set_version",
+    "result"
+  ],
+  "additionalProperties": false
+}

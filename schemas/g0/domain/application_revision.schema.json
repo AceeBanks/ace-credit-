@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApplicationRevision",
+  "description": "B2.C3 core entity \u2014 ApplicationRevision (identity prefix app_rev_)",
+  "type": "object",
+  "properties": {
+    "app_revision_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "revision_number": {
+      "type": "integer"
+    },
+    "opportunity_revision_id": {
+      "type": "string"
+    },
+    "content_hash": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "app_revision_id",
+    "project_id",
+    "revision_number",
+    "opportunity_revision_id",
+    "content_hash"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Relationship",
+  "description": "B2.C3 core entity \u2014 Relationship (identity prefix rel_)",
+  "type": "object",
+  "properties": {
+    "relationship_id": {
+      "type": "string"
+    },
+    "relationship_type": {
+      "type": "string"
+    },
+    "source_ref": {
+      "type": "string"
+    },
+    "target_ref": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date"
+    },
+    "valid_to": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "relationship_id",
+    "relationship_type",
+    "source_ref",
+    "target_ref"
+  ],
+  "additionalProperties": false
+}

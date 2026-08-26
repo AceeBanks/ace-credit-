@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Organization",
+  "description": "B2.C3 core entity \u2014 Organization (identity prefix org_)",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "organization_kind": {
+      "type": "string",
+      "enum": [
+        "business",
+        "educational_institution",
+        "fiscal_sponsor",
+        "foundation",
+        "government_entity",
+        "nonprofit",
+        "other_governed_extension",
+        "tribal_entity"
+      ]
+    },
+    "legal_name": {
+      "type": "string"
+    },
+    "preferred_display_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE",
+        "PENDING",
+        "SUPERSEDED"
+      ]
+    },
+    "jurisdiction": {
+      "type": "string"
+    },
+    "formation_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "primary_location": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id",
+    "organization_kind",
+    "legal_name",
+    "status"
+  ],
+  "additionalProperties": false
+}

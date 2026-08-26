@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StatisticObservation",
+  "description": "B2.C3 core entity \u2014 StatisticObservation (identity prefix stat_)",
+  "type": "object",
+  "properties": {
+    "stat_id": {
+      "type": "string"
+    },
+    "metric": {
+      "type": "string"
+    },
+    "value": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "geography": {
+      "type": "string"
+    },
+    "reference_period": {
+      "type": "string"
+    },
+    "population": {
+      "type": "string"
+    },
+    "dataset_version": {
+      "type": "string"
+    },
+    "methodology": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "stat_id",
+    "metric",
+    "value",
+    "unit",
+    "geography",
+    "reference_period"
+  ],
+  "additionalProperties": false
+}
