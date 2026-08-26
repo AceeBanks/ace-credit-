@@ -1,0 +1,57 @@
+# G0 Book 4 - B4.C20-C21 Feedback & Co-Adaptation Policy (machine-readable).
+# User corrections are first-class events. Co-adaptation improves the
+# protocol — never by merging memory and never without Book 7 evaluation.
+feedback_policy_version: "1.0"
+
+feedback_types:
+- INTENT_MISUNDERSTOOD
+- FACTUAL_CORRECTION
+- PREFERENCE_CORRECTION
+- ARTIFACT_REVISION_REQUEST
+- PRIORITY_CHANGE
+- PROJECT_CANCELLATION_PAUSE
+- RESULT_DISAGREEMENT
+
+flow:
+- CLIENT_CORRECTION
+- PERSONAL_HERMES
+- CLASSIFY_FEEDBACK
+- ROUTE_TO_AMENDMENT_OR_PROPOSAL_OR_SUPERSESSION
+- CEO_NOTIFY_IF_OPERATIONAL_IMPACT
+- SELECTIVE_REPLAN_RECOMPUTE
+
+routing:
+  INTENT_MISUNDERSTOOD: INTENT_AMENDMENT
+  FACTUAL_CORRECTION: FACT_PROPOSAL
+  PREFERENCE_CORRECTION: MEMORY_SUPERSESSION
+  ARTIFACT_REVISION_REQUEST: ARTIFACT_REVISION_REQUEST
+  PRIORITY_CHANGE: INTENT_AMENDMENT
+  PROJECT_CANCELLATION_PAUSE: PROJECT_STATE_CHANGE
+  RESULT_DISAGREEMENT: EXPLANATION_REVIEW
+
+rules:
+- rule_id: FEEDBACK-001
+  title: Geography change invalidates match plan
+  rule: "A client changing target geography invalidates the relevant grant search/match plan and triggers selective replan."
+  enforcement: MUST
+- rule_id: FEEDBACK-002
+  title: Tone feedback is preference, not fact
+  rule: "Client tone feedback updates a communication preference or artifact revision request; it never changes canonical grant facts."
+  enforcement: MUST
+- rule_id: FEEDBACK-003
+  title: Factual correction is a proposal
+  rule: "A client factual correction creates a fact proposal routed to governed promotion, never a silent canonical mutation."
+  enforcement: MUST
+- rule_id: FEEDBACK-004
+  title: Co-adaptation requires Book 7 eval
+  rule: "No co-adaptation change (protocol improvement derived from repeated clarification) promotes without Book 7 evaluation governance."
+  enforcement: MUST
+
+coadaptation_metrics:
+- CLARIFICATION_RATE
+- REPEATED_MISSING_INTENT_FIELDS
+- CEO_REPLANNING_RATE
+- CLIENT_REJECTION_OF_INTENT_INTERPRETATION
+- AVOIDABLE_CEO_QUESTIONS
+- WORKER_FAILURES_FROM_INCOMPLETE_TASK_CONTRACTS
+- CLIENT_CONFUSION_AFTER_EXPLANATION
