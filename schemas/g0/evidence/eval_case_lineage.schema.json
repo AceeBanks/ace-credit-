@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evidence/eval_case_lineage.schema.json",
+  "title": "EvalCaseLineage",
+  "description": "G0-B5-C19 — lineage for benchmark/eval cases derived from system work. Pins sources, label provenance, privacy classification and split membership.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_id",
+    "label_origin",
+    "label_reviewer",
+    "privacy_classification",
+    "split_membership",
+    "created_at"
+  ],
+  "properties": {
+    "case_id": {"type": "string", "minLength": 1},
+    "source_snapshot_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "EVAL-001: at least one of source_snapshot_refs or domain_fixture_refs required."
+    },
+    "domain_fixture_refs": {"type": "array", "items": {"type": "string"}},
+    "decision_artifact_refs": {"type": "array", "items": {"type": "string"}},
+    "label_origin": {"type": "string", "minLength": 1},
+    "label_reviewer": {"type": "string", "minLength": 1},
+    "content_hash": {
+      "type": "string",
+      "description": "Pinned at creation; changed sources never mutate the historical case (EVAL-003)."
+    },
+    "applicable_version": {"type": "string"},
+    "privacy_classification": {"type": "string", "minLength": 1},
+    "split_membership": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "governance_approval": {
+      "type": "string",
+      "description": "Required ref for TENANT_PRIVATE / RESTRICTED_SENSITIVE cases entering global eval (EVAL-005)."
+    }
+  }
+}

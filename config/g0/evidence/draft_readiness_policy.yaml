@@ -1,0 +1,38 @@
+# G0-B5-C20 — D0/D1 Evidence Readiness Policy
+# Strengthens the early drafting milestones (D0 shadow, D1 Hermes draft)
+# with inspectable evidence and a bounded evidence path.
+
+policy_id: G0-B5-C20
+version: "1.0"
+
+rules:
+  - id: DRAFT-001
+    text: "A D0 shadow draft is EVIDENCE_INCOMPLETE unless claim ledger coverage meets the threshold; stylistic completeness never implies evidence completeness."
+  - id: DRAFT-002
+    text: "Submission-ready can never be true for a mock; D0/D1 drafts stay MOCK_NON_SUBMISSION with submission_ready=false."
+  - id: DRAFT-003
+    text: "CEO Hermes receives evidence only through a bounded ContextBundle scoped to tenant/project and requirement relevance; never unrestricted graph/database access."
+  - id: DRAFT-004
+    text: "A worker receives only evidence relevant to its assigned requirements/sections."
+  - id: DRAFT-005
+    text: "Missing evidence surfaces as an explicit unresolved gap; it must never be hallucinated as support."
+  - id: DRAFT-006
+    text: "Personal Hermes explanation must reflect the CEO decision packet: same outcome, same evidence refs, same uncertainty disclosures."
+
+coverage_threshold: 0.6
+
+required_d0_outputs:
+  - MOCK_PROPOSAL_ARTIFACT_VERSION
+  - APPLICATION_CLAIM_LEDGER
+  - RESEARCH_FINDINGS
+  - EVIDENCE_GRAPH_PROVENANCE_REFS
+  - QA_FACTUALITY_RESULT
+  - EXPLANATION_PACKET
+
+d1_worker_result_fields:
+  - draft_content_or_artifact_ref
+  - claims_created
+  - evidence_used
+  - assumptions
+  - unresolved_evidence_gaps
+  - sidechain_ref

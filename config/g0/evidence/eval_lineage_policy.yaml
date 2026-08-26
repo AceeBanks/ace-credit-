@@ -1,0 +1,41 @@
+# G0-B5-C19 — Evaluation Dataset Lineage Policy
+# Prepares Book 7 so eval cases are trustworthy and reproducible.
+
+policy_id: G0-B5-C19
+version: "1.0"
+
+label_origins:
+  - HUMAN_REVIEWER
+  - HUMAN_ATTESTED
+  - MODEL_GENERATED
+  - SYNTHETIC
+  - DERIVED_FROM_EVIDENCE
+
+privacy_classifications:
+  - PUBLIC_SOURCE
+  - TENANT_PRIVATE
+  - TENANT_SHARED_APPROVED
+  - PLATFORM_INTERNAL
+  - RESTRICTED_SENSITIVE
+
+split_memberships:
+  - TRAIN
+  - VALIDATION
+  - TEST
+  - UNASSIGNED
+
+rules:
+  - id: EVAL-001
+    text: "Every eval case requires lineage: source snapshot refs or domain fixture refs, plus decision/artifact refs; a case without lineage is rejected."
+  - id: EVAL-002
+    text: "Label provenance is required: label_origin and label_reviewer must be present; model-generated labels are never presented as human labels."
+  - id: EVAL-003
+    text: "Changed source must not mutate a historical eval case silently; the case is immutable once recorded (content_hash pinned)."
+  - id: EVAL-004
+    text: "Synthetic cases must be labeled synthetic."
+  - id: EVAL-005
+    text: "Tenant-private and restricted-sensitive cases require explicit governance approval before entering generalized evaluation or training."
+
+governance_required_classes:
+  - TENANT_PRIVATE
+  - RESTRICTED_SENSITIVE
