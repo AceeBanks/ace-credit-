@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/task_plan.schema.json",
+  "title": "TaskPlan",
+  "description": "B4.C6 — CEO's operational decomposition before work is delegated. Explicit dependency graph, deterministic services used where available, worker count reflects work (not agent theater), parallel work only when context/data boundaries allow, plan versioned when material assumptions change.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plan_id",
+    "intent_id",
+    "objective",
+    "steps",
+    "dependencies",
+    "required_capabilities",
+    "created_by",
+    "version"
+  ],
+  "properties": {
+    "plan_id": {"type": "string"},
+    "intent_id": {"type": "string"},
+    "application_project_id": {"type": ["string", "null"]},
+    "objective": {"type": "string"},
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step_id", "step_type", "objective", "required_capability"],
+        "properties": {
+          "step_id": {"type": "string"},
+          "step_type": {
+            "type": "string",
+            "enum": [
+              "VERIFY_OPPORTUNITY_REVISION",
+              "EVALUATE_ELIGIBILITY",
+              "RESEARCH_FUNDER",
+              "RESEARCH_WINNERS",
+              "GATHER_COMMUNITY_EVIDENCE",
+              "NORMALIZE_REQUIREMENTS",
+              "BUILD_BLUEPRINT",
+              "DRAFT_SECTION",
+              "RECONCILE_BUDGET",
+              "CROSS_DOCUMENT_QA",
+              "CLIENT_REVIEW_PACKET",
+              "DETERMINISTIC_SERVICE",
+              "OTHER_CONTROLLED"
+            ]
+          },
+          "objective": {"type": "string"},
+          "required_capability": {"type": "string"},
+          "mock_or_research_only": {"type": "boolean", "default": false}
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from_step", "to_step"],
+        "properties": {
+          "from_step": {"type": "string"},
+          "to_step": {"type": "string"}
+        }
+      }
+    },
+    "parallelizable_groups": {
+      "type": "array",
+      "items": {"type": "array", "items": {"type": "string"}}
+    },
+    "critical_path": {"type": "array", "items": {"type": "string"}},
+    "required_capabilities": {"type": "array", "items": {"type": "string"}},
+    "budget_constraints": {"type": "array", "items": {"type": "string"}},
+    "time_constraints": {"type": "array", "items": {"type": "string"}},
+    "stop_conditions": {"type": "array", "items": {"type": "string"}},
+    "human_review_points": {"type": "array", "items": {"type": "string"}},
+    "created_by": {"type": "string", "enum": ["CEO_HERMES"]},
+    "version": {"type": "integer", "minimum": 1},
+    "eligibility_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "hard_eligibility_verified": {"type": "boolean"},
+        "drafting_allowed_before_resolution": {"type": "boolean"},
+        "reason": {"type": "string"}
+      }
+    },
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

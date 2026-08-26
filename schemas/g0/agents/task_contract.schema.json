@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/task_contract.schema.json",
+  "title": "TaskContract",
+  "description": "B4.C7 — Minimum-information, maximum-clarity worker boundary. Workers receive object/evidence refs or bounded extracted context — never the full CEO prompt/history. Task-scoped authority only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "plan_id",
+    "tenant_id",
+    "project_id",
+    "worker_role",
+    "objective",
+    "capability_id",
+    "inputs_refs",
+    "allowed_context_refs",
+    "required_outputs",
+    "authority_scope",
+    "side_effect_policy",
+    "expires_at"
+  ],
+  "properties": {
+    "task_id": {"type": "string"},
+    "plan_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "project_id": {"type": "string"},
+    "worker_role": {
+      "type": "string",
+      "enum": [
+        "FunderResearchWorker",
+        "WinnerResearchWorker",
+        "CommunityEvidenceWorker",
+        "RequirementNormalizationWorker",
+        "ProposalSectionWorker",
+        "BusinessPlanWorker",
+        "BudgetValidationWorker",
+        "CitationQAWorker",
+        "DeterministicService",
+        "OtherBoundedWorker"
+      ]
+    },
+    "objective": {"type": "string"},
+    "capability_id": {"type": "string"},
+    "inputs_refs": {"type": "array", "items": {"type": "string"}},
+    "allowed_context_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "The ONLY context refs the worker may access; anything else is denied."
+    },
+    "constraints": {"type": "array", "items": {"type": "string"}},
+    "required_outputs": {"type": "array", "items": {"type": "string"}},
+    "quality_gates": {"type": "array", "items": {"type": "string"}},
+    "source_requirements": {"type": "array", "items": {"type": "string"}},
+    "authority_scope": {
+      "type": "string",
+      "enum": ["TASK_SCOPED_L0", "TASK_SCOPED_L2"]
+    },
+    "side_effect_policy": {
+      "type": "string",
+      "enum": ["READ_ONLY", "INTERNAL_WRITE_SCOPED", "NO_EXTERNAL_SIDE_EFFECTS"]
+    },
+    "max_attempts": {"type": "integer", "minimum": 1},
+    "time_budget": {"type": ["string", "null"]},
+    "token_or_cost_budget": {"type": ["integer", "null"], "minimum": 0},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "issued_by": {"type": "string", "enum": ["CEO_HERMES"]}
+  }
+}

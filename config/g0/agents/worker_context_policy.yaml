@@ -1,0 +1,36 @@
+# G0 Book 4 - B4.C7/C14 Worker Context Policy (machine-readable).
+# Workers receive minimum-information context: refs or bounded extracts, never
+# the full CEO prompt/history. Workers are stateless across tasks by default.
+worker_context_policy_version: "1.0"
+
+context_minimization: REFS_AND_BOUNDED_EXTRACTS_ONLY
+
+never_inject:
+- FULL_CEO_PROMPT_HISTORY
+- RAW_CLIENT_TRANSCRIPT
+- OTHER_TASK_SCRATCH
+- RAW_SECRETS
+- CLOSED_PROJECT_CHATTER
+
+allowed_inputs:
+- TASK_CONTRACT
+- BOUNDED_CONTEXT_BUNDLE
+- ROLE_SKILL_INSTRUCTIONS
+- SOURCE_ARTIFACT_REFS
+- TASK_LOCAL_SCRATCH
+
+allowed_outputs:
+- WORKER_RESULT
+- SIDECHAIN_MANIFEST
+- MEMORY_CANDIDATE_LESSON_CANDIDATE
+
+worker_memory_default: STATELESS_ACROSS_TASKS
+persistent_worker_memory_rule: "Prohibited unless a ratified ADR proves a material quality gain that cannot be represented as shared promoted procedural knowledge."
+
+scratch_retention: EXPIRES_AFTER_CONFIGURED_RETENTION
+scratch_retention_ref: "config/g0/source/retention_policy.yaml (D-class scratch)"
+scratch_retention_days: 30
+
+context_ref_policy:
+  unlisted_ref_access: DENIED
+  enforcement: "Any attempt by a worker to access a context ref not listed in TaskContract.allowed_context_refs is denied and audited."
