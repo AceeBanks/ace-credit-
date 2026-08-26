@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/memory_promotion.schema.json",
+  "title": "MemoryPromotion",
+  "description": "B4.C15 — Explicit governed promotion event from MemoryCandidate to MemoryRecord. Operational lessons that change agent behavior require Book 7 evaluation before promotion to doctrine.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "promotion_id",
+    "candidate_id",
+    "decision",
+    "criteria_evidence",
+    "validation_state",
+    "proposed_by",
+    "promoted_at"
+  ],
+  "properties": {
+    "promotion_id": {"type": "string"},
+    "candidate_id": {"type": "string"},
+    "decision": {"type": "string", "enum": ["PROMOTE", "REJECT", "DEFER"]},
+    "criteria_evidence": {
+      "type": "object",
+      "description": "Which promotion criteria were met and the supporting evidence."
+    },
+    "validation_state": {
+      "type": "string",
+      "enum": ["AUTO_PROMOTED", "REVIEWED_PROMOTED", "BOOK7_EVAL_REQUIRED", "REJECTED"]
+    },
+    "proposed_by": {"type": "string", "enum": ["PERSONAL_HERMES", "CEO_HERMES", "WORKER_AGENT"]},
+    "promoted_record_id": {"type": ["string", "null"]},
+    "evaluator_ref": {"type": ["string", "null"], "description": "Required for BOOK7_EVAL_REQUIRED promotions."},
+    "reason_codes": {"type": "array", "items": {"type": "string"}},
+    "promoted_at": {"type": "string", "format": "date-time"}
+  }
+}

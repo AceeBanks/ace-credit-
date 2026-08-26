@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/memory_record.schema.json",
+  "title": "MemoryRecord",
+  "description": "B4.C12/C16 — Durable role-scoped memory record. States: ACTIVE, PROVISIONAL, SUPERSEDED, EXPIRED, CONFLICTED, ARCHIVED. Memory is never canonical truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "memory_id",
+    "memory_class",
+    "namespace",
+    "statement",
+    "created_at",
+    "importance",
+    "confidence_state",
+    "status"
+  ],
+  "properties": {
+    "memory_id": {"type": "string"},
+    "memory_class": {"type": "string"},
+    "namespace": {"type": "string"},
+    "statement": {"type": "string"},
+    "source_event_refs": {"type": "array", "items": {"type": "string"}},
+    "canonical_refs": {"type": "array", "items": {"type": "string"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "last_confirmed_at": {"type": ["string", "null"], "format": "date-time"},
+    "importance": {"type": "string", "enum": ["LOW", "NORMAL", "HIGH", "CRITICAL"]},
+    "confidence_state": {
+      "type": "string",
+      "enum": ["VERIFIED", "PROVISIONAL", "INFERRED", "CONFLICTED"]
+    },
+    "expires_at": {"type": ["string", "null"], "format": "date-time"},
+    "supersedes": {"type": ["string", "null"]},
+    "superseded_by": {"type": ["string", "null"]},
+    "privacy_class": {
+      "type": "string",
+      "enum": ["PUBLIC", "TENANT_PRIVATE", "TENANT_SHARED_APPROVED", "RESTRICTED_SENSITIVE"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "PROVISIONAL", "SUPERSEDED", "EXPIRED", "CONFLICTED", "ARCHIVED"]
+    }
+  }
+}

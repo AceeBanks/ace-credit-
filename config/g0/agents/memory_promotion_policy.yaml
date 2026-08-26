@@ -1,0 +1,63 @@
+# G0 Book 4 - B4.C15 Memory Promotion Policy (machine-readable).
+# Separates remembering from learning. Random conversational detail is
+# rejected; explicit durable preferences are promotable; operational lessons
+# require Book 7 evaluation before becoming doctrine.
+memory_promotion_policy_version: "1.0"
+
+lifecycle:
+- EVENT_OBSERVATION
+- MEMORY_CANDIDATE
+- CLASSIFICATION
+- VALIDATION_CONTRADICTION_CHECK
+- PROMOTED_MEMORY
+- PERIODIC_REVALIDATION
+- SUPERSEDED_OR_EXPIRED_OR_RETAINED
+
+criteria:
+- REPEATED_USE
+- EXPLICIT_USER_STATEMENT
+- HIGH_FUTURE_UTILITY
+- STABILITY_OVER_TIME
+- NOT_BETTER_REPRESENTED_AS_CANONICAL
+- NO_HIGHER_AUTHORITY_CONTRADICTION
+- PRIVACY_RETENTION_ALLOWED
+
+auto_promotable_classes:
+- PM-PREFERENCE
+- PM-GOAL
+- PM-OPEN_LOOP
+
+review_required_classes:
+- PM-IDENTITY
+- PM-DECISION
+- PM-RELATIONSHIP
+- CM-BLOCKER
+- CM-CAPABILITY
+
+book7_eval_required_classes:
+- CM-LESSON-CANDIDATE
+
+rules:
+- rule_id: PROMO-001
+  title: Random detail rejection
+  rule: "Random conversational detail with no durable value is classified REJECT."
+  enforcement: MUST
+- rule_id: PROMO-002
+  title: Explicit durable preference promotion
+  rule: "An explicit durable client preference with clear source evidence is auto-promotable."
+  enforcement: MUST
+- rule_id: PROMO-003
+  title: Conflicting preference supersession
+  rule: "A new explicit preference conflicting with an active one triggers a supersession flow, never coequal memories."
+  enforcement: MUST
+- rule_id: PROMO-004
+  title: Lesson eval gate
+  rule: "Operational lessons that change agent behavior cannot bypass Book 7 evaluation before promotion to doctrine."
+  enforcement: MUST
+- rule_id: PROMO-005
+  title: Canonical conflict flag
+  rule: "Memory conflicting with canonical Book 2/3 state is flagged; canonical state wins for operational factual use."
+  enforcement: MUST
+
+promotion_criteria_gate:
+  auto_promote_requires: [EXPLICIT_USER_STATEMENT, NO_HIGHER_AUTHORITY_CONTRADICTION, PRIVACY_RETENTION_ALLOWED]

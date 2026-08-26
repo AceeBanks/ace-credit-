@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/memory_supersession.schema.json",
+  "title": "MemorySupersession",
+  "description": "B4.C16 — Append-only supersession event. Old preference SUPERSEDED, new ACTIVE; historical reconstruction can still show the old record; memory can never override canonical truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "supersession_id",
+    "old_record_id",
+    "new_record_id",
+    "reason",
+    "created_at"
+  ],
+  "properties": {
+    "supersession_id": {"type": "string"},
+    "old_record_id": {"type": "string"},
+    "new_record_id": {"type": "string"},
+    "reason": {"type": "string", "enum": ["USER_CORRECTION", "PREFERENCE_CHANGE", "CANONICAL_UPDATE", "EXPIRY_REPLACEMENT"]},
+    "canonical_conflict_flag": {"type": "boolean", "default": false},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/memory_candidate.schema.json",
+  "title": "MemoryCandidate",
+  "description": "B4.C15 — Separates remembering from learning. A candidate must survive classification and validation before becoming promoted memory.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "candidate_id",
+    "proposed_memory_class",
+    "proposed_statement",
+    "source_refs",
+    "why_useful",
+    "importance",
+    "proposed_by"
+  ],
+  "properties": {
+    "candidate_id": {"type": "string"},
+    "proposed_memory_class": {"type": "string"},
+    "proposed_statement": {"type": "string"},
+    "source_refs": {"type": "array", "items": {"type": "string"}},
+    "canonical_refs": {"type": "array", "items": {"type": "string"}},
+    "why_useful": {"type": "string"},
+    "importance": {"type": "string", "enum": ["LOW", "NORMAL", "HIGH", "CRITICAL"]},
+    "expected_duration": {"type": "string", "enum": ["SHORT", "MEDIUM", "LONG"]},
+    "proposed_by": {"type": "string", "enum": ["PERSONAL_HERMES", "CEO_HERMES", "WORKER_AGENT"]},
+    "classification": {
+      "type": "string",
+      "enum": ["REJECT", "TEMPORARY", "PROMOTE_FOR_REVIEW"]
+    },
+    "classification_reason": {"type": "string"}
+  }
+}
