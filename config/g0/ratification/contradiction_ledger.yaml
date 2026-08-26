@@ -1,0 +1,208 @@
+# G0 Book 0 - Contradiction & Drift Ledger (machine-readable).
+# Every material contradiction/drift across authoritative R0/G0 artifacts,
+# classified by severity and resolved via explicit supersession or decision.
+# severity: P0 | P1 | P2      status: OPEN | RESOLVED
+# Gate: zero unresolved P0 may remain at Book 0 completion.
+ledger_version: 1
+valid_severities: [P0, P1, P2]
+valid_statuses: [OPEN, RESOLVED]
+contradictions:
+- contradiction_id: CD-001
+  title: State-proof jurisdiction — California-first vs Georgia-first
+  severity: P1
+  status: RESOLVED
+  claim_a: >-
+    The master blueprint and seed architecture designate California as the first state
+    reference adapter and preferred secondary-state proof (blueprint Book 8 slice;
+    seed Package D "California Grants Portal as first state reference adapter").
+  source_a: [GS-G0-MASTER-001, GS-R0-SEED-001]
+  claim_b: >-
+    Blueprint Amendment 001 records the clarified client priority: the first client operates
+    in Georgia; state fixtures, crawler tests, and adapters preferentially target Georgia,
+    with California demoted to a later coverage candidate.
+  source_b: [GS-G0-AMD-001]
+  resolution: >-
+    Amendment 001 supersedes under authority order (newest explicit amendment over older
+    blueprint text). The product model remains jurisdiction-agnostic; Georgia is the first
+    proof state. Residual stale "California-first" wording inside GS-R0-SEED-001 is
+    acknowledged as historical-lineage drift, not silently edited (Book 0 rule 6.4).
+  resolution_authority: GS-G0-AMD-001 (explicit planning amendment)
+  affected_decisions: [DEC-GA-001, DEC-DRAFT-003, DEC-DATA-004]
+- contradiction_id: CD-002
+  title: Drafting timing — Book 8 monolith vs early client-visible drafting
+  severity: P1
+  status: RESOLVED
+  claim_a: >-
+    The blueprint places the full production-shaped drafting proof at the Book 8 vertical
+    slice with no intermediate drafting milestone.
+  source_a: [GS-G0-MASTER-001]
+  claim_b: >-
+    The client should see grant-writing capability as early as safely possible; bounded MOCK
+    drafting milestones D0 (after Book 3) and D1 (after Book 4) are defined, with L2
+    application.draft* allowed while submission stays disabled.
+  source_b: [GS-G0-AMD-001]
+  resolution: >-
+    Amendment 001 introduces D0/D1 as low-consequence internal milestones while Book 8 remains
+    the production-shaped proof (D2). Drafting/submission consequence separation is codified in
+    DEC-SUB-001/DEC-DRAFT-*.
+  resolution_authority: GS-G0-AMD-001
+  affected_decisions: [DEC-DRAFT-001, DEC-DRAFT-002, DEC-DRAFT-003, DEC-SUB-001]
+- contradiction_id: CD-003
+  title: Submission exclusion vs technically-reachable external channels
+  severity: P0
+  status: RESOLVED
+  claim_a: >-
+    Automated/autonomous grant submission is excluded from Phase 1 scope (blueprint non-goals;
+    L5 submission capabilities listed as future only).
+  source_a: [GS-G0-MASTER-001]
+  claim_b: >-
+    Planned components — browser tooling, HTTP-capable connectors (Activepieces), integration
+    fabric, Hermes tools — could technically reach submission destinations if left ungoverned.
+  source_b: [GS-R0-GAP-001, R0-EXT-REVIEW-BATCH-02]
+  resolution: >-
+    Structural resolution: capability layer dominates tool availability. Submission/certify/
+    sign capabilities are never registered in Phase 1; unregistered = denied by default;
+    Book 1 Reality Lock must derive submission_disabled from registry/policy evidence, not
+    documentation. Any enablement requires a ratified constitutional amendment.
+  resolution_authority: GS-G0-B0-PROMPT-001 (Book 1 requirements) + DEC-SUB-001
+  affected_decisions: [DEC-SUB-001, DEC-GOV-001, DEC-EXT-004, DEC-HERMES-001]
+- contradiction_id: CD-004
+  title: Semantica foundational framing vs prototype/bake-off requirement
+  severity: P1
+  status: RESOLVED
+  claim_a: >-
+    External review disposes Semantica as "PORT + WRAP candidate; potentially foundational
+    for the Grant Evidence/Decision layer."
+  source_a: [R0-EXT-REVIEW-BATCH-02]
+  claim_b: >-
+    Seed architecture and gap map require a P0 bake-off against a relational baseline before any
+    foundational commitment; canonical operational state must remain product-owned.
+  source_b: [GS-R0-SEED-001, GS-R0-GAP-001]
+  resolution: >-
+    Enthusiasm is downgraded to PROTOTYPE_REQUIRED (DEC-EVID-004): no foundational adoption
+    before the bake-off proves provenance fidelity, temporal state handling, export
+    auditability, and acceptable cost against the relational baseline.
+  resolution_authority: GS-R0-GAP-001 bake-off requirement + decision register normalization
+  affected_decisions: [DEC-EVID-004, DEC-EVID-003]
+- contradiction_id: CD-005
+  title: Treg architectural value vs code-embedding license restriction
+  severity: P1
+  status: RESOLVED
+  claim_a: >-
+    Treg's architecture (central tool registry, server-side credentials, proxied audited calls)
+    is directly relevant to the OCE/Hermes capability boundary.
+  source_a: [R0-EXT-REVIEW-BATCH-02]
+  claim_b: >-
+    GitHub metadata reports a nonstandard license; code embedding/forking into a proprietary
+    commercial product is blocked pending explicit license review/permission.
+  source_b: [R0-EXT-REVIEW-BATCH-02]
+  resolution: >-
+    Split disposition: pattern adopted via independent implementation behind our own contracts
+    (DEC-LIC-001); code embedding REJECTED pending license permission (DEC-LIC-002).
+  resolution_authority: R0-EXT-REVIEW-BATCH-02 licensing caution + decision register split
+  affected_decisions: [DEC-LIC-001, DEC-LIC-002]
+- contradiction_id: CD-006
+  title: Graph/evidence projection vs canonical database sovereignty
+  severity: P1
+  status: RESOLVED
+  claim_a: >-
+    Evidence/provenance substrates (Semantica, historical knowledge graph) could become
+    load-bearing truth stores for claims and relationships.
+  source_a: [R0-EXT-REVIEW-BATCH-02, GS-R0-MAP-001]
+  claim_b: >-
+    Canonical operational state must remain in product-owned storage; generic cognition graph /
+    Neo4j-first / vector-default architectures are rejected as defaults; retrieval supplements
+    but never replaces lineage and deterministic logic.
+  source_b: [GS-R0-SEED-001, GS-R0-REJECT-001]
+  resolution: >-
+    Sovereignty invariant holds absolutely: evidence graphs are typed projections attached to
+    canonical identities; substrate selection is deferred to the Semantica bake-off; graph DB
+    adoption requires evidence of need.
+  resolution_authority: GS-R0-SEED-001 Package E + reject ledger
+  affected_decisions: [DEC-EVID-003, DEC-EVID-004, DEC-DATA-001]
+- contradiction_id: CD-007
+  title: Redis transport vs accepted-job durability
+  severity: P1
+  status: RESOLVED
+  claim_a: >-
+    Research Mesh queue semantics allow transport of work/wakeups through Redis for latency.
+  source_a: [GS-R0-MAP-001]
+  claim_b: >-
+    Accepted jobs and task truth must survive Redis loss/restart; Redis-as-sole-job-truth is an
+    explicit anti-pattern.
+  source_b: [GS-R0-REJECT-001, GS-R0-SEED-001]
+  resolution: >-
+    Doctrine clarified and binding: Postgres durably stores accepted task intent before any
+    transport enqueue; Redis carries only wakeups/cache (DEC-DATA-002).
+  resolution_authority: Reject ledger + OCE Block 1 doctrine
+  affected_decisions: [DEC-DATA-002, DEC-DATA-001, DEC-RES-001]
+- contradiction_id: CD-008
+  title: Shared cross-role memory vs Personal/CEO memory isolation
+  severity: P0
+  status: RESOLVED
+  claim_a: >-
+    Historical Hermes practice operated one memory namespace serving whatever role the agent
+    performed; archives preserve that pattern.
+  source_a: [GS-R0-MAP-001, GS-R0-ARCH-001]
+  claim_b: >-
+    The charter mandates two distinct Hermes agents with separate responsibilities, context
+    boundaries, memory policies, and authority; shared mutable memory across roles is a
+    rejected anti-pattern.
+  source_b: [GS-R0-CTX-001, GS-R0-REJECT-001]
+  resolution: >-
+    Isolation is binding (DEC-MEM-001): namespaces keyed by actor identity, distinct promotion
+    policies, no cross-role promotion. Historical archive pattern is preserved as lineage only.
+  resolution_authority: GS-R0-CTX-001 charter + reject ledger
+  affected_decisions: [DEC-MEM-001, DEC-HERMES-001]
+- contradiction_id: CD-009
+  title: Full worker transcripts in parent context vs sidechain isolation
+  severity: P1
+  status: RESOLVED
+  claim_a: >-
+    Naive multi-agent patterns inject full worker transcripts into parent context for visibility.
+  source_a: [GS-R0-ARCH-001]
+  claim_b: >-
+    Sidechain pattern stores the full trace separately (JSONL/audit storage); parents receive a
+    concise result packet plus pointer; transcript injection is a rejected anti-pattern.
+  source_b: [GS-R0-MAP-001, GS-R0-REJECT-001]
+  resolution: >-
+    Sidechain isolation is binding (DEC-MEM-002), extended to write trace metadata/artifact
+    references to durable storage with retention classes and redaction.
+  resolution_authority: Salvage map sidechain disposition + reject ledger
+  affected_decisions: [DEC-MEM-002, DEC-RES-001]
+- contradiction_id: CD-010
+  title: External framework convenience vs bounded-component sovereignty rule
+  severity: P0
+  status: RESOLVED
+  claim_a: >-
+    Operator frameworks and fabrics (Hermes self-managed skills/memory, connector platforms like
+    Activepieces, browser/HTTP tools) invite configuring behavior directly in tool/framework
+    settings, making the framework the de facto architecture authority.
+  source_a: [GS-R0-MAP-001, GS-R0-GAP-001]
+  claim_b: >-
+    Constitutional rules must live outside model instructions and outside any single framework:
+    the platform's capability/policy layer dominates tool availability; frameworks are bounded
+    replaceable components behind product contracts; no external component becomes sovereign.
+  source_b: [GS-R0-CTX-001, GS-R0-REJECT-001, GS-G0-B1-PLAN-001]
+  resolution: >-
+    Bounded-component rule is binding (DEC-HERMES-001, DEC-GOV-001, DEC-EXT-004): every
+    consequential action flows through the typed policy engine regardless of which framework
+    executes it; framework config alone can never authorize an action.
+  resolution_authority: Charter + Book 1 plan requirements + reject ledger
+  affected_decisions: [DEC-HERMES-001, DEC-GOV-001, DEC-EXT-004, DEC-SUB-001]
+- contradiction_id: CD-011
+  title: Drift — historical test-count claims vs current proof standard
+  severity: P2
+  status: RESOLVED
+  claim_a: >-
+    Master/catalog documentation claims historical test results (e.g., Research Mesh 106/106).
+  source_a: [GS-R0-MAP-001, GS-R0-ARCH-001]
+  claim_b: >-
+    Historical test counts are rejected as current proof; ported code must re-run tests in the
+    new environment before any count is promoted.
+  source_b: [GS-R0-REJECT-001]
+  resolution: >-
+    Recorded as standing drift doctrine: DEC-RES-001 condition requires test re-runs post-port;
+    no historical count may appear as current evidence in later books.
+  resolution_authority: Reject ledger
+  affected_decisions: [DEC-RES-001, DEC-REJ-002]
