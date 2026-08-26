@@ -1,0 +1,99 @@
+# G0 Book 0 - Non-Goal Freeze for G0/G1 first vertical-slice scope (machine-readable).
+# Each non-goal is explicitly rejected, intentionally deferred, or a reserved
+# future extension point. Deferred != rejected; extension points are architectured
+# but not built.
+freeze_version: 1
+valid_kinds: [explicitly_rejected, intentionally_deferred, future_extension_point]
+non_goals:
+- non_goal_id: NG-001
+  title: Autonomous grant submission
+  kind: explicitly_rejected
+  rationale: >-
+    High-consequence external action excluded from Phase 1 by blueprint and Amendment 001;
+    capability remains structurally unregistered. Enablement requires ratified amendment.
+  source_artifact_ids: [GS-G0-MASTER-001, GS-G0-AMD-001]
+  affected_decisions: [DEC-SUB-001]
+- non_goal_id: NG-002
+  title: L4/L5 production enablement
+  kind: explicitly_rejected
+  rationale: Authority levels L4/L5 (execute/submit legally-material actions) stay disabled through G0/G1.
+  source_artifact_ids: [GS-G0-MASTER-001]
+  affected_decisions: [DEC-SUB-001, DEC-GOV-001]
+- non_goal_id: NG-003
+  title: All 50 state source integrations
+  kind: intentionally_deferred
+  rationale: State coverage proves out Georgia-first, then expands by measured demand.
+  source_artifact_ids: [GS-R0-SEED-001, GS-G0-AMD-001]
+  affected_decisions: [DEC-GA-001]
+- non_goal_id: NG-004
+  title: Complete private-foundation universe coverage
+  kind: intentionally_deferred
+  rationale: Uncontrolled nationwide foundation crawling rejected; targeted governed crawl only.
+  source_artifact_ids: [GS-R0-SEED-001]
+  affected_decisions: [DEC-RES-002]
+- non_goal_id: NG-005
+  title: Generic autonomous agent OS replacement
+  kind: explicitly_rejected
+  rationale: Product scope is the grant sector on a governed kernel; not an agent platform product.
+  source_artifact_ids: [GS-R0-CTX-001]
+  affected_decisions: [DEC-ARCH-002]
+- non_goal_id: NG-006
+  title: Worker autobiographical long-term memory
+  kind: explicitly_rejected
+  rationale: Workers are bounded/disposable; traces are sidechains, not personal memory.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-REJECT-001]
+  affected_decisions: [DEC-MEM-002]
+- non_goal_id: NG-007
+  title: Kubernetes orchestration
+  kind: future_extension_point
+  rationale: Not required at current scale; architecture stays container-friendly without depending on it.
+  source_artifact_ids: [GS-R0-SEED-001]
+  affected_decisions: []
+- non_goal_id: NG-008
+  title: Universal knowledge ontology
+  kind: explicitly_rejected
+  rationale: Domain grant ontology only; generic cognition graph deferred/rejected as default.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-REJECT-001]
+  affected_decisions: [DEC-EVID-003]
+- non_goal_id: NG-009
+  title: Generic graph database as mandatory foundation
+  kind: future_extension_point
+  rationale: Relational Evidence Graph first; graph DB only if bake-off/evidence proves need.
+  source_artifact_ids: [GS-R0-REJECT-001]
+  affected_decisions: [DEC-EVID-003, DEC-EVID-004]
+- non_goal_id: NG-010
+  title: Custom vector database
+  kind: explicitly_rejected
+  rationale: Simplify around canonical datastore; specialized vector infra requires benchmark proof.
+  source_artifact_ids: [GS-R0-REJECT-001]
+  affected_decisions: [DEC-EVID-003]
+- non_goal_id: NG-011
+  title: Production self-modifying code/policy
+  kind: explicitly_rejected
+  rationale: Self-heal limited to runtime failures; policy changes require governed review.
+  source_artifact_ids: [GS-R0-REJECT-001]
+  affected_decisions: [DEC-GOV-002]
+- non_goal_id: NG-012
+  title: Direct Hermes database access
+  kind: explicitly_rejected
+  rationale: Hermes reaches state only via governed capabilities behind the MCP facade.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-SEED-001]
+  affected_decisions: [DEC-HERMES-002, DEC-HERMES-001]
+- non_goal_id: NG-013
+  title: Candid as mandatory MVP dependency
+  kind: intentionally_deferred
+  rationale: Optional paid enrichment after free-source coverage/ROI measurement.
+  source_artifact_ids: [GS-R0-DATA-001]
+  affected_decisions: [DEC-DATA-006]
+- non_goal_id: NG-014
+  title: Broad trading/CEREBUS logic reuse
+  kind: explicitly_rejected
+  rationale: Trading-domain semantics never enter the grant product; only neutral infrastructure concepts transfer.
+  source_artifact_ids: [GS-R0-REJECT-001]
+  affected_decisions: [DEC-REJ-001]
+- non_goal_id: NG-015
+  title: Arbitrary third-party MCP/community tools auto-enabled
+  kind: explicitly_rejected
+  rationale: Tools exist only as registered capabilities evaluated by policy; default deny.
+  source_artifact_ids: [GS-G0-B1-PLAN-001, GS-R0-CTX-001]
+  affected_decisions: [DEC-GOV-001, DEC-SUB-001]

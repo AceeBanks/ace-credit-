@@ -1,0 +1,165 @@
+# G0 Book 0 - Prototype / Bake-Off Candidate Register (machine-readable).
+# Candidates requiring evidence rather than architectural assumption.
+# ADOPTED status is forbidden at Book 0: candidates enter as proposed|bakeoff_pending
+# and may only be promoted by the responsible book's evidence gate.
+register_version: 1
+valid_statuses: [proposed, bakeoff_pending, in_progress, adopted_with_evidence, killed]
+required_candidate_ids:
+  - CAND-SEMANTICA
+  - CAND-RELATIONAL-BASELINE
+  - CAND-PARSER-BAKEOFF
+  - CAND-PIXELRAG
+  - CAND-CRAWL4AI
+  - CAND-GPT-RESEARCHER
+  - CAND-EVAL-LAB
+  - CAND-GUARDRAILS
+  - CAND-UNIVER
+  - CAND-ACTIVEPIECES
+candidates:
+- candidate_id: CAND-SEMANTICA
+  capability_gap: Evidence/provenance substrate (claim→source lineage, conflicts, temporal state)
+  hypothesis: >-
+    Semantica provides auditable provenance/temporal reasoning with less build cost than a
+    from-scratch evidence layer, without becoming sovereign truth.
+  baseline: Relational Evidence Graph implemented directly over the canonical Postgres estate.
+  success_metrics: >-
+    Provenance fidelity on fixture conflict chains; temporal-state query correctness;
+    auditable export completeness; integration + operational cost vs baseline.
+  kill_criteria: >-
+    Opaque internal state that cannot export/audit; sovereignty pressure (canonical state
+    migrating into substrate); cost >2x relational baseline at equal fidelity.
+  license_status: MIT observed via GitHub metadata; exact pin requires fresh license review.
+  security_notes: External dependency boundary; must not hold canonical state; supply-chain review before adoption.
+  responsible_book: G0-B5
+  status: bakeoff_pending
+  source_artifact_ids: [R0-EXT-REVIEW-BATCH-02, GS-R0-GAP-001]
+  affected_decisions: [DEC-EVID-004]
+- candidate_id: CAND-RELATIONAL-BASELINE
+  capability_gap: Baseline arm of the evidence-substrate bake-off
+  hypothesis: >-
+    Typed relational tables in the canonical Postgres estate satisfy provenance/conflict/
+    temporal needs at Book-5 scale without extra infrastructure.
+  baseline: N/A — this IS the baseline.
+  success_metrics: Same fixtures/metrics as CAND-SEMANTICA for apples-to-apples comparison.
+  kill_criteria: Not applicable; baseline persists as fallback if all substrates fail.
+  license_status: No external dependency (Postgres already adopted).
+  security_notes: Keeps canonical state product-owned by construction.
+  responsible_book: G0-B5
+  status: bakeoff_pending
+  source_artifact_ids: [GS-R0-GAP-001, GS-R0-SEED-001]
+  affected_decisions: [DEC-EVID-003, DEC-EVID-004]
+- candidate_id: CAND-PARSER-BAKEOFF
+  capability_gap: Document parsing into normalized SourceDocuments (PDF/layout/table quality)
+  hypothesis: >-
+    Unstructured matches or beats the salvaged parser stack (MarkItDown/ODL-PDF/Chandra) on
+    grant-document extraction quality under one wrapped contract.
+  baseline: Salvaged parser stack behind the parser normalization contract.
+  success_metrics: >-
+    Text/table fidelity on grant NOFO fixtures; attachment coverage; parse-failure rate;
+    confidence-signal usefulness for PixelRAG fallback triggering.
+  kill_criteria: >-
+    Lower fidelity than salvaged stack; license/hosting terms incompatible; latency/cost
+    beyond budget class for ingestion volume.
+  license_status: Per-engine fresh license/CVE review required (Apache-class expected; verify).
+  security_notes: Parsers process untrusted uploads — sandboxing and size/type limits required.
+  responsible_book: G0-B3
+  status: proposed
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-GAP-001]
+  affected_decisions: [DEC-PARSE-001]
+- candidate_id: CAND-PIXELRAG
+  capability_gap: Visual/layout fallback for scanned or visually complex documents
+  hypothesis: >-
+    Visual rendering + multimodal extraction recovers structure text-layer parsers miss,
+    triggered only on low primary-parser confidence.
+  baseline: Best-of text-layer stack alone.
+  success_metrics: Recovery rate on scanned fixtures; false-positive structure injection; cost per recovered document.
+  kill_criteria: Marginal recovery at disproportionate cost; unreliable output needing full re-review.
+  license_status: Fresh license review required before any adoption.
+  security_notes: Renders untrusted content to images — resource limits and isolation apply.
+  responsible_book: G0-B3
+  status: proposed
+  source_artifact_ids: [GS-R0-GAP-001, GS-R0-SEED-001]
+  affected_decisions: [DEC-PARSE-002]
+- candidate_id: CAND-CRAWL4AI
+  capability_gap: Governed web extraction for state/private portals
+  hypothesis: >-
+    Crawl4AI yields reliable structured extraction under politeness/rate policies for Georgia
+    portals and targeted foundation pages.
+  baseline: Plain HTTP fetch + bespoke parsing per portal.
+  success_metrics: Extraction success rate across Georgia portal fixtures; robots/politeness compliance; maintenance burden per new portal.
+  kill_criteria: Fragile per-site tuning exceeding bespoke parsing effort; licensing/terms friction.
+  license_status: Apache-2.0 observed upstream; verify pinned version before adoption.
+  security_notes: Fetches untrusted web content — no credential exposure, response-size caps, SSRF guardrails.
+  responsible_book: G0-B3
+  status: proposed
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-GAP-001]
+  affected_decisions: [DEC-RES-002]
+- candidate_id: CAND-GPT-RESEARCHER
+  capability_gap: Bounded deep-research planning/execution patterns
+  hypothesis: >-
+    GPT Researcher's plan/search/publish loop, tightly bounded, improves research-pack quality
+    per unit cost versus ad-hoc worker prompting.
+  baseline: Salvaged Research Mesh synthesis pipeline with plain workers.
+  success_metrics: Research-pack citation coverage; factuality on eval corpus; token/cost per pack.
+  kill_criteria: Cost/quality profile worse than baseline; outputs resist snapshot-lineage binding.
+  license_status: MIT observed upstream; verify pinned version.
+  security_notes: Web-facing loops must run inside Research Fabric policy (no self-promoting claims).
+  responsible_book: G0-B3
+  status: proposed
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-GAP-001]
+  affected_decisions: [DEC-RES-003]
+- candidate_id: CAND-EVAL-LAB
+  capability_gap: Regression/red-team harness for skills, prompts, workflows, adapters
+  hypothesis: >-
+    Generalized skill-creator benchmark loop + Promptfoo catches regressions and enables
+    benchmark-gated promotion of agent changes.
+  baseline: Manual spot-check review of agent changes.
+  success_metrics: Regression catch rate on seeded defects; promotion-decision repeatability; eval wall-clock/cost budget adherence.
+  kill_criteria: Harness cost dominates change cadence; assertions too weak to discriminate.
+  license_status: Promptfoo MIT observed; verify pinned version. Internal loop is our own code.
+  security_notes: Red-team corpora contain adversarial prompts — keep out of production memory paths.
+  responsible_book: G0-B4
+  status: proposed
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-SEED-001]
+  affected_decisions: [DEC-EXT-001]
+- candidate_id: CAND-GUARDRAILS
+  capability_gap: Structured-output validation inside post-tool verification
+  hypothesis: >-
+    Selected Guardrails validators reduce custom validation code for JSON/schema-class outputs.
+  baseline: Hand-written validators per output contract.
+  success_metrics: Validator parity with hand-written suite; maintenance delta; failure-mode clarity.
+  kill_criteria: Framework opacity in denial reasons; version churn breaking contracts; overlap where hand-written code is simpler.
+  license_status: Apache-2.0 observed upstream; verify pinned version.
+  security_notes: Validators never gain authorization power — advisory/validation only (CD-010).
+  responsible_book: G0-B4
+  status: proposed
+  source_artifact_ids: [GS-R0-GAP-001, GS-R0-MAP-001]
+  affected_decisions: [DEC-EXT-002]
+- candidate_id: CAND-UNIVER
+  capability_gap: Editable/headless budget workbook workspace
+  hypothesis: >-
+    Univer provides collaborative budget editing bound to the canonical BudgetModel without
+    spreadsheets becoming truth stores.
+  baseline: Static XLSX/PDF generation from BudgetModel.
+  success_metrics: Round-trip fidelity model↔sheet; feature parity within free tier; headless compile reliability.
+  kill_criteria: Required features gated behind paid tier critical to workflow; round-trip drift.
+  license_status: Apache-2.0 core with commercial-tier boundary; license/feature review required before rollout.
+  security_notes: Rendered views must not write back canonical facts except through governed APIs.
+  responsible_book: G0-B5
+  status: proposed
+  source_artifact_ids: [GS-R0-GAP-001, GS-R0-SEED-001]
+  affected_decisions: [DEC-EXT-003]
+- candidate_id: CAND-ACTIVEPIECES
+  capability_gap: Bounded connector execution fabric (notifications, later outreach)
+  hypothesis: >-
+    Self-hosted Activepieces reduces connector maintenance versus bespoke integrations while
+    staying fully behind the capability/policy layer.
+  baseline: Direct provider SDKs behind our own adapter interface.
+  success_metrics: Connector coverage; audit-trail completeness through fabric; sandbox escape resistance.
+  kill_criteria: Audit gaps between fabric and platform; credential-handling weaknesses; any path bypassing the policy engine.
+  license_status: MIT core; enterprise edition differs — edition/license verification required before use.
+  security_notes: Holds credentials — server-side vault/injection only; CD-003 forbids it conferring submission reach.
+  responsible_book: G0-B6
+  status: proposed
+  source_artifact_ids: [GS-R0-GAP-001, GS-G0-AMD-001]
+  affected_decisions: [DEC-EXT-004]
