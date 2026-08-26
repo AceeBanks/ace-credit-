@@ -1,0 +1,40 @@
+{
+  "checkpoint": "G0-B6-RATIFY",
+  "branch": "grant-sector-r0-salvage",
+  "head_sha": "21965527",
+  "boot_commit": {
+    "sha": "032d3da7",
+    "message": "G0-B6-C1: freeze security constitutional laws"
+  },
+  "chapter_commits": [
+    {"sha": "032d3da7", "message": "G0-B6-C1: freeze security constitutional laws"},
+    {"sha": "28a04051", "message": "G0-B6-C2-C3: define principals and tenant/resource isolation model"},
+    {"sha": "ebb070c4", "message": "G0-B6-C4-C5: implement capability grants and authorization decision contract"},
+    {"sha": "46d88a01", "message": "G0-B6-C6-C8: freeze authentication service identity and credential boundaries"},
+    {"sha": "61eb04eb", "message": "G0-B6-C9-C11: define tool registry gateway and Hermes MCP boundary"},
+    {"sha": "4f3b0ef9", "message": "G0-B6-C12-C15: define integration egress and data classification boundaries"},
+    {"sha": "00101580", "message": "G0-B6-C16-C19: close prompt injection, malicious file, approval and audit security"},
+    {"sha": "e0f512c0", "message": "G0-B6-C20-C24: define lifecycle break-glass recovery observability and threat model"},
+    {"sha": "21965527", "message": "G0-B6-C25-C28: register attack surface, adversarial security suite, integration/property and performance tests"}
+  ],
+  "reality_lock": {
+    "path": "docs/grant-sector/g0/00-ratification/G0_B6_REALITY_LOCK.json",
+    "status": "PASS",
+    "p0_open": 0,
+    "ready_for_book7": true
+  },
+  "test_totals": {
+    "full_suite": {"passed": 1388, "skipped": 3},
+    "book0": 51,
+    "book1": 133,
+    "book2": 255,
+    "book3": 243,
+    "book4": 276,
+    "book5": 231,
+    "book6_exclusive": 202,
+    "lock_book6_records": {"passed": 199, "skipped": 3},
+    "adversarial_p0_suite": 81
+  },
+  "submission_disabled": true,
+  "external_ratification": "NOT YET PERFORMED"
+}

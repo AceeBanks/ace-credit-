@@ -1,0 +1,44 @@
+{
+  "book": "G0-B6",
+  "status": "PASS",
+  "security_constitution_complete": true,
+  "principal_model_pass": true,
+  "tenant_isolation_pass": true,
+  "capability_grant_pass": true,
+  "authorization_default_deny": true,
+  "credential_boundary_pass": true,
+  "tool_gateway_pass": true,
+  "mcp_boundary_pass": true,
+  "egress_policy_pass": true,
+  "data_classification_pass": true,
+  "prompt_injection_pass": true,
+  "malicious_document_pass": true,
+  "approval_enforcement_pass": true,
+  "audit_security_pass": true,
+  "revocation_pass": true,
+  "break_glass_pass": true,
+  "submission_disabled": true,
+  "attack_surface_register_pass": true,
+  "adversarial_p0_pass": true,
+  "cross_tenant_p0_pass": true,
+  "secret_exposure_p0_pass": true,
+  "p0_open": 0,
+  "ready_for_book7": true,
+  "evidence": {
+    "test_results": {
+      "exit_code": 0,
+      "passed": 199,
+      "failed": 0,
+      "summary": "199 passed, 3 skipped in 3.43s"
+    },
+    "adversarial_results": {
+      "exit_code": 0,
+      "passed": 81,
+      "failed": 0,
+      "summary": "81 passed in 0.36s"
+    },
+    "p0_threats_registered": 6,
+    "p0_open_threats": 0,
+    "failed_predicates": []
+  }
+}
