@@ -1,0 +1,114 @@
+# G0-B3-C4-C5 — Onboarding & SourceSnapshot source of truth (fail-closed).
+
+# Governance rule: an agent discovering a useful site may create a
+# SourceCandidate or research note. It may NOT automatically add that domain to
+# production allowlists. Promotion requires passing every staged gate and being
+# explicitly ENABLED.
+
+onboarding_stages:
+  - identity_ownership_check
+  - terms_robots_access_review
+  - authority_classification
+  - data_shape_analysis
+  - adapter_capture_strategy
+  - fixture_capture
+  - schema_parser_tests
+  - rate_limit_failure_test
+  - security_prompt_injection_test
+  - source_health_policy
+  - enabled
+
+source_statuses:
+  - CANDIDATE
+  - REVIEWING
+  - FIXTURE_ONLY
+  - ENABLED
+  - DEGRADED
+  - DISABLED
+  - RETIRED
+
+# Seed onboarding packets for the sources in the registry.
+onboarding_packets:
+  grants_gov_federal:
+    source_identity: "Grants.gov Workspace — federal issuer portal"
+    legal_access_notes: "Public data portal; terms permit programmatic access"
+    authority_fact_classes:
+      - opportunity
+      - award
+      - applicant
+    capture_approach: "API_JSON"
+    parser_approach: "json_schema_validated"
+    freshness_rule: "daily"
+    failure_behavior: "capture_failure_tombstone"
+    health_probes:
+      - "SOAP status check"
+    operational_owner: "platform-team"
+  ga_grants_marketplace:
+    source_identity: "Georgia Grants Marketplace — state aggregator"
+    legal_access_notes: "Public portal; rosters of state opportunities"
+    authority_fact_classes:
+      - opportunity
+      - organization
+    capture_approach: "API_JSON"
+    freshness_rule: "daily"
+    health_probes:
+      - "row-count probe"
+
+# Snapshot fixtures demonstrating the immutable contract. Raw bodies are NOT
+# stored here; they live at raw_object_uri and are referenced by raw_hash.
+snapshot_fixtures:
+  - snapshot_id: "snap_ga_0001"
+    source_id: "ga_grants_marketplace"
+    tenant_id: null
+    resource_type: "opportunity_roster"
+    external_resource_id: "ga-opp-2025-0142"
+    canonical_url: "https://grants.marketplace.ga.gov/opportunities/0142"
+    request_id: "req_0001"
+    request_fingerprint: "req:req_0001"
+    retrieved_at: "2026-08-01T12:00:00Z"
+    source_effective_at: "2026-08-01T00:00:00Z"
+    source_published_at: "2026-08-01T09:00:00Z"
+    http_status: 200
+    http_headers_subset:
+      content-type: "application/json"
+    content_type: "application/json"
+    content_length: 2048
+    raw_object_uri: "s3://raw/ga/ga-opp-2025-0142.v1.json"
+    raw_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    raw_hash_algorithm: "sha256"
+    adapter_name: "ga_marketplace"
+    adapter_version: "1.0.0"
+    capture_method: "API_JSON"
+    previous_snapshot_id: null
+    revision_key: "ga-opp-2025-0142/v1"
+    source_etag: null
+    source_last_modified: null
+    snapshot_status: "VERIFIED_INTEGRITY"
+
+  - snapshot_id: "snap_ga_0002"
+    source_id: "ga_grants_marketplace"
+    tenant_id: null
+    resource_type: "opportunity_roster"
+    external_resource_id: "ga-opp-2025-0142"
+    canonical_url: "https://grants.marketplace.ga.gov/opportunities/0142"
+    request_id: "req_0027"
+    request_fingerprint: "req:req_0027"
+    retrieved_at: "2026-08-02T12:00:00Z"
+    source_effective_at: "2026-08-02T00:00:00Z"
+    source_published_at: "2026-08-02T11:00:00Z"
+    http_status: 200
+    http_headers_subset:
+      content-type: "application/json"
+    content_type: "application/json"
+    content_length: 2088
+    raw_object_uri: "s3://raw/ga/ga-opp-2025-0142.v2.json"
+    raw_hash: "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    raw_hash_algorithm: "sha256"
+    adapter_name: "ga_marketplace"
+    adapter_version: "1.0.0"
+    capture_method: "API_JSON"
+    previous_snapshot_id: "snap_ga_0001"
+    revision_key: "ga-opp-2025-0142/v2"
+    source_etag: null
+    source_last_modified: null
+    snapshot_status: "CAPTURED"

@@ -8,36 +8,33 @@ Establishes the source **classification ontology** (G0-B3-C2) and the seeded **S
 
 Config of truth: `config/g0/source/source_classes.yaml`
 
-Each source is assigned exactly one non-`unspecified` class on registration. Classes are ordered by increasing promiscuity / decreasing independent trustworthiness:
+Each source is assigned exactly one known class on registration. Authority is ALWAYS source + fact class: a source class alone never bypasses fact-specific precedence (C8).
 
-| class_id | class_name | trust_index | notes |
-|---|---|---|---|
-| `government_issuer` | Government issuer | 5 | Issuer of the underlying record |
-| `government_aggregator` | Government portal/aggregator | 4 | Government-official platform aggregating issuer data |
-| `funder_program_data` | Funder/program data | 3.5 | Program sponsor's published data |
-| `npo_reporting` | Nonprofit self-reported | 3 | Organization-submitted (subject to validation) |
-| `community_member_provided` | Community member provided | 2.5 | Direct from a person/entity involved |
-| `third_party` | Third-party / intermediary | 2 | Vendors, brokers, intermediaries |
-| `crowdsourced` | Crowdsourced | 1.5 | Openly contributed / unaudited |
-| `composite` | Composite derived set | 1 | Derived from multiple lower classes |
-| `document_scan` | Document/scan artifact | 2.5 | Scanned or OCR source (context-dependent) |
-| `unspecified` | Unspecified / unmapped | 0 | Default; never acceptable for a registered source |
+| class_id | authority_tier | notes |
+|---|---|---|
+| `OFFICIAL_ISSUER` | A | Organization/agency issuing an opportunity, solicitation or guidance |
+| `OFFICIAL_AGGREGATOR` | B | Government/official platform aggregating issuer data |
+| `OFFICIAL_TRANSACTIONAL` | B | Official award/transaction record |
+| `OFFICIAL_STATISTICAL` | B | Government/statistical authority |
+| `TRUSTED_CURATED` | C | High-quality institutional secondary/aggregated source |
+| `GOVERNED_WEB` | D | Registered funder/organization/research webpage captured by crawler |
+| `USER_PROVIDED` | E | Client uploads/statements/manual data |
+| `DERIVED_INTERNAL` | — | Product-derived structured data (external_authority: false) |
 
-Registry rows carry a `domain_categories` set and a `trust_index_override` optional field; the override must be within `[0, 5]`.
+Recognized authority tiers are `[A, B, C, D, E]`. `DERIVED_INTERNAL` explicitly carries `external_authority: false` and no tier — derived internal objects cannot pretend to be external authority.
 
 ## C3 — SourceRegistry Prototype
 
 Config of truth: `config/g0/source/source_registry.yaml`
 
-The seed registry contains 8 sources spanning issuers, aggregators, NPO reporting, community, third-party, and composite classes, each with either `api_base_url` or `base_urls` and a `data_type`/`update_cadence`/`data_license`.
+The seed registry contains the full field contract from the plan and 8 sources: Grants.gov, Simpler.Grants.gov, USAspending, IRS EO Search, Census ACS, GA OPB/Grants Portal, GA DCA, and Foundation XYZ — covering OFFICIAL_AGGREGATOR, OFFICIAL_TRANSACTIONAL, OFFICIAL_STATISTICAL, OFFICIAL_ISSUER, and GOVERNED_WEB classes.
 
-Prototype: `prototype/g0/source/registry.py` (added C4-C5) — this chapter's validator verifies:
+The validator verifies (fail-closed):
 
-1. Exactly one non-`unspecified` class per source.
-2. URL presence (`api_base_url` XOR `base_urls`).
-3. Known class membership, known domain categories.
-4. Optional `trust_index_override` within `[0, 5]`.
-5. Unique source IDs, resolvable source classes.
+1. Every source has a known, classified `source_class` and matched `authority_tier`.
+2. Full field contract compliance (`api_base_url` XOR `base_urls`, `terms_policy_ref`, `adapter_version`, `credential_scope_ref` where auth required, etc.).
+3. Unique source IDs.
+4. `external_authority` semantics for derived-internal sources.
 
 ## Validation
 
