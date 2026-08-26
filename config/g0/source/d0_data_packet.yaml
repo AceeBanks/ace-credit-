@@ -1,0 +1,60 @@
+# G0-B3-C23-C24 — D0 source-governed data packet + Shadow Draft Harness spec
+# (machine-readable, fail-closed). Unlocks the first grounded mock grant
+# immediately after Book 3 ratification.
+
+# The nine packet sections required to construct a DraftContextBundle without
+# agent memory.
+packet_sections:
+  - client_profile_fixture
+  - georgia_opportunity
+  - opportunity_requirements
+  - eligibility
+  - funder_program_research
+  - historical_winner_award_research
+  - community_impact_statistics
+  - budget_assumptions
+  - proposal_profile
+
+# Every D0 output must be labeled.
+output_labels:
+  - MOCK
+  - NON_SUBMISSION
+  - NOT_CLIENT_APPROVED_FINAL
+
+# No missing factual input may be silently invented.
+fact_states:
+  - NEEDS_CLIENT_INPUT
+  - NEEDS_SOURCE
+  - PROVISIONAL
+  - UNSUPPORTED_DO_NOT_USE
+
+# D0 success criteria.
+success_criteria:
+  - exact_source_revision_visible
+  - material_claims_traceable
+  - requirement_coverage_measurable
+  - no_agent_memory_required_for_reconstruction
+  - regenerable_from_packet
+
+# C24 — Shadow Draft Harness flow (specification only; NOT productionized).
+harness_flow:
+  - d0_data_packet
+  - application_blueprint_generator
+  - requirement_to_section_map
+  - evidence_retrieval_from_packet
+  - draft_section_generator
+  - factuality_citation_check
+  - requirement_coverage_check
+  - cross_section_consistency
+  - mock_proposal_artifact
+  - d0_qa_report
+
+# Model permissions: L2 internal only. No email/send/submission tools.
+model_permissions:
+  - L2_INTERNAL_ONLY
+  - NO_EMAIL_SEND_SUBMISSION
+
+# D0 is an evaluation artifact, never submission-ready production output.
+hard_stop: |
+  D0 is an evaluation artifact. It cannot be represented as submission-ready
+  production output.

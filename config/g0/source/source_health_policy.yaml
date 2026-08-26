@@ -1,0 +1,44 @@
+# G0-B3-C22 — Source health, observability & degradation (machine-readable,
+# fail-closed). Treats sources as operational dependencies with measurable
+# health.
+
+health_states:
+  - HEALTHY
+  - DEGRADED
+  - FAILING
+  - AUTH_ERROR
+  - RATE_LIMITED
+  - SCHEMA_CHANGED
+  - DISABLED
+  - UNKNOWN
+
+metrics:
+  - last_successful_fetch
+  - failure_rate
+  - latency
+  - schema_validation_rate
+  - extraction_quality_trend
+  - http_status_distribution
+  - rate_limit_events
+  - content_change_frequency
+  - duplicate_rate
+  - stale_source_count
+  - downstream_invalidations
+
+# Schema drift: do not silently map missing fields to null and continue for
+# critical facts.
+schema_drift_flow: |
+  schema validation failure -> source DEGRADED/SCHEMA_CHANGED -> adapter
+  promotion disabled -> fixture captured -> repair/eval required. No silent
+  mapping of missing fields to null for critical facts.
+
+# A source can remain queryable historically while disabled for fresh promotion.
+historical_availability_rule: |
+  A source can remain queryable historically while disabled for fresh
+  promotion. A source outage never erases cached/historical snapshots.
+
+# Hard-stale critical opportunities force uncertainty/block, never silent
+# readiness.
+hard_stale_rule: |
+  A hard-stale critical opportunity forces uncertainty or a readiness block,
+  never silent readiness.
