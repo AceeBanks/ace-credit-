@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://grant-sector.g0/schemas/evidence/retrieval_result.schema.json",
+  "title": "RetrievalResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["query_id", "retrieval_method", "query_scope", "results", "tenant_scope"],
+  "properties": {
+    "query_id": {"type": "string", "minLength": 1},
+    "retrieval_method": {"type": "string", "enum": ["EXACT_STRUCTURED_LOOKUP", "FILTERED_RELATIONAL", "GRAPH_TRAVERSAL", "FULL_TEXT", "VECTOR_SEMANTIC"]},
+    "query_scope": {"type": "object", "additionalProperties": true},
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["result_ref", "ranking_metadata", "source_quality", "tenant_scope"],
+        "properties": {
+          "result_ref": {"type": "string", "minLength": 1},
+          "ranking_metadata": {"type": "object", "additionalProperties": true},
+          "source_quality": {"type": "object", "additionalProperties": true},
+          "staleness_flag": {"type": ["boolean", "null"]},
+          "conflict_flag": {"type": ["boolean", "null"]},
+          "tenant_scope": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "tenant_scope": {"type": "string", "minLength": 1},
+    "authority_gate_note": {"type": ["string", "null"]}
+  }
+}

@@ -1,0 +1,39 @@
+# G0-B5-C11-C12 — Vector index + graph projection policies.
+
+vector_index_rules:
+  - id: VEC-001
+    text: "vectors are derived indexes, never canonical truth"
+  - id: VEC-002
+    text: "every vector points back to a stable source/artifact/evidence ref"
+  - id: VEC-003
+    text: "embedding model/version is recorded"
+  - id: VEC-004
+    text: "re-embedding does not change source identity"
+  - id: VEC-005
+    text: "deleted/restricted tenant content is removed or hidden per retention"
+  - id: VEC-006
+    text: "no cross-tenant similarity search by default"
+  - id: VEC-007
+    text: "vector metadata includes visibility and evidence class"
+  - id: VEC-008
+    text: "vector index can be rebuilt from canonical artifacts/snapshots"
+
+graph_projection_rules:
+  - id: PROJ-001
+    text: "graph node ids derive from internal canonical ids"
+  - id: PROJ-002
+    text: "projection is rebuildable"
+  - id: PROJ-003
+    text: "graph-only mutation cannot create canonical facts"
+  - id: PROJ-004
+    text: "canonical changes propagate through projection events"
+  - id: PROJ-005
+    text: "projection lag is measurable"
+  - id: PROJ-006
+    text: "graph deletion cannot erase canonical history"
+  - id: PROJ-007
+    text: "schema/version mapping is explicit"
+
+exit_test:
+  id: EXIT-001
+  text: "Delete the graph projection and rebuild it from canonical state/evidence without semantic loss. If impossible, the graph has become sovereign and Book 5 fails."

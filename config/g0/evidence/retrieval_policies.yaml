@@ -1,0 +1,34 @@
+# G0-B5-C10 — Retrieval constitution (machine-readable).
+
+lanes:
+  - id: EXACT_STRUCTURED_LOOKUP
+    description: "IDs, canonical facts, current opportunity revision, requirements, decisions"
+    determinism: HIGHEST
+  - id: FILTERED_RELATIONAL
+    description: "scoped entity/project/evidence queries"
+    determinism: HIGH
+  - id: GRAPH_TRAVERSAL
+    description: "lineage, dependencies, contradiction neighborhoods, award/funder relationships"
+    determinism: MEDIUM
+  - id: FULL_TEXT
+    description: "source/artifact text"
+    determinism: MEDIUM
+  - id: VECTOR_SEMANTIC
+    description: "discovery/similarity, never authority"
+    determinism: LOW
+
+query_planning_rule:
+  text: "Use the most deterministic lane that can answer the question. Do not vector-search an EIN, deadline or canonical amount when exact lookup exists."
+  id: RETR-001
+
+authority_rules:
+  - id: RETR-001
+    text: "use the most deterministic lane that can answer the question; never vector-search an EIN, deadline or canonical amount when exact lookup exists"
+  - id: RETR-002
+    text: "retrieval rank is not authority; a top-ranked semantic result may be excluded from operational use if evidence policy rejects it"
+  - id: RETR-003
+    text: "a vector result can never override a canonical fact"
+  - id: RETR-004
+    text: "stale/conflicted evidence is flagged in retrieval results"
+  - id: RETR-005
+    text: "tenant filters are applied before retrieval result exposure"
