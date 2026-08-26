@@ -1,0 +1,136 @@
+# G0 Book 2 - B2.C5 External Identifier Namespace Catalog (machine-readable).
+# Never store an ambiguous external_id without a namespace (hard rule).
+namespaces_version: "1.0"
+namespaces:
+- namespace_id: EIN
+  name: Employer Identification Number
+  issuer: IRS
+  applies_to_entity_types: [Organization]
+  format: "\\d{2}-\\d{7}"
+  validation_rule: "9-digit EIN, normalized to NN-NNNNNNN"
+  globally_unique: true
+  temporally_unique: true
+  reusable: false
+  case_sensitive: false
+  normalization_rule: "strip non-digits; format NN-NNNNNNN"
+  verification_sources: [IRS, FAC]
+- namespace_id: UEI
+  name: Unique Entity ID
+  issuer: SAM.gov
+  applies_to_entity_types: [Organization]
+  format: "[A-Z0-9]{12}"
+  validation_rule: "12 alphanumeric chars"
+  globally_unique: true
+  temporally_unique: true
+  reusable: false
+  case_sensitive: false
+  normalization_rule: "uppercase"
+  verification_sources: [SAM]
+- namespace_id: ALN
+  name: Assistance Listing Number
+  issuer: SAM.gov / Federal Register
+  applies_to_entity_types: [Program]
+  format: "\\d{2}\\.\\d{3}"
+  validation_rule: "NN.NNN"
+  globally_unique: true
+  temporally_unique: true
+  reusable: true
+  case_sensitive: false
+  normalization_rule: "strip spaces; NN.NNN"
+  verification_sources: [SAM]
+- namespace_id: GRANTS_GOV_OPPORTUNITY
+  name: Grants.gov opportunity number
+  issuer: Grants.gov
+  applies_to_entity_types: [GrantOpportunity]
+  format: "[A-Z0-9-]{5,30}"
+  validation_rule: "issuer-assigned opportunity number"
+  globally_unique: true
+  temporally_unique: true
+  reusable: false
+  case_sensitive: false
+  normalization_rule: "uppercase"
+  verification_sources: [Grants.gov]
+- namespace_id: FAIN
+  name: Federal Award Identification Number
+  issuer: awarding agency (USAspending)
+  applies_to_entity_types: [Award]
+  format: "[A-Z0-9-]{5,30}"
+  validation_rule: "issuer-assigned FAIN"
+  globally_unique: false
+  temporally_unique: true
+  reusable: false
+  case_sensitive: false
+  normalization_rule: "uppercase"
+  verification_sources: [USAspending]
+- namespace_id: USA_SPENDING_AWARD
+  name: USAspending award ID (internal db key)
+  issuer: USAspending
+  applies_to_entity_types: [Award]
+  format: "\\d{5,15}"
+  validation_rule: "numeric USAspending award id"
+  globally_unique: true
+  temporally_unique: true
+  reusable: false
+  case_sensitive: false
+  normalization_rule: "digits only"
+  verification_sources: [USAspending]
+- namespace_id: SAM_ENTITY
+  name: SAM.gov entity registration identifier
+  issuer: SAM.gov
+  applies_to_entity_types: [Organization]
+  format: "[A-Z0-9]{8,20}"
+  validation_rule: "SAM registration reference"
+  globally_unique: true
+  temporally_unique: true
+  reusable: false
+  case_sensitive: false
+  normalization_rule: "uppercase"
+  verification_sources: [SAM]
+- namespace_id: FIPS
+  name: Federal Information Processing Series geographic code
+  issuer: US Census
+  applies_to_entity_types: [StatisticObservation, Organization]
+  format: "\\d{2,5}"
+  validation_rule: "FIPS state/county code"
+  globally_unique: true
+  temporally_unique: true
+  reusable: true
+  case_sensitive: false
+  normalization_rule: "zero-padded"
+  verification_sources: [Census]
+- namespace_id: GA_PORTAL
+  name: Georgia Grants Portal / agency program-opportunity identifier
+  issuer: Georgia OPB / state agency
+  applies_to_entity_types: [GrantOpportunity, Program]
+  format: "[A-Za-z0-9-]{3,40}"
+  validation_rule: "agency-assigned"
+  globally_unique: false
+  temporally_unique: true
+  reusable: false
+  case_sensitive: true
+  normalization_rule: "as-issued"
+  verification_sources: [Georgia portal pages]
+- namespace_id: COMMON_GRANTS
+  name: CommonGrants interoperability identifier
+  issuer: CommonGrants ecosystem
+  applies_to_entity_types: [GrantOpportunity, ApplicationProject, Award]
+  format: "[a-zA-Z0-9-]{8,64}"
+  validation_rule: "ecosystem-assigned"
+  globally_unique: true
+  temporally_unique: true
+  reusable: false
+  case_sensitive: true
+  normalization_rule: "as-issued"
+  verification_sources: [CommonGrants registry]
+- namespace_id: PROVIDER
+  name: Private/foundation provider-specific identifier
+  issuer: individual provider (foundation, portal)
+  applies_to_entity_types: [Organization, GrantOpportunity, Award]
+  format: "[A-Za-z0-9-]{1,64}"
+  validation_rule: "provider-assigned, must be scoped per provider"
+  globally_unique: false
+  temporally_unique: true
+  reusable: false
+  case_sensitive: true
+  normalization_rule: "as-issued"
+  verification_sources: [provider]

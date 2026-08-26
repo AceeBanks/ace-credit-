@@ -123,6 +123,48 @@ def validate_entity_types(catalog: dict) -> tuple[bool, dict]:
     })
 
 
+NAMESPACE_FIELDS = (
+    "namespace_id", "name", "issuer", "applies_to_entity_types", "format",
+    "validation_rule", "globally_unique", "temporally_unique", "reusable",
+    "case_sensitive", "normalization_rule", "verification_sources",
+)
+
+
+def validate_identifier_namespaces(data: dict, entity_types: dict | None = None) -> tuple[bool, dict]:
+    """B2.C5 — namespaces: required fields, unique ids, entity refs resolve,
+    boolean flags are booleans."""
+    errors: list[str] = []
+    entities = {e.get("entity_type") for e in (entity_types or {}).get("entity_types", [])}
+    namespaces = data.get("namespaces") or []
+    seen: set[str] = set()
+    for ns in namespaces:
+        nid = ns.get("namespace_id")
+        if not nid:
+            errors.append("namespace missing namespace_id")
+            continue
+        missing = [f for f in NAMESPACE_FIELDS if f not in ns or ns.get(f) is None]
+        if missing:
+            errors.append(f"{nid}: missing fields {missing}")
+        if nid in seen:
+            errors.append(f"{nid}: duplicate namespace")
+        seen.add(nid)
+        for flag in ("globally_unique", "temporally_unique", "reusable",
+                     "case_sensitive"):
+            if flag in ns and not isinstance(ns[flag], bool):
+                errors.append(f"{nid}: {flag} must be boolean")
+        if entities:
+            for et in ns.get("applies_to_entity_types") or []:
+                if et not in entities:
+                    errors.append(f"{nid}: applies to unknown entity '{et}'")
+    return finish("domain_identifier_namespaces", not errors, {
+        "errors": errors, "namespace_count": len(seen),
+    })
+
+
+def load_identifier_namespaces() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "identifier_namespaces.yaml")
+
+
 def load_entity_types() -> dict:
     return load_yaml(DOMAIN_CONFIG_DIR / "entity_types.yaml")
 
