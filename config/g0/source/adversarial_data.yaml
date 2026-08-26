@@ -1,0 +1,114 @@
+# G0-B3-C25-C26 — Adversarial data test suite + integration/replay/property
+# invariants (machine-readable, fail-closed).
+
+# A1-A25 adversarial scenarios and their REQUIRED fail-closed outcome.
+adversarial_scenarios:
+  - id: A1
+    name: stale_deadline
+    expectation: "current authoritative value wins; old remains lineage"
+  - id: A2
+    name: equal_authority_conflict
+    expectation: "CONFLICTED; critical use blocked"
+  - id: A3
+    name: search_snippet_hallucination
+    expectation: "snippet cannot promote claim"
+  - id: A4
+    name: model_generated_fake_citation
+    expectation: "unavailable/unverified source -> claim rejected/provisional"
+  - id: A5
+    name: web_prompt_injection
+    expectation: "inert/untrusted content; policy unaffected"
+  - id: A6
+    name: parser_corrupts_table
+    expectation: "extraction-quality/validation mismatch prevents verified promotion"
+  - id: A7
+    name: api_schema_drift
+    expectation: "source DEGRADED; no silent critical nulls"
+  - id: A8
+    name: user_provided_ein_conflict
+    expectation: "USER_ASSERTED does not outrank verified official ID; identity review"
+  - id: A9
+    name: county_city_statistic_mismatch
+    expectation: "blocked/qualified"
+  - id: A10
+    name: old_census_vintage
+    expectation: "stale under latest-vintage policy"
+  - id: A11
+    name: deleted_webpage
+    expectation: "retained snapshot supports historical replay subject to retention/terms"
+  - id: A12
+    name: crawler_redirect_unrelated_domain
+    expectation: "blocked/flagged"
+  - id: A13
+    name: duplicate_same_content_retrieval
+    expectation: "no duplicate bytes; retrieval timing preserved"
+  - id: A14
+    name: material_amendment_after_d0_draft
+    expectation: "D0 packet/draft marked stale; regenerate/review required"
+  - id: A15
+    name: nonmaterial_formatting_change
+    expectation: "no unnecessary application invalidation"
+  - id: A16
+    name: source_adapter_self_promotion
+    expectation: "policy rejects; promotion service governs state"
+  - id: A17
+    name: missing_raw_snapshot
+    expectation: "cannot achieve full verified/replayable status without governed exception"
+  - id: A18
+    name: cross_tenant_source_upload
+    expectation: "tenant scoping enforced"
+  - id: A19
+    name: malicious_uploaded_docx_pdf
+    expectation: "quarantine/validation path"
+  - id: A20
+    name: amount_units_mismatch
+    expectation: "normalization validation catches unit discrepancy"
+  - id: A21
+    name: date_timezone_ambiguity
+    expectation: "unresolved/normalized with source semantics; no silent midnight assumption"
+  - id: A22
+    name: private_old_page_vs_current_issuer
+    expectation: "current issuer source precedence"
+  - id: A23
+    name: award_opportunity_linkage_without_proof
+    expectation: "record award at supported level; no fabricated opportunity linkage"
+  - id: A24
+    name: causal_inference_from_winner_cohort
+    expectation: "descriptive allowed; unsupported causality blocked"
+  - id: A25
+    name: retention_deletion_breaks_evidence
+    expectation: "downstream evidence status updated/demoted/replay status changed"
+
+# B3.C26 mandatory invariants (each must hold as a test).
+mandatory_invariants:
+  - every_enabled_source_exists_in_registry
+  - every_material_fact_points_to_snapshot
+  - every_raw_capture_has_integrity_identity
+  - source_snapshots_immutable
+  - parsing_versioned_separately_from_capture
+  - promotion_policy_independent_of_extraction_engine
+  - search_snippets_cannot_promote_critical_claims
+  - source_precedence_fact_class_specific
+  - freshness_fact_source_semantic_not_generic_age
+  - equal_authority_critical_conflicts_block
+  - material_changes_produce_change_events
+  - p0_changes_invalidate_dependents
+  - external_identifiers_require_verification_state
+  - statistics_preserve_geography_population_time_vintage
+  - web_content_has_no_policy_authority
+  - historical_decisions_replayable_against_old_snapshots
+  - source_health_failure_cannot_fake_freshness
+  - retention_deletion_propagates_to_replay_evidence_status
+  - georgia_federal_sources_normalize_to_book2_ontology
+  - private_crawled_sources_remain_governed_registered
+  - d0_packet_reconstructs_without_agent_memory
+  - d0_draft_regenerable_with_bounded_variance
+
+# Property tests that must be deterministic / idempotent.
+property_tests:
+  - raw_content_hashing_idempotent
+  - precedence_resolver_deterministic
+  - freshness_resolver_deterministic
+  - dependency_invalidation_deterministic
+  - provenance_graph_no_orphan_material_facts
+  - replay_preserves_source_identities
