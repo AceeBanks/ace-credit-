@@ -1,0 +1,148 @@
+# G0 Book 1 - B1.C3 Actor Catalog (machine-readable).
+# Every actor carries a full authority contract per Book 1 plan §6.
+# Enforced by tools/g0/validate_policy_package.py and tests/g0/book1/.
+catalog_version: "1.0"
+valid_authority_levels: [L0, L1, L2, L3, L4, L5]
+valid_statuses: [ACTIVE, DISABLED, FUTURE]
+valid_audit_classes: [A1, A2, A3, A4]
+actors:
+- actor_type: ACTOR-HUMAN-CLIENT
+  purpose: Provides business concept/profile; reviews outputs; supplies/corrects facts; authorizes consequential external actions where policy requires.
+  default_authority_ceiling: HUMAN_SOVEREIGN
+  allowed_capability_families: [organization, opportunity, application, budget, artifact, communication, submission, system]
+  forbidden_capability_families: []
+  requires_tenant_scope: true
+  may_hold_credentials: false      # credentials live in the secret store, never with actors
+  may_create_workers: false
+  audit_class: A4                  # human approvals are security-relevant events
+  status: ACTIVE
+- actor_type: ACTOR-HUMAN-ADMIN
+  purpose: Platform administration, policy/security operations, system-level overrides through explicit audited paths.
+  default_authority_ceiling: HUMAN_SOVEREIGN
+  allowed_capability_families: [system]
+  forbidden_capability_families: [submission]   # admin cannot bypass APX either
+  requires_tenant_scope: false     # admin operates platform-wide but every action is A4-audited
+  may_hold_credentials: false
+  may_create_workers: false
+  audit_class: A4
+  status: ACTIVE
+- actor_type: ACTOR-HERMES-PERSONAL
+  purpose: Relationship intelligence, brainstorming, clarification, curated client continuity, intent formation, result explanation.
+  default_authority_ceiling: L1
+  allowed_capability_families: [organization, application, communication]  # propose-only
+  forbidden_capability_families: [submission, system]
+  requires_tenant_scope: true
+  may_hold_credentials: false
+  may_create_workers: false
+  audit_class: A1
+  status: ACTIVE
+- actor_type: ACTOR-HERMES-CEO
+  purpose: Operational planning, task decomposition, bounded system operation, specialist delegation, result synthesis, workflow improvement proposals.
+  default_authority_ceiling: L2
+  allowed_capability_families: [organization, opportunity, eligibility, matching, research, evidence, application, budget, qa, artifact, system]
+  forbidden_capability_families: [submission]
+  requires_tenant_scope: true
+  may_hold_credentials: false
+  may_create_workers: true
+  audit_class: A2
+  status: ACTIVE
+- actor_type: ACTOR-WORKER
+  purpose: Bounded specialist work inside one TaskContract scope.
+  default_authority_ceiling: L2          # task-scoped; never exceeds delegating context scope
+  allowed_capability_families: []        # granted per-task via TaskContract capability list only
+  forbidden_capability_families: [submission, system]
+  requires_tenant_scope: true
+  may_hold_credentials: false
+  may_create_workers: false
+  audit_class: A2
+  status: ACTIVE
+- actor_type: ACTOR-DETERMINISTIC-SERVICE
+  purpose: Eligibility evaluator, budget reconciler, schema validator, policy decision point, deadline evaluator.
+  default_authority_ceiling: L3
+  allowed_capability_families: [eligibility, budget, qa]
+  forbidden_capability_families: [submission, communication, research, application]
+  requires_tenant_scope: true
+  may_hold_credentials: false
+  may_create_workers: false
+  audit_class: A2
+  status: ACTIVE
+- actor_type: ACTOR-SOURCE-ADAPTER
+  purpose: Fetch/normalize registered external data sources; cannot declare itself authoritative or mutate unrelated domain state.
+  default_authority_ceiling: L2
+  allowed_capability_families: [opportunity]
+  forbidden_capability_families: [submission, application, organization]
+  requires_tenant_scope: true
+  may_hold_credentials: true             # source API keys held by adapter runtime only, never in memory
+  may_create_workers: false
+  audit_class: A1
+  status: ACTIVE
+- actor_type: ACTOR-POLICY-ENGINE
+  purpose: Evaluates permissions, approvals and scope; does not invent business facts.
+  default_authority_ceiling: L3
+  allowed_capability_families: []
+  forbidden_capability_families: [submission]
+  requires_tenant_scope: false           # evaluates across tenants; itself tenant-neutral infrastructure
+  may_hold_credentials: false
+  may_create_workers: false
+  audit_class: A2
+  status: ACTIVE
+- actor_type: ACTOR-CANONICAL-DATABASE
+  purpose: System-of-record substrate; not an active decision maker.
+  default_authority_ceiling: L3
+  allowed_capability_families: []
+  forbidden_capability_families: [submission]
+  requires_tenant_scope: true
+  may_hold_credentials: true             # its own DB credentials, scoped to storage
+  may_create_workers: false
+  audit_class: A2
+  status: ACTIVE
+- actor_type: ACTOR-ARTIFACT-STORE
+  purpose: Immutable/versioned artifact storage substrate.
+  default_authority_ceiling: L2
+  allowed_capability_families: [artifact]
+  forbidden_capability_families: [submission]
+  requires_tenant_scope: true
+  may_hold_credentials: true
+  may_create_workers: false
+  audit_class: A2
+  status: ACTIVE
+- actor_type: ACTOR-EXTERNAL-INTEGRATION
+  purpose: Email, CRM, grant portals, data APIs — effectors for permitted external actions.
+  default_authority_ceiling: L5          # can technically reach L5 destinations...
+  allowed_capability_families: [communication, submission]
+  forbidden_capability_families: []
+  requires_tenant_scope: true
+  may_hold_credentials: true
+  may_create_workers: false
+  audit_class: A3
+  status: DISABLED                       # ...but is DISABLED in Phase 1: tool access != authority (LAW-B1-003)
+- actor_type: ACTOR-OUTREACH-AGENT
+  purpose: Future outbound relationship work.
+  default_authority_ceiling: L4
+  allowed_capability_families: [communication]
+  forbidden_capability_families: [submission]
+  requires_tenant_scope: true
+  may_hold_credentials: false
+  may_create_workers: false
+  audit_class: A3
+  status: FUTURE
+- actor_type: ACTOR-SUBMISSION-AGENT
+  purpose: Future legally-material submission execution.
+  default_authority_ceiling: L5
+  allowed_capability_families: [submission]
+  forbidden_capability_families: []
+  requires_tenant_scope: true
+  may_hold_credentials: false            # decided at ratification time, never provisioned now
+  may_create_workers: false
+  audit_class: A4
+  status: DISABLED
+- actor_type: ACTOR-TRACKER-AGENT
+  purpose: Future post-submission award/rejection tracking.
+  default_authority_ceiling: L2
+  allowed_capability_families: [opportunity, research]
+  forbidden_capability_families: [submission]
+  requires_tenant_scope: true
+  may_hold_credentials: false
+  may_create_workers: false
+  audit_class: A1
+  status: FUTURE
