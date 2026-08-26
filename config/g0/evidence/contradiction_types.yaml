@@ -1,0 +1,40 @@
+# G0-B5-C6 — Contradiction types + resolution statuses (machine-readable).
+
+contradiction_types:
+  - id: VALUE_CONFLICT
+    text: "two claims disagree on the same predicate's value"
+  - id: IDENTITY_CONFLICT
+    text: "two claims refer to different entities under the same identity"
+  - id: TEMPORAL_CONFLICT
+    text: "claims valid for overlapping periods disagree"
+  - id: SOURCE_REVISION_CONFLICT
+    text: "different revisions of the same source disagree"
+  - id: SCOPE_CONFLICT
+    text: "claims differ on geography/population scope"
+  - id: UNIT_CONFLICT
+    text: "claims use incompatible units (detected before VALUE_CONFLICT)"
+  - id: INTERPRETATION_CONFLICT
+    text: "same evidence read differently"
+
+resolution_statuses:
+  - id: OPEN
+  - id: RESOLVED_SOURCE_PRECEDENCE
+  - id: RESOLVED_TEMPORAL
+  - id: RESOLVED_HUMAN
+  - id: RESOLVED_CORROBORATION
+  - id: SUPERSEDED
+  - id: UNRESOLVED_ACCEPTED
+
+hard_rules:
+  - id: CONTR-001
+    text: "Pick the higher confidence model output is not a valid universal resolution policy"
+  - id: CONTR-002
+    text: "equal-authority conflicts remain OPEN until governed resolution"
+  - id: CONTR-003
+    text: "newer source does not automatically win when historical effective dates differ"
+  - id: CONTR-004
+    text: "unit mismatch is recognized before value conflict"
+  - id: CONTR-005
+    text: "human resolution is audited"
+  - id: CONTR-006
+    text: "the losing claim is retained (EVID-LAW-005)"

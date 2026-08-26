@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://grant-sector.g0/schemas/evidence/resolution_event.schema.json",
+  "title": "ResolutionEvent",
+  "description": "Resolution preserves all conflicting claims, the chosen operational fact, policy/reason, actor/approval, time and downstream invalidation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["resolution_id", "contradiction_id", "conflicting_claim_refs", "resolution_status", "resolved_at", "resolved_by", "policy_ref"],
+  "properties": {
+    "resolution_id": {"type": "string", "minLength": 1},
+    "contradiction_id": {"type": "string", "minLength": 1},
+    "conflicting_claim_refs": {"type": "array", "items": {"type": "string"}, "minItems": 2},
+    "chosen_operational_fact_ref": {"type": ["string", "null"]},
+    "resolution_status": {
+      "type": "string",
+      "enum": ["RESOLVED_SOURCE_PRECEDENCE", "RESOLVED_TEMPORAL", "RESOLVED_HUMAN", "RESOLVED_CORROBORATION", "SUPERSEDED", "UNRESOLVED_ACCEPTED"]
+    },
+    "reason": {"type": "string", "minLength": 10},
+    "policy_ref": {"type": "string", "minLength": 1},
+    "actor_ref": {"type": ["string", "null"]},
+    "approval_ref": {"type": ["string", "null"]},
+    "resolved_at": {"type": "string", "format": "date-time"},
+    "resolved_by": {"type": "string", "minLength": 1},
+    "downstream_invalidations": {"type": "array", "items": {"type": "string"}}
+  }
+}

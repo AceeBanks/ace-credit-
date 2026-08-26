@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://grant-sector.g0/schemas/evidence/evidence_quality.schema.json",
+  "title": "EvidenceQuality",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["quality_id", "evidence_ref", "dimensions", "quality_class", "computed_by"],
+  "properties": {
+    "quality_id": {"type": "string", "minLength": 1},
+    "evidence_ref": {"type": "string", "minLength": 1},
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1},
+      "minProperties": 8,
+      "propertyNames": {
+        "enum": ["authority", "directness", "freshness", "specificity", "corroboration", "extraction_quality", "identity_certainty", "temporal_fit"]
+      }
+    },
+    "quality_class": {
+      "type": "string",
+      "enum": ["VERIFIED_HIGH", "VERIFIED_MODERATE", "PROVISIONAL", "CONFLICTED", "STALE", "UNSUPPORTED"]
+    },
+    "composite_score": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "computed_by": {"type": "string", "minLength": 1},
+    "computed_at": {"type": ["string", "null"], "format": "date-time"}
+  }
+}

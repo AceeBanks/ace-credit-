@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://grant-sector.g0/schemas/evidence/contradiction.schema.json",
+  "title": "Contradiction",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contradiction_id", "subject_scope", "predicate", "claim_refs", "contradiction_type", "severity", "status", "opened_at"],
+  "properties": {
+    "contradiction_id": {"type": "string", "minLength": 1},
+    "subject_scope": {"type": "object", "additionalProperties": true, "required": ["tenant_id", "entity_type", "entity_id"]},
+    "predicate": {"type": "string", "minLength": 1},
+    "claim_refs": {"type": "array", "items": {"type": "string"}, "minItems": 2},
+    "contradiction_type": {
+      "type": "string",
+      "enum": ["VALUE_CONFLICT", "IDENTITY_CONFLICT", "TEMPORAL_CONFLICT", "SOURCE_REVISION_CONFLICT", "SCOPE_CONFLICT", "UNIT_CONFLICT", "INTERPRETATION_CONFLICT"]
+    },
+    "severity": {"type": "string", "enum": ["P0", "P1", "P2"]},
+    "status": {
+      "type": "string",
+      "enum": ["OPEN", "RESOLVED_SOURCE_PRECEDENCE", "RESOLVED_TEMPORAL", "RESOLVED_HUMAN", "RESOLVED_CORROBORATION", "SUPERSEDED", "UNRESOLVED_ACCEPTED"]
+    },
+    "opened_at": {"type": "string", "format": "date-time"},
+    "resolved_at": {"type": ["string", "null"], "format": "date-time"},
+    "resolution_event_ref": {"type": ["string", "null"]}
+  }
+}

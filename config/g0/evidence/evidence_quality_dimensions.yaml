@@ -1,0 +1,71 @@
+# G0-B5-C4 — Evidence quality dimensions (machine-readable).
+# Dimensions stay inspectable; a composite score may rank but never erases
+# component values (EVID-LAW-014).
+
+dimensions:
+  - id: authority
+    name: Authority
+    scale: [0, 1]
+    meaning: "How authoritative is the source for this claim"
+  - id: directness
+    name: Directness
+    scale: [0, 1]
+    meaning: "Primary statement/data vs secondary report vs inferred/derived"
+  - id: freshness
+    name: Freshness
+    scale: [0, 1]
+    meaning: "How current is the evidence relative to claim type"
+  - id: specificity
+    name: Specificity
+    scale: [0, 1]
+    meaning: "Does evidence address the exact entity/geography/program/time period"
+  - id: corroboration
+    name: Corroboration
+    scale: [0, 1]
+    meaning: "Independent supporting sources"
+  - id: extraction_quality
+    name: Extraction quality
+    scale: [0, 1]
+    meaning: "Structured API vs clean table vs parsed PDF vs uncertain extraction"
+  - id: identity_certainty
+    name: Identity certainty
+    scale: [0, 1]
+    meaning: "Confidence that evidence refers to the correct entity"
+  - id: temporal_fit
+    name: Temporal fit
+    scale: [0, 1]
+    meaning: "Does evidence apply to the relevant effective period"
+
+required_dimensions:
+  - authority
+  - directness
+  - freshness
+  - specificity
+  - corroboration
+  - extraction_quality
+  - identity_certainty
+  - temporal_fit
+
+quality_classes:
+  - id: VERIFIED_HIGH
+    rule: "high authority, high directness, fresh, specific, corroborated"
+  - id: VERIFIED_MODERATE
+    rule: "verified but with a moderate dimension (e.g. secondary report)"
+  - id: PROVISIONAL
+    rule: "plausible but not yet verified"
+  - id: CONFLICTED
+    rule: "contradicted by equal-or-higher authority evidence"
+  - id: STALE
+    rule: "fails freshness for its claim class"
+  - id: UNSUPPORTED
+    rule: "no support set at all"
+
+hard_rules:
+  - id: QUAL-001
+    text: "high authority + stale is not silently high confidence"
+  - id: QUAL-002
+    text: "low extraction quality remains visible"
+  - id: QUAL-003
+    text: "conflicting authoritative sources cannot be averaged away"
+  - id: QUAL-004
+    text: "composite score is reproducible"
