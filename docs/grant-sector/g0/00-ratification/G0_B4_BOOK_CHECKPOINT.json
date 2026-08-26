@@ -1,0 +1,31 @@
+{
+  "checkpoint": "G0-B4-RATIFY",
+  "branch": "grant-sector-r0-salvage",
+  "head_sha": "9f5f0794",
+  "boot_commit": {
+    "sha": "00a3a68e",
+    "message": "G0-B4-C1: freeze dual-Hermes cognitive boundary"
+  },
+  "chapter_commits": [
+    {"sha": "00a3a68e", "message": "G0-B4-C1: freeze dual-Hermes cognitive boundary"},
+    {"sha": "87540091", "message": "G0-B4-C2-C3: define Personal and CEO Hermes operating contracts"},
+    {"sha": "91660ae4", "message": "G0-B4-C4-C5: freeze intent and clarification protocol"},
+    {"sha": "2db0774a", "message": "G0-B4-C6-C7: define CEO planning and task delegation contracts"},
+    {"sha": "13790f7b", "message": "G0-B4-C8-C9: freeze sidechain, worker-result and CEO synthesis protocol"},
+    {"sha": "685d7f83", "message": "G0-B4-C10-C11: define client explanation and context assembly contracts"},
+    {"sha": "5cbecf53", "message": "G0-B4-C12-C13: freeze Personal and CEO memory constitutions"},
+    {"sha": "2ff3ab50", "message": "G0-B4-C14-C16: define worker memory, promotion, supersession and forgetting"},
+    {"sha": "184a535c", "message": "G0-B4-C17-C19: implement semantic compaction, context budgeting and cold reconstruction protocol"},
+    {"sha": "04e6e09b", "message": "G0-B4-C20-C21: co-adaptation and client feedback loop"},
+    {"sha": "449d33f8", "message": "G0-B4-C22: D1 Hermes mock-draft contract"},
+    {"sha": "c5c184b7", "message": "G0-B4-C23-C25: skill boundaries, model independence and privacy scope"},
+    {"sha": "3c16d461", "message": "G0-B4-C26-C27: adversarial context/memory suite A1-A25 and integration/reconstruction invariants"},
+    {"sha": "9f5f0794", "message": "G0-B4-BOOK: seal Book 4 with derived Reality Lock (PASS, ready_for_book5)"}
+  ],
+  "repair_commits": [],
+  "reality_lock_status": "PASS",
+  "tests_passed": 958,
+  "tests_failed": 0,
+  "ready_for_book5": true,
+  "note": "Book 4 implemented in 14 chapter-band commits from the plan's commit plan. The derived Book 4 Reality Lock computed PASS (ready_for_book5) with all 19 predicates true, p0_open 0; the C26-C27 adversarial band was a required plan chapter that the lock build surfaced as missing, so it was implemented and committed as its own band before BOOK (no lock failure occurred; the gap was caught before sealing). No bounded repairs were required. The freshness suite (15 tests) proves the committed lock equals honest regeneration and that injected defects flip readiness to FAIL. Self-review is NOT external ratification; Book 5 may begin per plan gate. D1 mock-draft harness remains MOCK / NON-SUBMISSION; no submission path exists."
+}
