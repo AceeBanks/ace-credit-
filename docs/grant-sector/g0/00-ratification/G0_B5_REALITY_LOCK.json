@@ -1,0 +1,44 @@
+{
+  "book": "G0-B5",
+  "status": "PASS",
+  "evidence_constitution_complete": true,
+  "provenance_model_pass": true,
+  "evidence_graph_semantics_pass": true,
+  "decision_record_pass": true,
+  "historical_replay_pass": true,
+  "contradiction_retention_pass": true,
+  "dependency_invalidation_pass": true,
+  "retrieval_authority_pass": true,
+  "graph_rebuild_exit_pass": true,
+  "vector_rebuild_exit_pass": true,
+  "semantica_bakeoff_complete": true,
+  "storage_adr_ratified": true,
+  "tenant_isolation_pass": true,
+  "claim_ledger_pass": true,
+  "client_explanation_pass": true,
+  "audit_evidence_linkage_pass": true,
+  "eval_lineage_pass": true,
+  "d0_d1_evidence_ready": true,
+  "adversarial_p0_pass": true,
+  "p0_open": 0,
+  "ready_for_book6": true,
+  "evidence": {
+    "test_results": {
+      "exit_code": 0,
+      "passed": 227,
+      "failed": 0,
+      "summary": "227 passed, 4 skipped in 4.35s",
+      "scope": "tests/g0/book5 excluding G0_B5_REALITY_LOCK.json freshness self-test"
+    },
+    "adversarial_results": {
+      "exit_code": 0,
+      "passed": 101,
+      "failed": 0,
+      "summary": "101 passed, 3 skipped in 0.66s",
+      "scope": "tests/g0/book5/test_adversarial_evidence.py + test_integration_properties.py"
+    },
+    "bakeoff_summary": 9,
+    "storage_adr_present": true,
+    "failed_predicates": []
+  }
+}

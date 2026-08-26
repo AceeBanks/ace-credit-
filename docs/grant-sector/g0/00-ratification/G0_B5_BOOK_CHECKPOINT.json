@@ -1,0 +1,80 @@
+{
+  "checkpoint": "G0-B5-RATIFY",
+  "branch": "grant-sector-r0-salvage",
+  "head_sha": "5f78c3b4",
+  "boot_commit": {
+    "sha": "77fe3a01",
+    "message": "G0-B5-C1: freeze evidence and decision constitutional laws"
+  },
+  "chapter_commits": [
+    {
+      "sha": "77fe3a01",
+      "message": "G0-B5-C1: freeze evidence and decision constitutional laws"
+    },
+    {
+      "sha": "e7f5dbc8",
+      "message": "G0-B5-C2-C3: define provenance references and evidence graph semantics"
+    },
+    {
+      "sha": "de65efc8",
+      "message": "G0-B5-C4-C6: implement evidence quality, promotion and contradiction contracts"
+    },
+    {
+      "sha": "73108f2d",
+      "message": "G0-B5-C7-C9: define decision replay and selective invalidation substrate"
+    },
+    {
+      "sha": "eacad61e",
+      "message": "G0-B5-C10-C12: freeze retrieval, projection and Semantica bake-off contracts"
+    },
+    {
+      "sha": "25356cdf",
+      "message": "G0-B5-C13: complete Semantica bake-off with measured W1-W10 results"
+    },
+    {
+      "sha": "1cf6552d",
+      "message": "G0-B5-C14-C18: ratify substrate decision and client/audit evidence contracts"
+    },
+    {
+      "sha": "b2dc61c8",
+      "message": "G0-B5-C19-C20: eval dataset lineage and D0/D1 evidence readiness"
+    },
+    {
+      "sha": "b53cc3a0",
+      "message": "G0-B5-C21-C23: performance envelope, privacy visibility and degraded modes"
+    },
+    {
+      "sha": "5f78c3b4",
+      "message": "G0-B5-C24-C25: adversarial evidence suite and integration/property tests"
+    }
+  ],
+  "reality_lock": {
+    "path": "docs/grant-sector/g0/00-ratification/G0_B5_REALITY_LOCK.json",
+    "status": "PASS",
+    "p0_open": 0,
+    "ready_for_book6": true,
+    "builder": "tools/g0/build_book5_reality_lock.py",
+    "freshness_suite": "tests/g0/book5/test_book5_reality_lock.py (13 passed)"
+  },
+  "test_totals": {
+    "book0": 51,
+    "book1": 133,
+    "book2": 255,
+    "book3": 243,
+    "book4": 276,
+    "book5": 228,
+    "full_suite_passed": 1186,
+    "full_suite_skipped": 3,
+    "full_suite_failed": 0,
+    "command": "python -m pytest tests/g0 -q"
+  },
+  "bakeoff": {
+    "candidate": "semantica-agi/semantica (PyPI semantica 0.6.6)",
+    "baseline_correct": 9,
+    "semantica_correct": 9,
+    "verdict": "ADOPT_OPTIONAL_ACCELERATOR (deferred; no runtime install)",
+    "storage_adr": "Pattern A \u2014 relational canonical + relational evidence/dependency tables (RATIFIED)"
+  },
+  "external_review": "INTERNAL REALITY LOCK PASS \u2014 external ratification performed separately",
+  "ready_for_book7": false
+}
