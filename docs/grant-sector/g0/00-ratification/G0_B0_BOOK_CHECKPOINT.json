@@ -1,0 +1,46 @@
+{
+  "checkpoint": "G0-B0-BOOK",
+  "branch": "grant-sector-r0-salvage",
+  "head_sha": "b1501472198492c5f92ccd4dc895ae769c04f470",
+  "boot_commit": {
+    "sha": "4fbbf186",
+    "message": "G0-B01-BOOT: establish Books 0-1 execution baseline"
+  },
+  "chapter_commits": [
+    {
+      "sha": "f2f8e557",
+      "message": "G0-B0-C1: build R0 artifact manifest and lineage validator"
+    },
+    {
+      "sha": "0924b672",
+      "message": "G0-B0-C1: normalize lineage hashes against line-ending drift"
+    },
+    {
+      "sha": "ed1dd1cb",
+      "message": "G0-B0-C2: normalize R0 architecture decisions"
+    },
+    {
+      "sha": "bd9d9fe1",
+      "message": "G0-B0-C3: close R0 P0 contradictions and drift"
+    },
+    {
+      "sha": "a4533029",
+      "message": "G0-B0-C4-C5: freeze non-goals and prototype register"
+    },
+    {
+      "sha": "b1c89d96",
+      "message": "G0-B0-C6: implement ratification Reality Lock and tests"
+    }
+  ],
+  "repair_commits": [
+    {
+      "sha": "b1501472",
+      "message": "G0-B0-REPAIR-01: close stale-lock attack with freshness equality test"
+    }
+  ],
+  "reality_lock_status": "PASS",
+  "tests_passed": 51,
+  "tests_failed": 0,
+  "ready_for_book1_ratification": true,
+  "note": "Self-review is NOT external ratification; Book 1 may begin per plan gate."
+}
