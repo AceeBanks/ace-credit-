@@ -1,0 +1,672 @@
+# G0 Book 0 - R0 Decision Register (machine-readable).
+# Every major R0 conclusion normalized into exactly one primary status:
+#   RATIFIED | RATIFIED_WITH_CONDITION | PROTOTYPE_REQUIRED | DEFERRED | REJECTED | UNRESOLVED
+# Every source_artifact_id MUST resolve to an entry in artifact_manifest.yaml.
+register_version: 1
+required_categories:
+  - architecture
+  - Hermes
+  - memory/context
+  - control/governance
+  - data/source
+  - research
+  - parsing
+  - security
+  - evidence
+  - external repositories
+  - licensing
+  - Georgia-first
+  - client Phase 1
+  - mock drafting milestones
+  - submission boundary
+  - reject ledger
+valid_statuses:
+  - RATIFIED
+  - RATIFIED_WITH_CONDITION
+  - PROTOTYPE_REQUIRED
+  - DEFERRED
+  - REJECTED
+  - UNRESOLVED
+decisions:
+- decision_id: DEC-ARCH-001
+  title: Dual-Hermes architecture
+  status: RATIFIED
+  category: architecture
+  statement: >-
+    The platform operates two distinct Hermes profiles: a Personal Hermes facing the client
+    (relationship continuity, intent formation) and a CEO Hermes operating the system
+    (planning, application operation). They are separate identities with separate memory,
+    authority, and retention policies, joined by the IntentContract seam.
+  rationale: >-
+    Charter defines the Dual-Hermes model as core product architecture; seed architecture
+    packages A/B depend on it; reject ledger forbids one shared mutable memory namespace.
+  source_artifact_ids: [GS-R0-CTX-001, GS-R0-SEED-001, GS-R0-REJECT-001]
+  conditions: []
+  affected_books: [G0-B1, G0-B2]
+  implementation_implications: >-
+    Book 1 must define actor identities and authority levels per profile; no shared memory namespace may be implemented.
+  supersedes_decision_id: null
+- decision_id: DEC-ARCH-002
+  title: Relationship / Control / Work / Data plane separation
+  status: RATIFIED
+  category: architecture
+  statement: >-
+    The reference architecture separates four planes: client relationship plane (Personal Hermes),
+    governed control plane (identity/tenant/policy/audit/event/project state + CEO Hermes),
+    worker/tool fabric plane, and data/artifact plane. Cross-plane interaction happens only
+    through typed contracts (IntentContract, TaskContract, WorkerResult, OutcomeArtifact).
+  rationale: Seed architecture section 1 fixes this reference topology; salvage map confirms reusable patterns align to these seams.
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-MAP-001]
+  conditions: []
+  affected_books: [G0-B0, G0-B1, G0-B2, G0-B3]
+  implementation_implications: Contracts frozen in G0 become stable swap seams; workers never bypass the control plane.
+  supersedes_decision_id: null
+- decision_id: DEC-ARCH-003
+  title: Clean-repository selective transplant, not branch merge
+  status: RATIFIED
+  category: architecture
+  statement: >-
+    The future Grant Sector product is seeded by deliberate transplant of selected components
+    behind new product interfaces into a clean repository. Merging master,
+    execution-runtime-foundation, or Hermes archives wholesale is prohibited.
+  rationale: Salvage map executive finding and archaeology notes show legacy coupling (SQLite, Obsidian, trading nomenclature, prototype-grade code) makes wholesale merges unsafe.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-ARCH-001, GS-R0-REJECT-001]
+  conditions: []
+  affected_books: [G0-B2, G0-B3]
+  implementation_implications: Each transplanted component needs a bounded validation step before promotion; historical test-count claims are not current proof.
+  supersedes_decision_id: null
+- decision_id: DEC-HERMES-001
+  title: Hermes operates; the platform owns truth
+  status: RATIFIED
+  category: Hermes
+  statement: >-
+    Hermes profiles are operators acting through governed capabilities. Neither Hermes is a
+    sovereign product-truth store; canonical state lives outside agent memory in durable storage.
+  rationale: Seed architecture law 1 and reject ledger anti-pattern "model used as authoritative database".
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-REJECT-001, GS-R0-CTX-001]
+  conditions: []
+  affected_books: [G0-B1, G0-B2]
+  implementation_implications: Book 1 constitutional layer must dominate tool availability; agent instructions alone are never sufficient authorization.
+  supersedes_decision_id: null
+- decision_id: DEC-HERMES-002
+  title: OCE-Hermes filtered MCP facade pattern
+  status: RATIFIED_WITH_CONDITION
+  category: Hermes
+  statement: >-
+    Both Hermes profiles access product capabilities only through a governed MCP-style facade
+    derived from the oce-hermes-telegram-operator pattern: schema validation, service identity,
+    redaction, rate limiting, request IDs, structured audit, and adversarial gateway tests.
+  rationale: Salvage map Tier A rates this FORK/PORT confidence A; seed package A adopts it.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-SEED-001]
+  conditions:
+    - Fresh dependency/security verification before any production use of salvaged gateway code.
+    - Capability matrix and tenant/project scope enforced server-side, not in Hermes config.
+  affected_books: [G0-B1, G0-B2]
+  implementation_implications: Tool registry and credential vault/injection are server-side components; Hermes holds no direct DB or secret access.
+  supersedes_decision_id: null
+- decision_id: DEC-MEM-001
+  title: Personal and CEO memory isolation
+  status: RATIFIED
+  category: memory/context
+  statement: >-
+    Personal and CEO Hermes maintain separate memory namespaces with distinct promotion and
+    retention policies. Sharing one mutable memory across roles is rejected.
+  rationale: Salvage map Five-Pillar disposition requires role separation; reject ledger lists shared-memory anti-pattern explicitly.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-REJECT-001]
+  conditions: []
+  affected_books: [G0-B2, G0-B4]
+  implementation_implications: Memory subsystem must key namespaces by actor identity; cross-role promotion is prohibited.
+  supersedes_decision_id: null
+- decision_id: DEC-MEM-002
+  title: Workers bounded/disposable with sidechain trace isolation
+  status: RATIFIED
+  category: memory/context
+  statement: >-
+    Workers are bounded and disposable. Full worker transcripts live in sidechain/audit storage;
+    parents receive concise result packets plus pointers. Injecting full worker transcripts into
+    parent context is rejected. Workers receive no autobiographical long-term memory.
+  rationale: Salvage map sidechain pattern (confidence A); seed architecture law 3; reject ledger anti-patterns.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-SEED-001, GS-R0-REJECT-001]
+  conditions: []
+  affected_books: [G0-B2, G0-B3]
+  implementation_implications: Trace metadata/artifact references go to durable storage with retention classes and redaction.
+  supersedes_decision_id: null
+- decision_id: DEC-MEM-003
+  title: Context compaction with preservation classes
+  status: RATIFIED_WITH_CONDITION
+  category: memory/context
+  statement: >-
+    Context compaction follows the five-layer historical protocol rewritten with preservation
+    classes instead of fixed turn windows, distinct Personal vs CEO policies, canonical-state
+    references, compaction provenance, stale-memory demotion, and no secrets in compacted memory.
+  rationale: Salvage map 3.4 lists required improvements over the archived implementation.
+  source_artifact_ids: [GS-R0-MAP-001]
+  conditions:
+    - Compaction provenance must be recorded so any compaction is replayable/auditable.
+  affected_books: [G0-B2, G0-B4]
+  implementation_implications: Combine with OCE anchor-preservation concept; never copy durable facts into summaries.
+  supersedes_decision_id: null
+- decision_id: DEC-GOV-001
+  title: Typed capability/policy enforcement replaces regex-only denylists
+  status: RATIFIED
+  category: control/governance
+  statement: >-
+    Agent action control is a typed capability registry plus policy decision point evaluating
+    actor, tenant, project, capability, resource, authority level, and risk class. Regex
+    denylists survive only as defense-in-depth, never as sole authorization.
+  rationale: Salvage map pre-tool hook disposition and reject ledger "regex denylist as sole authorization control" rejection.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-REJECT-001, GS-R0-SEED-001]
+  conditions: []
+  affected_books: [G0-B1]
+  implementation_implications: This is the Book 1 constitutional control plane; missing policy information must fail closed to DENY.
+  supersedes_decision_id: null
+- decision_id: DEC-GOV-002
+  title: Self-heal limited to runtime failures; policy changes require governed review
+  status: RATIFIED
+  category: control/governance
+  statement: >-
+    Autonomous self-heal may address infrastructure and retryable workflow failures only.
+    Changing product policy, authority, or capabilities autonomously is rejected; such changes
+    require governed review through explicit approval flows.
+  rationale: Reject ledger rejects autonomous self-heal changing product policy/authority; seed package F includes approval flow.
+  source_artifact_ids: [GS-R0-REJECT-001, GS-R0-SEED-001]
+  conditions: []
+  affected_books: [G0-B1, G0-B6]
+  implementation_implications: Book 1 must make policy mutation a protected capability requiring approval above agent authority.
+  supersedes_decision_id: null
+- decision_id: DEC-DATA-001
+  title: Postgres/durable governed state is authoritative truth
+  status: RATIFIED
+  category: data/source
+  statement: >-
+    PostgreSQL is the canonical operational datastore: accepted task intent, project state,
+    domain facts, audit, and identity all live in migration-managed Postgres schemas.
+    Scattered per-module SQLite databases and local USB/Obsidian vaults are rejected for production.
+  rationale: OCE Block 1 doctrine adoption; reject ledger SQLite/Obsidian rejections; salvage map component table.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-REJECT-001, GS-R0-SEED-001]
+  conditions: []
+  affected_books: [G0-B2, G0-B3]
+  implementation_implications: All persisted state designs in later books target Postgres domains with backups/restore.
+  supersedes_decision_id: null
+- decision_id: DEC-DATA-002
+  title: Redis is non-authoritative transport/cache only
+  status: RATIFIED
+  category: data/source
+  statement: >-
+    Redis may transport wakeups/work items and cache, but accepted jobs and task truth survive
+    Redis loss/restart because Postgres stores accepted task intent. Redis-as-sole-job-truth is rejected.
+  rationale: Salvage map queue disposition; reject ledger explicit anti-pattern; seed architecture proof requirement "accepted tasks/projects survive Redis loss/restart".
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-REJECT-001, GS-R0-SEED-001]
+  conditions: []
+  affected_books: [G0-B3]
+  implementation_implications: Queue design must persist accepted tasks durably before enqueueing transport messages.
+  supersedes_decision_id: null
+- decision_id: DEC-DATA-003
+  title: Executable source precedence with immutable snapshots
+  status: RATIFIED
+  category: data/source
+  statement: >-
+    Source authority and freshness rules are executable, fact-specific, and enforceable:
+    current official solicitation dominates older copies and aggregators for issuer-owned facts;
+    official structured datasets outrank third-party summaries for owned facts; search snippets
+    never become promoted evidence; every promoted fact resolves to an immutable SourceSnapshot
+    or approved structured dataset record; material revisions trigger dependency re-evaluation;
+    unresolved conflicts fail closed for consequential decisions.
+  rationale: Seed architecture section 6 elevates descriptive precedence to executable rules; deep hunt establishes the source inventory.
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-DATA-001]
+  conditions: []
+  affected_books: [G0-B3, G0-B5]
+  implementation_implications: SourceRegistry/SourceSnapshot/SourceRevisionEvent contracts are mandatory G0 freezes.
+  supersedes_decision_id: null
+- decision_id: DEC-DATA-004
+  title: Federal/state/community source architecture
+  status: RATIFIED
+  category: data/source
+  statement: >-
+    Initial adapters: Grants.gov REST + Simpler.Grants.gov + SAM Assistance Listings (federal
+    opportunity); USAspending (+TAGGS where relevant) for winner/history; IRS EO BMF + 990 XML +
+    FAC for organization/capacity (ProPublica convenience only); Census ACS/SAIPE + BLS/BEA plus
+    one domain layer for community evidence; state portals and targeted private web via governed crawl.
+  rationale: Deep hunt resolved federal-baseline coverage; gap map marks funder/award domain model NEW BUILD with sources resolved.
+  source_artifact_ids: [GS-R0-DATA-001, GS-R0-GAP-001, GS-R0-SEED-001]
+  conditions:
+    - Adapter set proves out against real sources in the first vertical slice before broadening.
+  affected_books: [G0-B3, G0-B5]
+  implementation_implications: Rewrite adapter layer on Research Mesh interface/reliability patterns; literal paper-specific clients are not portable.
+  supersedes_decision_id: null
+- decision_id: DEC-DATA-005
+  title: CommonGrants interoperability mapping
+  status: RATIFIED_WITH_CONDITION
+  category: external repositories
+  statement: >-
+    Internal grant models map cleanly to the HHS-backed CommonGrants protocol for Opportunity,
+    Application, and Award wherever practical. Internal-only fields (lineage, scores, QA, tenant
+    policy) stay namespaced and do not contaminate the interoperability contract.
+  rationale: Deep hunt elevates CommonGrants to design input; seed architecture section 3 defines the three mappings.
+  source_artifact_ids: [GS-R0-DATA-001, GS-R0-SEED-001]
+  conditions:
+    - Mapping contracts freeze in G0 alongside internal contracts; deviations require recorded rationale.
+  affected_books: [G0-B3]
+  implementation_implications: >-
+    The sectors/grants/interoperability/commongrants package owns adapters; the internal model remains richer.
+  supersedes_decision_id: null
+- decision_id: DEC-DATA-006
+  title: Candid is optional paid enrichment, never a mandatory MVP dependency
+  status: DEFERRED
+  category: data/source
+  statement: >-
+    Candid enters only after free-source coverage is measured and ROI justifies it, as optional
+    enrichment behind the SourceRegistry. It is not required for the MVP or first vertical slice.
+  rationale: Seed architecture "what not to build yet" and Package D mark Candid optional; deep hunt treats it as paid enrichment.
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-DATA-001]
+  conditions: []
+  affected_books: [G0-B5]
+  implementation_implications: candid_optional adapter package is an extension point only until coverage/ROI evidence exists.
+  supersedes_decision_id: null
+- decision_id: DEC-EVID-001
+  title: Deterministic eligibility kernel decides deterministic questions
+  status: RATIFIED
+  category: evidence
+  statement: >-
+    Eligibility and other normalized-rule numerical/logical questions are decided by a
+    deterministic kernel reproducible from normalized facts. The model never decides
+    deterministic questions after rules are normalized.
+  rationale: Seed architecture law 4; reject ledger anti-pattern; gap map marks eligibility engine NEW BUILD.
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-REJECT-001, GS-R0-GAP-001]
+  conditions: []
+  affected_books: [G0-B5]
+  implementation_implications: EligibilityRule/EligibilityDecision/MatchExplanation contracts freeze in G0; matching output must be explainable.
+  supersedes_decision_id: null
+- decision_id: DEC-EVID-002
+  title: Evidence confidence model; LLM self-confidence is not independent evidence
+  status: RATIFIED
+  category: evidence
+  statement: >-
+    Evidence confidence derives from source tier, directness, freshness/effective dates,
+    geographic/population match, extraction quality, corroboration, and contradiction state.
+    LLM self-ratings and hard-coded academic source rankings are rejected as grant evidence models.
+  rationale: Salvage map evaluator rewrite requirements; reject ledger rejections; seed architecture proof list.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-REJECT-001]
+  conditions: []
+  affected_books: [G0-B3, G0-B5]
+  implementation_implications: Grant-specific evidence hierarchy is NEW BUILD per gap map.
+  supersedes_decision_id: null
+- decision_id: DEC-EVID-003
+  title: Relational Evidence Graph first; generic graph database deferred
+  status: RATIFIED
+  category: evidence
+  statement: >-
+    The Evidence Graph starts as explicit typed relationships (claim SUPPORTS snapshot,
+    claim CONTRADICTS claim, rule DERIVED_FROM source, org SATISFIES/FAILS rule, etc.) over the
+    canonical datastore. A generic cognition graph or Neo4j-first architecture is deferred/rejected
+    as default until evidence proves need. Vector search supplements, never replaces,
+    deterministic logic and lineage.
+  rationale: Salvage map graph rewrite posture; reject ledger TurboVec/FAISS-default and Neo4j-first rejections.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-REJECT-001]
+  conditions: []
+  affected_books: [G0-B5]
+  implementation_implications: Ontology is ours; Semantica bake-off evaluates substrate only (see DEC-EVID-004).
+  supersedes_decision_id: null
+- decision_id: DEC-EVID-004
+  title: Semantica evidence/provenance substrate requires P0 bake-off
+  status: PROTOTYPE_REQUIRED
+  category: evidence
+  statement: >-
+    Semantica is a candidate substrate for the Grant Evidence Graph (claim→source provenance,
+    conflicting facts, temporal state, decision chains, deterministic reasoning, auditable exports)
+    and must pass the P0 bake-off against a relational baseline before any foundational commitment.
+    It must never become an opaque sovereign truth source; canonical operational state stays
+    product-owned.
+  rationale: External repo review batch 02 disposition "PORT + WRAP candidate; potentially foundational"; MIT license observed but exact pin requires review; gap map P0 bake-off; guard against foundational-enthusiasm contradiction.
+  source_artifact_ids: [R0-EXT-REVIEW-BATCH-02, GS-R0-GAP-001, GS-R0-SEED-001]
+  conditions:
+    - Bake-off compares Semantica against relational baseline on provenance fidelity, temporal state, export auditability, and operational cost.
+  affected_books: [G0-B2, G0-B5]
+  implementation_implications: Book 0 does not adopt Semantica as foundation; Books 2+ inherit the bake-off obligation.
+  supersedes_decision_id: null
+- decision_id: DEC-RES-001
+  title: Research Mesh salvage — port contracts, rewrite persistence
+  status: RATIFIED_WITH_CONDITION
+  category: research
+  statement: >-
+    Research Mesh contributes the source-adapter interface, rate limiter/backoff, dedupe/write-gate
+    concept, ResearchTask state shape, lifecycle/heartbeat/retry semantics, token/cost accounting,
+    and synthesis pipeline. Persistence rewrites to Postgres; SQLite implementations are not ported;
+    historical 106/106 test claims must be re-run against ported code before counting as proof.
+  rationale: Salvage map section 5 dispositions; reject ledger SQLite queue/cache literal-implementation rejections.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-REJECT-001]
+  conditions:
+    - Re-run ported tests in the new environment before promoting any historical test-count claim.
+    - Extend lifecycle with lease, authority scope, tenant scope, cancellation, idempotency keys, and escalation.
+  affected_books: [G0-B2, G0-B3]
+  implementation_implications: Worker lifecycle manager derives from lifecycle.py concepts with modern extensions.
+  supersedes_decision_id: null
+- decision_id: DEC-RES-002
+  title: Crawl4AI governed web extraction
+  status: PROTOTYPE_REQUIRED
+  category: research
+  statement: >-
+    Crawl4AI is the candidate for governed web extraction (state portals, targeted foundation/
+    corporate pages) and requires prototype evidence for extraction reliability and politeness
+    before production adoption.
+  rationale: Seed architecture Package C names Crawl4AI for governed web extraction; gap map bake-off table; expected baseline marks it PROTOTYPE_REQUIRED.
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-GAP-001]
+  conditions:
+    - Extraction runs under rate limits and robots/politeness policy inside the Research Fabric.
+  affected_books: [G0-B3]
+  implementation_implications: Nationwide uncontrolled foundation crawling stays a non-goal regardless of tooling.
+  supersedes_decision_id: null
+- decision_id: DEC-RES-003
+  title: GPT Researcher bounded research patterns
+  status: PROTOTYPE_REQUIRED
+  category: research
+  statement: >-
+    GPT Researcher contributes planning/execution/publisher patterns for bounded deep research.
+    Prototype evidence must show cost/quality bounds before integration into grant research workflows.
+  rationale: Seed architecture Package C and gap map identify GPT Researcher patterns as candidates requiring evidence rather than assumption.
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-GAP-001]
+  conditions:
+    - Bounded execution with cost caps; outputs enter only via SourceSnapshot + evidence validation.
+  affected_books: [G0-B3]
+  implementation_implications: Search/discovery is not evidence; raw web claims cannot self-promote.
+  supersedes_decision_id: null
+- decision_id: DEC-PARSE-001
+  title: Parser normalization contract with wrapped engines; Unstructured bake-off
+  status: PROTOTYPE_REQUIRED
+  category: parsing
+  statement: >-
+    The universal parser normalization contract (typed SourceDocument/Cognition Object with tenant
+    identity, snapshot hash, authority tier, freshness, sensitivity, parsing confidence) is ratified;
+    engines (MarkItDown, OpenDataLoader PDF, Chandra, Unstructured) remain wrapped replaceable
+    workers. Unstructured vs the salvaged parser stack is a required bake-off.
+  rationale: Salvage map parser dispositions (PORT contract / WRAP engines, confidence B pending fresh due diligence); gap map bake-off row.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-GAP-001]
+  conditions:
+    - License/maintenance/CVE recheck for each wrapped engine before production use.
+  affected_books: [G0-B2, G0-B3]
+  implementation_implications: SourceDocument contract freezes in G0; no engine becomes load-bearing without the bake-off.
+  supersedes_decision_id: null
+- decision_id: DEC-PARSE-002
+  title: PixelRAG visual/layout fallback benchmark
+  status: PROTOTYPE_REQUIRED
+  category: parsing
+  statement: >-
+    PixelRAG is the candidate visual/layout fallback for scanned or visually complex grant
+    documents and must win a fallback benchmark against text-layer extraction before adoption.
+  rationale: Gap map bake-off table lists PixelRAG as fallback benchmark; seed architecture Package H names it.
+  source_artifact_ids: [GS-R0-GAP-001, GS-R0-SEED-001]
+  conditions: []
+  affected_books: [G0-B3]
+  implementation_implications: Fallback triggers only when primary parsers report low extraction confidence.
+  supersedes_decision_id: null
+- decision_id: DEC-SEC-001
+  title: Zero secrets in memory, prompts, sidechains, logs, or Git
+  status: RATIFIED
+  category: security
+  statement: >-
+    No credential, API token, password, secret, or reusable authentication material may be written
+    into either Hermes memory, sidechains, prompts, logs, or Git. Secrets live in scoped secret
+    storage/service identities with server-side injection and redaction before logging.
+  rationale: Critical security finding from archived Hermes memory containing raw credentials (salvage map 3.8, values intentionally omitted); Treg pattern reinforces server-side credential proxying.
+  source_artifact_ids: [GS-R0-MAP-001, R0-EXT-REVIEW-BATCH-02]
+  conditions: []
+  affected_books: [G0-B1, G0-B6]
+  implementation_implications: Book 1 audit redaction and credential-vault boundaries inherit this rule; eval() on stored metadata also rejected (JSON/schema-safe deserialization only).
+  supersedes_decision_id: null
+- decision_id: DEC-SEC-002
+  title: Progressive skill disclosure pattern
+  status: RATIFIED
+  category: security
+  statement: >-
+    Skills load metadata broadly, bodies on trigger, and bundled resources only as needed,
+    preventing context pollution and limiting blast radius of skill content.
+  rationale: Salvage map 3.3 dispositions the archived progressive-disclosure pattern as ADOPT PATTERN.
+  source_artifact_ids: [GS-R0-MAP-001]
+  conditions: []
+  affected_books: [G0-B4]
+  implementation_implications: Skill registry design follows progressive disclosure; no full-workflow injection into every session.
+  supersedes_decision_id: null
+- decision_id: DEC-LIC-001
+  title: Treg-inspired tool-gateway pattern adopted; independent implementation
+  status: RATIFIED_WITH_CONDITION
+  category: licensing
+  statement: >-
+    The Treg architectural pattern (central tool registry, server-side credentials, proxied calls
+    with credential injection, auditing) informs our independently implemented Tool Gateway behind
+    OCE policy. Architectural ideas are usable; code embedding is handled separately.
+  rationale: >-
+    External repo review batch 02: "PORT architectural pattern / evaluate service
+    usage; do not casually embed."
+  source_artifact_ids: [R0-EXT-REVIEW-BATCH-02, GS-R0-SEED-001]
+  conditions:
+    - Implementation is written against our own contracts; no Treg source code is copied.
+  affected_books: [G0-B1, G0-B2]
+  implementation_implications: Tool Registry + credential vault + injector/proxy are first-class Book 1/2 surfaces.
+  supersedes_decision_id: null
+- decision_id: DEC-LIC-002
+  title: Treg code embedding/forking blocked pending license resolution
+  status: REJECTED
+  category: licensing
+  statement: >-
+    Embedding or forking Treg source code into the proprietary commercial product is blocked:
+    GitHub metadata reports a nonstandard license. Code reuse requires explicit license
+    review/permission; absent that, the disposition stands as rejected-for-now.
+  rationale: External repo review batch 02 licensing caution; Book 0 plan expected baseline ("Treg code embedding REJECTED/blocked pending license").
+  source_artifact_ids: [R0-EXT-REVIEW-BATCH-02]
+  conditions:
+    - May be revisited only with documented license permission from the upstream author.
+  affected_books: [G0-B2]
+  implementation_implications: Independent implementation per DEC-LIC-001 is the only path forward.
+  supersedes_decision_id: null
+- decision_id: DEC-LIC-003
+  title: Fresh license/security due diligence gate for all reused assets
+  status: RATIFIED
+  category: licensing
+  statement: >-
+    Every internally forked open-source asset and externally adopted library requires fresh
+    license, maintenance-status, CVE, and compatibility verification before production use.
+    R0 catalog observations are leads, not clearances.
+  rationale: Salvage map section 9 explicitly labels internal discoveries as "not yet fresh external due diligence".
+  source_artifact_ids: [GS-R0-MAP-001]
+  conditions: []
+  affected_books: [G0-B2, G0-B3]
+  implementation_implications: Dependency discipline records rationale per major dependency at adoption time.
+  supersedes_decision_id: null
+- decision_id: DEC-EXT-001
+  title: Promptfoo + Hermes Evaluation Lab regression/red-team loop
+  status: RATIFIED_WITH_CONDITION
+  category: control/governance
+  statement: >-
+    The archived Hermes skill-creator benchmark loop (candidate vs baseline, parallel evals,
+    formal assertions, human review, token/time tracking, variance analysis) generalizes into the
+    Agent Evaluation Lab, integrated with Promptfoo for regression and red-team coverage. Agent,
+    prompt, workflow, and source-adapter changes are benchmarked before promotion.
+  rationale: Salvage map calls skill-creator one of the strongest finds (PORT/GENERALIZE high priority); seed Package G; gap map integration/promotion policy row.
+  source_artifact_ids: [GS-R0-MAP-001, GS-R0-SEED-001, GS-R0-GAP-001]
+  conditions:
+    - Promotion policy requires passing eval deltas, not subjective preference.
+  affected_books: [G0-B4]
+  implementation_implications: Eval suites cover intent translation, eligibility extraction, research synthesis, drafting sections, QA critics, handoffs.
+  supersedes_decision_id: null
+- decision_id: DEC-EXT-002
+  title: Guardrails — selected validators only
+  status: RATIFIED_WITH_CONDITION
+  category: control/governance
+  statement: >-
+    Guardrails is adopted narrowly for selected structured-output validators within post-tool
+    verification; it is not a wholesale framework adoption and does not replace the typed policy
+    engine as the authorization authority.
+  rationale: Gap map "select validators only"; salvage map post-tool hook generalizes validators by output contract.
+  source_artifact_ids: [GS-R0-GAP-001, GS-R0-MAP-001]
+  conditions:
+    - Validator selection recorded per output contract; framework never gains authority over policy decisions.
+  affected_books: [G0-B2, G0-B4]
+  implementation_implications: Post-tool verification combines JSON Schema/domain validation, citation coverage, numerical reconciliation, artifact integrity.
+  supersedes_decision_id: null
+- decision_id: DEC-EXT-003
+  title: Univer budget/spreadsheet workspace evaluation
+  status: PROTOTYPE_REQUIRED
+  category: research
+  statement: >-
+    Univer is the candidate editable/headless workbook workspace for budgets. Canonical budget
+    facts and calculations live in the product-owned BudgetModel; rendered workspaces are views.
+    Free/Pro feature boundary must be mapped during evaluation.
+  rationale: Gap map budget row (NEW BUILD backend + Univer evaluation) and bake-off table free/Pro boundary note.
+  source_artifact_ids: [GS-R0-GAP-001, GS-R0-SEED-001]
+  conditions:
+    - Licensing/feature boundary documented before user-facing rollout.
+  affected_books: [G0-B5]
+  implementation_implications: BudgetModel contract freezes in G0 independently of rendering tech.
+  supersedes_decision_id: null
+- decision_id: DEC-EXT-004
+  title: Activepieces bounded integration fabric
+  status: PROTOTYPE_REQUIRED
+  category: research
+  statement: >-
+    Activepieces is the candidate bounded connector-execution fabric for external integrations
+    (email, notifications, later outreach). Prototype evidence must establish sandboxing, credential
+    handling, and auditability. It can never confer submission capability while that boundary is closed.
+  rationale: Gap map "bounded-use architecture" disposition; amendment 001 keeps drafting internal-only and submission disabled.
+  source_artifact_ids: [GS-R0-GAP-001, GS-G0-AMD-001]
+  conditions:
+    - Connectors execute only as registered capabilities subject to the Book 1 policy engine.
+  affected_books: [G0-B6]
+  implementation_implications: Integration fabric sits behind the capability layer; no direct unregistered tool paths.
+  supersedes_decision_id: null
+- decision_id: DEC-SUB-001
+  title: Automated grant submission excluded from Phase 1
+  status: REJECTED
+  category: submission boundary
+  statement: >-
+    Autonomous/automated grant submission is out of scope for G0/G1 and Phase 1 entirely.
+    No capability, tool, connector, browser, HTTP path, or agent may perform external submission;
+    certification/signing/submission capabilities remain structurally disabled regardless of
+    technical reachability.
+  rationale: Blueprint non-goals; amendment 001 section E separates low-consequence drafting from high-consequence submission; Book 0 plan expected baseline.
+  source_artifact_ids: [GS-G0-MASTER-001, GS-G0-AMD-001, GS-R0-SEED-001]
+  conditions:
+    - Any future enablement requires a new ratified amendment changing the constitution, not an implementation shortcut.
+  affected_books: [G0-B1, all]
+  implementation_implications: Book 1 Reality Lock must prove submission_disabled derived from the capability registry/policy, not documentation claims.
+  supersedes_decision_id: null
+- decision_id: DEC-DRAFT-001
+  title: D0 shadow draft milestone after Book 3
+  status: RATIFIED_WITH_CONDITION
+  category: mock drafting milestones
+  statement: >-
+    After Books 0–3 ratify, a bounded Shadow Draft Harness produces one MOCK grant proposal from
+    approved fixtures (client profile, real/archived Georgia SourceSnapshot, validated requirement
+    fixtures). Output is L2/internal, clearly marked MOCK/NON-SUBMISSION, retained as evaluation artifact.
+  rationale: Amendment 001 section B gives the client early visible progress and surfaces ontology gaps early.
+  source_artifact_ids: [GS-G0-AMD-001]
+  conditions:
+    - L2/internal only; no external action; no unsupported factual invention; never production submission state.
+  affected_books: [G0-B3]
+  implementation_implications: Requires SourceSnapshot machinery and fixture governance from earlier books.
+  supersedes_decision_id: null
+- decision_id: DEC-DRAFT-002
+  title: D1 Hermes-authored mock draft after Book 4
+  status: RATIFIED_WITH_CONDITION
+  category: mock drafting milestones
+  statement: >-
+    Once Dual-Hermes contracts and memory boundaries are ratified, CEO Hermes produces the first
+    Hermes-authored mock application through the full IntentContract→plan→context→draft→QA→
+    OutcomeArtifact→explanation chain. Still no submission or external action.
+  rationale: Amendment 001 section C.
+  source_artifact_ids: [GS-G0-AMD-001]
+  conditions:
+    - application.draft* capabilities allowed under L2 authority; submission.execute remains disabled.
+  affected_books: [G0-B4]
+  implementation_implications: Authority levels in Book 1 must encode CAN_GENERATE/PREPARE distinctly from EXECUTE/SUBMIT.
+  supersedes_decision_id: null
+- decision_id: DEC-DRAFT-003
+  title: D2 production-shaped end-to-end proof at Book 8
+  status: RATIFIED_WITH_CONDITION
+  category: mock drafting milestones
+  statement: >-
+    Book 8 delivers the production-shaped end-to-end proof on current real sources: deterministic
+    eligibility, award/winner intelligence, organization verification, community evidence, evidence
+    graph, blueprint, drafting, QA, human review, and audit. Georgia is the preferred secondary-state proof.
+  rationale: Amendment 001 section D updates the blueprint's California default.
+  source_artifact_ids: [GS-G0-AMD-001, GS-G0-MASTER-001]
+  conditions:
+    - Human review remains a hard gate before any client-facing deliverable.
+  affected_books: [G0-B8]
+  implementation_implications: Later books inherit Georgia-first fixture priority.
+  supersedes_decision_id: null
+- decision_id: DEC-GA-001
+  title: Georgia-first state-level proof jurisdiction
+  status: RATIFIED
+  category: Georgia-first
+  statement: >-
+    Georgia replaces California as the first state proof jurisdiction: state fixtures, crawler
+    tests, and state adapters preferentially target Georgia sources (OPB Grants Portal active/
+    awarded programs, DCA, GEMA/HS, EPD). The product model remains jurisdiction-agnostic;
+    California may return as later coverage.
+  rationale: Amendment 001 section A records the clarified client priority superseding the blueprint's California-first default.
+  source_artifact_ids: [GS-G0-AMD-001, GS-G0-MASTER-001]
+  conditions: []
+  affected_books: [G0-B3, G0-B8]
+  implementation_implications: State adapter extensibility proves out via Georgia before any second state.
+  supersedes_decision_id: null
+- decision_id: DEC-CLIENT-001
+  title: Phase 1 single-client vertical slice against real sources
+  status: RATIFIED
+  category: client Phase 1
+  statement: >-
+    Phase 1 serves the initial Georgia client via one real-data vertical slice (client request →
+    Personal Hermes → IntentContract → CEO plan → real Grants.gov/Simpler query → snapshot →
+    normalization → deterministic eligibility → winner/org/community research → explainable match →
+    blueprint + sections → QA → human review → client explanation). Mocked grant-domain data is
+    confined to unit fixtures.
+  rationale: Seed architecture section 7 defines the slice and required proofs; charter scopes Phase 1 to the first client.
+  source_artifact_ids: [GS-R0-SEED-001, GS-R0-CTX-001]
+  conditions:
+    - Required proofs include lineage on every promoted claim, snapshot immutability, Redis-loss survival, actor/capability/request ID on every action.
+  affected_books: [G0-B3, G0-B8]
+  implementation_implications: Vertical-slice acceptance gates later scope expansion.
+  supersedes_decision_id: null
+- decision_id: DEC-REJ-001
+  title: Trading-domain logic excluded from the grant product
+  status: REJECTED
+  category: reject ledger
+  statement: >-
+    Pure CEREBUS/MVE strategy logic, capital-routing, crypto strategy/data logic, and broker/MT5
+    live-execution logic are rejected for the Grant Sector product. Only generic infrastructure
+    concepts (queues, hooks, audit, manifests, fail-closed gates) may transfer, stripped of trading meaning.
+  rationale: Reject ledger rows 1–4; master-prompt trading-code exclusion.
+  source_artifact_ids: [GS-R0-REJECT-001]
+  conditions: []
+  affected_books: [all]
+  implementation_implications: Reuse reviews must classify any borrowed pattern's semantic neutrality.
+  supersedes_decision_id: null
+- decision_id: DEC-REJ-002
+  title: Anti-pattern ledger bindings for memory, evidence, routing, and generation
+  status: RATIFIED
+  category: reject ledger
+  statement: >-
+    The reject ledger's anti-patterns bind as negative requirements: infinite append-only memory,
+    full transcripts in parent context, model-as-database, LLM-decided deterministic eligibility,
+    Redis-sole job truth, query-length-only routing, LLM self-confidence as evidence, eval() on
+    stored metadata, monolithic 20–40-page generation calls, AI-detector scores as truth,
+    chat-as-source-of-truth, and historical test counts as current proof are all rejected.
+  rationale: Reject ledger is the codified do-not-port list; each row carries replacement doctrine.
+  source_artifact_ids: [GS-R0-REJECT-001]
+  conditions: []
+  affected_books: [G0-B2, G0-B3, G0-B4, G0-B5]
+  implementation_implications: Generation follows blueprint→section→validation→compilation; validators generalize by output contract.
+  supersedes_decision_id: null
+- decision_id: DEC-GOV-003
+  title: Consensus/critics reserved for justified ambiguity, not every decision
+  status: RATIFIED
+  category: control/governance
+  statement: >-
+    Multi-agent consensus runs only where ambiguity/consequence justify cost (high-value review
+    points). Consensus on every agent decision is rejected. Drift detection applies to prompts,
+    workflows, and source adapters.
+  rationale: Reject ledger consensus anti-pattern; salvage map 6.4 selected-contracts posture.
+  source_artifact_ids: [GS-R0-REJECT-001, GS-R0-MAP-001]
+  conditions: []
+  affected_books: [G0-B2, G0-B4]
+  implementation_implications: QA critics assigned by consequence class, not uniformly.
+  supersedes_decision_id: null
