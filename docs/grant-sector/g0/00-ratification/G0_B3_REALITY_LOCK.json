@@ -1,0 +1,42 @@
+{
+  "book": "G0-B3",
+  "status": "PASS",
+  "data_constitution_complete": true,
+  "enabled_sources_registered": 1.0,
+  "critical_facts_with_snapshot_lineage": 1.0,
+  "snapshot_immutability_tests_pass": true,
+  "capture_replay_tests_pass": true,
+  "extraction_lineage_tests_pass": true,
+  "precedence_tests_pass": true,
+  "freshness_tests_pass": true,
+  "promotion_tests_pass": true,
+  "conflict_tests_pass": true,
+  "material_change_tests_pass": true,
+  "dependency_invalidation_tests_pass": true,
+  "identifier_verification_tests_pass": true,
+  "statistic_semantics_tests_pass": true,
+  "source_security_tests_pass": true,
+  "retention_tests_pass": true,
+  "provenance_chain_tests_pass": true,
+  "federal_fixture_tests_pass": true,
+  "georgia_fixture_tests_pass": true,
+  "private_source_fixture_tests_pass": true,
+  "d0_data_packet_ready": true,
+  "adversarial_p0_pass": true,
+  "d0_shadow_draft_allowed": true,
+  "p0_open": 0,
+  "ready_for_d0": true,
+  "ready_for_book4": true,
+  "evidence": {
+    "test_results": {
+      "exit_code": 0,
+      "passed": 242,
+      "failed": 0,
+      "summary": "242 passed, 1 skipped in 3.55s",
+      "scope": "tests/g0/book3 excluding G0_B3_REALITY_LOCK.json freshness self-test"
+    },
+    "config_count": 19,
+    "enabled_source_count": 8,
+    "critical_fact_class_count": 7
+  }
+}

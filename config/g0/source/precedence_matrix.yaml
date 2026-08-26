@@ -91,6 +91,33 @@ precedence_matrix:
           source_classes: [USER_PROVIDED]
     - - third_party_description:
           source_classes: [TRUSTED_CURATED, GOVERNED_WEB]
+  legal_organization_name:
+    - - current_official_record:
+          source_classes: [OFFICIAL_TRANSACTIONAL]
+    - - trusted_aggregator_derived_from_official:
+          source_classes: [TRUSTED_CURATED]
+    - - organization_website:
+          source_classes: [GOVERNED_WEB]
+    - - user_recollection:
+          source_classes: [USER_PROVIDED]
+  opportunity_required_attachments:
+    - - official_solicitation:
+          source_classes: [OFFICIAL_ISSUER]
+    - - official_aggregator:
+          source_classes: [OFFICIAL_AGGREGATOR]
+    - - agency_landing_page:
+          source_classes: [GOVERNED_WEB]
+    - - trusted_curated_db:
+          source_classes: [TRUSTED_CURATED]
+    - - user_recollection:
+          source_classes: [USER_PROVIDED]
+  opportunity_submission_instructions:
+    - - official_solicitation:
+          source_classes: [OFFICIAL_ISSUER]
+    - - official_aggregator:
+          source_classes: [OFFICIAL_AGGREGATOR]
+    - - agency_landing_page:
+          source_classes: [GOVERNED_WEB, OFFICIAL_TRANSACTIONAL]
 
 # Facts the client controls (client intent/preferences) vs issuer/legal facts.
 client_controlled_fact_classes:
