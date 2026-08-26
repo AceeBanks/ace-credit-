@@ -21,6 +21,7 @@ Missing files, malformed fields or unknown enum values are hard failures
 - C13 validate_artifact_families
 - C14 validate_outcome_policy
 - C15 validate_common_grants_mapping
+- C16 validate_extension_namespace
 """
 from __future__ import annotations
 
@@ -515,6 +516,52 @@ def validate_common_grants_mapping(data: dict) -> tuple[bool, dict]:
     })
 
 
+PLATFORM_PRIMITIVE_CANDIDATES = {"Organization", "Person", "Artifact",
+                                 "EvidenceClaim", "CanonicalFact",
+                                 "StatisticObservation"}
+
+
+def validate_extension_namespace(data: dict) -> tuple[bool, dict]:
+    """B2.C16 — extension namespace: grant concepts stay grant, platform move
+    needs explicit ADR, no premature generalization, provider fields namespaced."""
+    errors: list[str] = []
+    grant = set(data.get("grant_namespace_concepts") or [])
+    for concept in ("GrantOpportunity", "OpportunityRevision", "EligibilityDecision",
+                    "ApplicationProject", "Requirement", "Award"):
+        if concept not in grant:
+            errors.append(f"grant_namespace_concepts must include '{concept}'")
+    primitives = set(data.get("platform_primitive_candidates") or [])
+    if primitives != PLATFORM_PRIMITIVE_CANDIDATES:
+        errors.append(f"platform_primitive_candidates must be exactly "
+                      f"{sorted(PLATFORM_PRIMITIVE_CANDIDATES)}")
+    if data.get("platform_move_rule") != "explicit_adr_required":
+        errors.append("platform_move_rule must be explicit_adr_required")
+    if data.get("premature_generalization_prohibited") is not True:
+        errors.append("premature_generalization_prohibited must be true")
+    if data.get("root_schema_pollution_prohibited") is not True:
+        errors.append("root_schema_pollution_prohibited must be true")
+    namespaces = data.get("provider_namespaces") or []
+    if not namespaces:
+        errors.append("provider_namespaces may not be empty")
+    seen_prefix: set[str] = set()
+    for ns in namespaces:
+        prefix = ns.get("prefix")
+        if not prefix or not prefix.endswith("_"):
+            errors.append(f"{ns.get('provider')}: prefix must end with '_'")
+        if prefix in seen_prefix:
+            errors.append(f"{ns.get('provider')}: duplicate prefix '{prefix}'")
+        seen_prefix.add(prefix)
+    return finish("domain_extension_namespace", not errors, {
+        "errors": errors,
+        "grant_concept_count": len(grant),
+        "provider_count": len(namespaces),
+    })
+
+
+def load_extension_namespace() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "extension_namespace.yaml")
+
+
 def load_outcome_policy() -> dict:
     return load_yaml(DOMAIN_CONFIG_DIR / "outcome_policy.yaml")
 
@@ -588,6 +635,7 @@ def main() -> int:
         ("artifact_families", validate_artifact_families, load_artifact_families),
         ("outcome_policy", validate_outcome_policy, load_outcome_policy),
         ("common_grants_mapping", validate_common_grants_mapping, load_common_grants_mapping),
+        ("extension_namespace", validate_extension_namespace, load_extension_namespace),
     ]
     ok_all = True
     for name, fn, loader in checks:

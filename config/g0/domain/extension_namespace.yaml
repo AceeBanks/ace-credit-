@@ -1,0 +1,36 @@
+# G0 Book 2 - B2.C16 Extension Namespace & Sector Portability (machine-readable).
+# Keeps the grant ontology precise while preventing a dead end for later
+# Financial Literacy Framework sectors.
+extension_namespace_version: "1.0"
+grant_namespace_concepts:
+- GrantOpportunity
+- OpportunityRevision
+- EligibilityRule
+- EligibilityRuleSet
+- EligibilityDecision
+- ApplicationProject
+- ApplicationRevision
+- Requirement
+- RequirementResponse
+- Award
+- FundingInstrument
+- FundingCategory
+- SubmissionPackage
+platform_primitive_candidates:
+- Organization
+- Person
+- Artifact
+- EvidenceClaim
+- CanonicalFact
+- StatisticObservation
+platform_move_rule: explicit_adr_required
+premature_generalization_prohibited: true   # no meaningless OpportunityObject
+root_schema_pollution_prohibited: true      # provider fields live in namespaced extensions
+provider_namespaces:
+- {provider: georgia,        prefix: ga_}
+- {provider: federal,        prefix: fed_}
+- {provider: common_grants,  prefix: cgx_}
+provider_extension_rule: |
+  Provider-specific fields live in the provider's namespaced extension
+  (prefix + field), never as arbitrary root-schema pollution. Adding a future
+  state/private grant provider must not change core identity semantics.
