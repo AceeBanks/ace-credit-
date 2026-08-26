@@ -1,0 +1,38 @@
+# G0-B3-C21 — Provenance chain specification (machine-readable, fail-closed).
+# Makes every material generated claim traceable end-to-end.
+
+# Minimum chain, in order: from governed source identity down to the artifacts
+# a client actually sees.
+chain_stages:
+  - SourceRegistry
+  - CaptureEvent_SourceSnapshot
+  - ExtractionEvent
+  - NormalizationEvent
+  - EvidenceClaim_ExternalIdentifier_StatisticObservation
+  - PromotionEvent_CanonicalFact
+  - EligibilityDecision_MatchExplanation_ResearchFinding
+  - RequirementResponse_ProposalSection_BudgetLine
+  - ArtifactVersion_SubmissionPackage
+
+# Required ProvenanceEdge relationships.
+relationships:
+  - CAPTURED_FROM
+  - EXTRACTED_FROM
+  - NORMALIZED_FROM
+  - SUPPORTED_BY
+  - CONTRADICTED_BY
+  - DERIVED_FROM
+  - USED_IN
+  - SATISFIES
+  - GENERATED_FROM
+  - SUPERSEDES
+  - INVALIDATED_BY
+
+# Client-visible lineage: not every internal transformation must be shown in
+# the UI, but the product must be able to surface understandable research and
+# source support behind matching and application content.
+trace_rule: |
+  Given a material proposal sentence/assertion, the product must be able to
+  trace to source capture. A missing critical hop is a FAIL. Client-visible
+  lineage must be surfaceable without agent memory: the chain replays from
+  stored provenance edges alone.

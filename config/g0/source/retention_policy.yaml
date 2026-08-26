@@ -1,0 +1,54 @@
+# G0-B3-C20 — Data retention, deletion & privacy classes (machine-readable,
+# fail-closed). Defines lifecycle before raw source and client data accumulate.
+
+data_classes:
+  - class_id: D0
+    name: "Public source metadata"
+    retention: LONG_SUBJECT_TO_SOURCE_POLICY
+    deletion_semantics: [DELETE_CONTENT, TOMBSTONE_METADATA]
+  - class_id: D1
+    name: "Public raw source snapshots"
+    retention: AS_NEEDED_FOR_PROVENANCE
+    deletion_semantics: [DELETE_CONTENT, ARCHIVE, LEGAL_OPERATIONAL_HOLD]
+  - class_id: D2
+    name: "Client canonical business data"
+    retention: TENANT_POLICY_REQUIRED
+    deletion_semantics: [DELETE_CONTENT, TOMBSTONE_METADATA, LEGAL_OPERATIONAL_HOLD]
+  - class_id: D3
+    name: "Sensitive client / PII"
+    retention: STRICTER_ACCESS_ENCRYPTION
+    deletion_semantics: [DELETE_CONTENT, REVOKE_ACCESS, TOMBSTONE_METADATA]
+  - class_id: D4
+    name: "Generated artifacts"
+    retention: VERSIONED_TENANT_CONTROLLED
+    deletion_semantics: [DELETE_CONTENT, ARCHIVE, REVOKE_ACCESS]
+  - class_id: D5
+    name: "Worker sidechains / traces"
+    retention: SHORT_DEFAULT
+    deletion_semantics: [DELETE_CONTENT, REVOKE_ACCESS]
+  - class_id: D6
+    name: "Audit / security records"
+    retention: LONG_GOVERNED
+    deletion_semantics: [LEGAL_OPERATIONAL_HOLD, TOMBSTONE_METADATA]
+  - class_id: D7
+    name: "Caches / temp extraction"
+    retention: DISPOSABLE_TTL
+    deletion_semantics: [DELETE_CONTENT]
+
+# Deletion is not a single action: the semantics differ materially.
+deletion_semantics:
+  - DELETE_CONTENT
+  - TOMBSTONE_METADATA
+  - REVOKE_ACCESS
+  - ARCHIVE
+  - LEGAL_OPERATIONAL_HOLD
+
+# If content must be deleted, downstream artifacts/facts must record that the
+# original evidence is no longer available and may need demotion. Deletion
+# never falsifies audit history.
+provenance_deletion_rule: |
+  If content must be deleted, downstream artifacts/facts must record that the
+  original evidence is no longer available and may need demotion depending on
+  policy. Where policy requires deletion of content/PII, tombstone/metadata
+  strategies preserve permitted audit/reconstruction semantics without
+  retaining prohibited content.
