@@ -1,0 +1,142 @@
+{
+  "bakeoff": "G0-B5-C13",
+  "candidate": "semantica-agi/semantica (PyPI semantica 0.6.6)",
+  "baseline": "explicit relational evidence/dependency substrate (prototype EvidenceGraph)",
+  "semantica_available": true,
+  "comparison": "BASELINE EXPLICIT SUBSTRATE vs BASELINE + SEMANTICA ADAPTER/PROJECTION",
+  "total_elapsed_ms": 2.55,
+  "workloads": [
+    {
+      "workload": "W1_claim_lineage",
+      "candidate": "baseline",
+      "correct": true,
+      "latency_ms": 0.04,
+      "details": {}
+    },
+    {
+      "workload": "W1_claim_lineage",
+      "candidate": "semantica",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W2_contradiction_neighborhood",
+      "candidate": "baseline",
+      "correct": true,
+      "latency_ms": 0.01,
+      "details": {}
+    },
+    {
+      "workload": "W2_contradiction_neighborhood",
+      "candidate": "semantica",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W3_dependency_invalidation",
+      "candidate": "baseline",
+      "correct": true,
+      "latency_ms": 0.01,
+      "details": {}
+    },
+    {
+      "workload": "W3_dependency_invalidation",
+      "candidate": "semantica",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W4_historical_award_intelligence",
+      "candidate": "baseline",
+      "correct": true,
+      "latency_ms": 0.01,
+      "details": {}
+    },
+    {
+      "workload": "W4_historical_award_intelligence",
+      "candidate": "semantica",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W5_draft_evidence_retrieval",
+      "candidate": "baseline",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W5_draft_evidence_retrieval",
+      "candidate": "semantica",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W6_temporal_replay_support",
+      "candidate": "baseline",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W6_temporal_replay_support",
+      "candidate": "semantica",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W7_rebuild_exit",
+      "candidate": "baseline",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W7_rebuild_exit",
+      "candidate": "semantica",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W8_multi_tenant_isolation",
+      "candidate": "baseline",
+      "correct": true,
+      "latency_ms": 0.01,
+      "details": {}
+    },
+    {
+      "workload": "W9_schema_evolution",
+      "candidate": "baseline",
+      "correct": true,
+      "latency_ms": 0.01,
+      "details": {}
+    },
+    {
+      "workload": "W9_schema_evolution",
+      "candidate": "semantica",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {}
+    },
+    {
+      "workload": "W10_operational_degradation",
+      "candidate": "semantica",
+      "correct": true,
+      "latency_ms": 0.0,
+      "details": {
+        "design": "canonical substrate independent of semantica; adapter reports available=False and returns empty neighbors when the projection is absent"
+      }
+    }
+  ],
+  "baseline_correct": 9,
+  "semantica_correct": 9,
+  "baseline_mean_latency_ms": 0.01,
+  "semantica_mean_latency_ms": 0.0
+}
