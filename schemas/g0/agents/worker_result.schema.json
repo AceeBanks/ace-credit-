@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/worker_result.schema.json",
+  "title": "WorkerResult",
+  "description": "B4.C8 — Parent-facing bounded result of one worker attempt. CEO receives this by default, never the transcript; full depth lives in the referenced sidechain.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "attempt_id",
+    "status",
+    "summary",
+    "structured_output_ref",
+    "key_findings",
+    "uncertainties",
+    "source_refs",
+    "artifact_refs",
+    "quality_state",
+    "sidechain_ref"
+  ],
+  "properties": {
+    "task_id": {"type": "string"},
+    "attempt_id": {"type": "string"},
+    "status": {"type": "string", "enum": ["SUCCEEDED", "PARTIAL", "FAILED"]},
+    "summary": {"type": "string", "maxLength": 4000},
+    "structured_output_ref": {"type": "string"},
+    "key_findings": {"type": "array", "items": {"type": "string"}},
+    "uncertainties": {"type": "array", "items": {"type": "string"}},
+    "source_refs": {"type": "array", "items": {"type": "string"}},
+    "artifact_refs": {"type": "array", "items": {"type": "string"}},
+    "quality_state": {
+      "type": "string",
+      "enum": ["VERIFIED_HIGH", "VERIFIED_MODERATE", "PROVISIONAL",
+               "CONFLICTED", "STALE", "UNSUPPORTED"]
+    },
+    "recommended_followups": {"type": "array", "items": {"type": "string"}},
+    "sidechain_ref": {"type": "string"}
+  }
+}

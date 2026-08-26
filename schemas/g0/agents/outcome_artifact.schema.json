@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/agents/outcome_artifact.schema.json",
+  "title": "OutcomeArtifact",
+  "description": "B4.C9 — CEO's coherent operational result synthesized from bounded worker outputs. Links to canonical state/artifacts instead of duplicating documents. Client-action-required is explicit. Uncertainty is preserved.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "outcome_id",
+    "intent_id",
+    "plan_id",
+    "application_project_id",
+    "opportunity_revision_id",
+    "outcome_type",
+    "status",
+    "executive_summary",
+    "key_decisions",
+    "created_at"
+  ],
+  "properties": {
+    "outcome_id": {"type": "string"},
+    "intent_id": {"type": "string"},
+    "plan_id": {"type": "string"},
+    "application_project_id": {"type": "string"},
+    "opportunity_revision_id": {
+      "type": "string",
+      "description": "Exact immutable OpportunityRevision the outcome is pinned to."
+    },
+    "outcome_type": {
+      "type": "string",
+      "enum": ["RESEARCH_PACK", "MATCH_ASSESSMENT", "ELIGIBILITY_ASSESSMENT",
+               "DRAFT_BLUEPRINT", "MOCK_PROPOSAL", "QA_REPORT",
+               "CLIENT_REVIEW_PACKET", "EXPLANATION"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["SUCCEEDED", "INCOMPLETE", "BLOCKED", "FAILED", "CONFLICTED"]
+    },
+    "executive_summary": {"type": "string"},
+    "key_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["decision", "basis"],
+        "properties": {
+          "decision": {"type": "string"},
+          "basis": {"type": "string"},
+          "conflict_ref": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "recommended_actions": {"type": "array", "items": {"type": "string"}},
+    "research_pack_refs": {"type": "array", "items": {"type": "string"}},
+    "artifact_refs": {"type": "array", "items": {"type": "string"}},
+    "unresolved_questions": {"type": "array", "items": {"type": "string"}},
+    "risks": {"type": "array", "items": {"type": "string"}},
+    "qa_refs": {"type": "array", "items": {"type": "string"}},
+    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+    "client_action_required": {"type": "boolean"},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}
