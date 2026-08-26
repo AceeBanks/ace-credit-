@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/security/principal.schema.json",
+  "title": "Principal",
+  "description": "G0-B6-C2 — authenticated identity. Logical actor identity is separate from runtime/session/model identity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "principal_id",
+    "principal_type",
+    "subject_id",
+    "status",
+    "authentication_method",
+    "tenant_memberships",
+    "created_at",
+    "credential_class"
+  ],
+  "properties": {
+    "principal_id": {"type": "string", "minLength": 1},
+    "principal_type": {"type": "string", "minLength": 1},
+    "subject_id": {"type": "string", "minLength": 1},
+    "status": {"type": "string", "minLength": 1},
+    "authentication_method": {"type": "string", "minLength": 1},
+    "tenant_memberships": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "model_or_provider_ref": {
+      "type": "string",
+      "description": "Runtime model/provider behind an agent role; does not change principal identity (IDN-001)."
+    },
+    "parent_task_id": {
+      "type": "string",
+      "description": "WORKER_AGENT principals bind to the parent task (IDN-004); carries no authority."
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "last_authenticated_at": {"type": "string", "format": "date-time"},
+    "credential_class": {"type": "string", "minLength": 1}
+  }
+}

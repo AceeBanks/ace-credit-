@@ -1,0 +1,58 @@
+# G0-B6-C2 — Principal & Identity Policy
+# Authenticated identity for humans, Hermes agents, workers and services.
+
+policy_id: G0-B6-C2
+version: "1.0"
+
+principal_types:
+  - HUMAN_USER
+  - HUMAN_ADMIN
+  - HERMES_PERSONAL
+  - HERMES_CEO
+  - WORKER_AGENT
+  - DETERMINISTIC_SERVICE
+  - SOURCE_ADAPTER
+  - POLICY_SERVICE
+  - TOOL_GATEWAY
+  - INTEGRATION_SERVICE
+  - SYSTEM_JOB
+
+principal_statuses:
+  - ACTIVE
+  - DISABLED
+  - SUSPENDED
+  - DEACTIVATED
+
+rules:
+  - id: IDN-001
+    text: "Principal identity is logical and stable: replacing the model/provider behind a Hermes role does not create a new principal."
+  - id: IDN-002
+    text: "A disabled or deactivated principal cannot authorize any action."
+  - id: IDN-003
+    text: "Duplicate principal ids are rejected; identities are unique."
+  - id: IDN-004
+    text: "Worker instance identity is tied to its parent task, never to parent authority; a worker principal carries no inherited capability."
+  - id: IDN-005
+    text: "Human principals store the least personal data required."
+
+tenant_membership_roles:
+  - OWNER
+  - ADMIN
+  - MEMBER
+  - REVIEWER
+  - READ_ONLY
+
+membership_statuses:
+  - ACTIVE
+  - EXPIRED
+  - REVOKED
+  - PENDING
+
+resource_scope_hierarchy:
+  - Tenant
+  - Organization
+  - ApplicationProject
+  - Task
+  - Artifact
+  - Evidence
+  - AuditDecisionRecord
