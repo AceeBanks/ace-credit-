@@ -1,0 +1,21 @@
+# G0 Book 2 - B2.C9 Fact, Claim, Evidence & Statistic Semantics (machine-readable).
+# Provenance substrate for Book 3. Claims are propositions; CanonicalFacts are
+# promoted operational assertions; statistics keep their context instead of
+# being flattened into bare facts.
+fact_semantics_version: "1.0"
+# A claim can NEVER become a canonical fact automatically — an explicit
+# governance action (evidence.resolve_conflict / propose_promotion path) is
+# required, and promotion requires at least one supporting claim reference.
+claim_to_fact_rule: explicit_promotion_required
+fact_promotion_requires_support: true
+# Two claims may disagree without either being deleted; a canonical fact may
+# become CONFLICTED pending Book 3 resolution policy.
+conflict_rule: claims_coexist_without_deletion
+promotion_state_order: [PROPOSED, PROMOTED, CONFLICTED, SUPERSEDED, RETIRED]
+claim_statuses: [PROPOSED, VERIFIED, CONFLICTED, RETRACTED]
+# Statistics are never bare facts: context is preserved. geography, unit and
+# reference_period are always required; population is required when the metric
+# is population-bearing (keyword match below).
+required_statistic_context: [geography, unit, reference_period]
+population_bearing_metric_keywords: [served, participants, enrolled, attendees,
+                                     clients, beneficiaries, population]

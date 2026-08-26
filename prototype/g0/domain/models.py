@@ -337,6 +337,16 @@ class CanonicalFact:
     supporting_claim_ids: tuple[str, ...] = ()
     contradicting_claim_ids: tuple[str, ...] = ()
 
+    def __post_init__(self) -> None:
+        # B2.C9 invariants, fail closed at construction: promotion must cite
+        # support; a conflict must cite the disagreeing claims.
+        if (self.promotion_state is FactPromotionState.PROMOTED
+                and not self.supporting_claim_ids):
+            raise ValueError("PROMOTED fact must reference supporting claims (B2.C9)")
+        if (self.promotion_state is FactPromotionState.CONFLICTED
+                and not self.contradicting_claim_ids):
+            raise ValueError("CONFLICTED fact must reference contradicting claims (B2.C9)")
+
 
 @dataclass(frozen=True)
 class StatisticObservation:

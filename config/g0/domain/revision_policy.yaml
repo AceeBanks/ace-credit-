@@ -1,0 +1,31 @@
+# G0 Book 2 - B2.C8 Versioning, Revision & Temporal Semantics (machine-readable).
+# Root vs revision rule: entities keep a STABLE root identity while material
+# terms evolve through IMMUTABLE revisions. A revision never mutates a prior
+# revision; dependent decisions record the exact revision they were made
+# against and go stale only when a material successor arrives.
+revision_policy_version: "1.0"
+root_rule: stable_root_with_immutable_revisions
+temporal_fields:
+- {field: observed_at,     semantic_role: "When a fact or observation was made in the world."}
+- {field: retrieved_at,    semantic_role: "When data was captured/retrieved from a source."}
+- {field: effective_from,  semantic_role: "Start of the interval in which a value holds."}
+- {field: effective_to,    semantic_role: "End of the interval in which a value holds."}
+- {field: created_at,      semantic_role: "When the record itself was created."}
+- {field: superseded_at,   semantic_role: "When a revision was superseded by a material successor."}
+# A change is MATERIAL (invalidates dependent decisions) if it touches any term
+# below, at minimum. Book 3 defines source freshness policy; Book 2 defines
+# semantic meaning.
+material_change_categories:
+- {category: deadline,            affected_terms: [deadline, due_date, submission_deadline]}
+- {category: eligibility,         affected_terms: [eligibility, applicant_types, eligible_entities]}
+- {category: funding,             affected_terms: [funding_amount, ceiling, floor, award_maximum]}
+- {category: match_requirement,   affected_terms: [match, cost_share, matching_requirement]}
+- {category: geography,           affected_terms: [service_area, geography, counties, target_region]}
+- {category: required_attachment, affected_terms: [attachment, appendix, supporting_document]}
+- {category: required_narrative,  affected_terms: [narrative, question, prompt, required_section]}
+- {category: submission_method,   affected_terms: [submission, portal, submission_method]}
+- {category: cancellation,        affected_terms: [cancelled, withdrawn, closed_early]}
+- {category: scoring_criteria,    affected_terms: [scoring, evaluation_criteria, weighting]}
+non_material_change_categories:
+- {category: formatting, affected_terms: [formatting, typography, whitespace, layout]}
+- {category: wording,    affected_terms: [wording, copy_edits, phrasing]}

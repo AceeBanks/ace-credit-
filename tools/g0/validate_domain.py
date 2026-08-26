@@ -13,6 +13,8 @@ Missing files, malformed fields or unknown enum values are hard failures
 - C5  validate_identifier_namespaces
 - C6  validate_relationships
 - C7  validate_state_machines
+- C8  validate_revision_policy
+- C9  validate_fact_semantics
 - C11 validate_requirement_types
 - C13 validate_artifact_types
 - C15 validate_common_grants_mapping
@@ -237,6 +239,99 @@ def validate_state_machines(data: dict) -> tuple[bool, dict]:
     })
 
 
+REVISION_POLICY_FIELDS = ("revision_id", "revision_number", "changed_terms",
+                          "created_at", "material")
+VALID_ROOT_RULES = {"stable_root_with_immutable_revisions"}
+VALID_TEMPORAL_FIELDS = {"observed_at", "retrieved_at", "effective_from",
+                         "effective_to", "created_at", "superseded_at"}
+VALID_CLAIM_TO_FACT_RULES = {"explicit_promotion_required"}
+VALID_CONFLICT_RULES = {"claims_coexist_without_deletion"}
+VALID_PROMOTION_STATES = {"PROPOSED", "PROMOTED", "CONFLICTED", "SUPERSEDED", "RETIRED"}
+VALID_CLAIM_STATUSES = {"PROPOSED", "VERIFIED", "CONFLICTED", "RETRACTED"}
+
+
+def validate_revision_policy(data: dict) -> tuple[bool, dict]:
+    """B2.C8 — revision policy: root rule known, temporal fields unique and
+    from the B2.C8 semantic set, materiality catalog non-empty with unique
+    categories and non-empty affected terms."""
+    errors: list[str] = []
+    if data.get("root_rule") not in VALID_ROOT_RULES:
+        errors.append(f"unknown root_rule '{data.get('root_rule')}'")
+    seen_fields: set[str] = set()
+    for tf in data.get("temporal_fields") or []:
+        field_name = tf.get("field")
+        if not field_name or not tf.get("semantic_role"):
+            errors.append("temporal field entry missing field/semantic_role")
+            continue
+        if field_name not in VALID_TEMPORAL_FIELDS:
+            errors.append(f"temporal field '{field_name}' not in B2.C8 semantic set")
+        if field_name in seen_fields:
+            errors.append(f"temporal field '{field_name}' duplicated")
+        seen_fields.add(field_name)
+    if not seen_fields:
+        errors.append("temporal_fields may not be empty")
+    mat = data.get("material_change_categories") or []
+    if not mat:
+        errors.append("material_change_categories may not be empty")
+    seen_cat: set[str] = set()
+    for cat in mat:
+        cname = cat.get("category")
+        terms = cat.get("affected_terms") or []
+        if not cname:
+            errors.append("material category missing 'category'")
+            continue
+        if cname in seen_cat:
+            errors.append(f"material category '{cname}' duplicated")
+        seen_cat.add(cname)
+        if not terms:
+            errors.append(f"material category '{cname}' has empty affected_terms")
+    if not (data.get("non_material_change_categories") or []):
+        errors.append("non_material_change_categories may not be empty")
+    return finish("domain_revision_policy", not errors, {
+        "errors": errors,
+        "material_category_count": len(seen_cat),
+        "temporal_field_count": len(seen_fields),
+    })
+
+
+def validate_fact_semantics(data: dict) -> tuple[bool, dict]:
+    """B2.C9 — fact semantics: promotion is explicit, conflict rule known,
+    promotion/claim state orders match the domain model, statistic context
+    requirements present."""
+    errors: list[str] = []
+    if data.get("claim_to_fact_rule") not in VALID_CLAIM_TO_FACT_RULES:
+        errors.append(f"claim_to_fact_rule must be explicit_promotion_required, "
+                      f"got '{data.get('claim_to_fact_rule')}'")
+    if data.get("fact_promotion_requires_support") is not True:
+        errors.append("fact_promotion_requires_support must be true")
+    if data.get("conflict_rule") not in VALID_CONFLICT_RULES:
+        errors.append(f"unknown conflict_rule '{data.get('conflict_rule')}'")
+    order = data.get("promotion_state_order") or []
+    if set(order) != VALID_PROMOTION_STATES or len(order) != len(set(order)):
+        errors.append(f"promotion_state_order must be exactly {sorted(VALID_PROMOTION_STATES)}")
+    claim_statuses = data.get("claim_statuses") or []
+    if set(claim_statuses) != VALID_CLAIM_STATUSES or len(claim_statuses) != len(set(claim_statuses)):
+        errors.append(f"claim_statuses must be exactly {sorted(VALID_CLAIM_STATUSES)}")
+    required_ctx = data.get("required_statistic_context") or []
+    for field in ("geography", "unit", "reference_period"):
+        if field not in required_ctx:
+            errors.append(f"required_statistic_context must include '{field}'")
+    if not (data.get("population_bearing_metric_keywords") or []):
+        errors.append("population_bearing_metric_keywords may not be empty")
+    return finish("domain_fact_semantics", not errors, {
+        "errors": errors,
+        "population_keyword_count": len(data.get("population_bearing_metric_keywords") or []),
+    })
+
+
+def load_revision_policy() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "revision_policy.yaml")
+
+
+def load_fact_semantics() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "fact_semantics.yaml")
+
+
 def load_state_machines() -> dict:
     return load_yaml(DOMAIN_CONFIG_DIR / "state_machines.yaml")
 
@@ -259,8 +354,29 @@ def load_glossary() -> dict:
 
 def main() -> int:
     from tools.g0._common import emit
-    ok, report = validate_glossary(load_glossary())
-    return emit(report)
+    entity_types = load_entity_types()
+    checks = [
+        ("glossary", validate_glossary, load_glossary),
+        ("entity_types", validate_entity_types, lambda: entity_types),
+        ("identifier_namespaces",
+         lambda d: validate_identifier_namespaces(d, entity_types),
+         load_identifier_namespaces),
+        ("relationships",
+         lambda d: validate_relationships(d, entity_types),
+         load_relationships),
+        ("state_machines", validate_state_machines, load_state_machines),
+        ("revision_policy", validate_revision_policy, load_revision_policy),
+        ("fact_semantics", validate_fact_semantics, load_fact_semantics),
+    ]
+    ok_all = True
+    for name, fn, loader in checks:
+        ok, report = fn(loader())
+        ok_all = ok_all and ok
+        if not ok:
+            for e in report.get("errors", []):
+                print(f"[{name}] {e}")
+    return emit({"status": "PASS" if ok_all else "FAIL",
+                 "domain_checks": [n for n, _, _ in checks]})
 
 
 if __name__ == "__main__":
