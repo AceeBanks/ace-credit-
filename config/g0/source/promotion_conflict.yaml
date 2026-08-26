@@ -1,0 +1,86 @@
+# G0-B3-C10-C12 — Promotion, Conflict & Source-Change governance (fail-closed).
+
+promotion_states:
+  - CANDIDATE
+  - PROVISIONAL
+  - VERIFIED
+  - CONFLICTED
+  - STALE
+  - REJECTED
+  - SUPERSEDED
+
+confidence_components:
+  - source_authority
+  - directness_of_support
+  - extraction_quality
+  - normalization_confidence
+  - corroboration
+  - freshness
+  - contradiction_state
+  - identity_resolution
+  - geography_population_fit
+  - temporal_applicability
+
+# Critical-use rule: unresolved conflicts on these fact classes block or
+# clearly degrade readiness.
+critical_fact_classes:
+  - opportunity_deadline
+  - opportunity_eligibility
+  - opportunity_award_ceiling
+  - opportunity_award_floor
+  - opportunity_required_attachments
+  - legal_organization_name
+  - opportunity_submission_instructions
+  - geography
+
+conflict_types:
+  - VALUE_CONFLICT
+  - TEMPORAL_CONFLICT
+  - IDENTITY_CONFLICT
+  - GEOGRAPHY_CONFLICT
+  - UNIT_CONFLICT
+  - SOURCE_VERSION_CONFLICT
+  - INTERPRETATION_CONFLICT
+  - USER_OFFICIAL_CONFLICT
+
+resolution_methods:
+  - SOURCE_PRECEDENCE
+  - EFFECTIVE_DATE
+  - SOURCE_REFRESH
+  - MERGE_COMPATIBLE
+  - HUMAN_REVIEW
+  - OFFICIAL_CLARIFICATION
+  - UNRESOLVED_BLOCK
+
+unresolved_critical_block: true
+
+materiality_classes:
+  - P0
+  - P1
+  - P2
+
+change_classes:
+  - CREATED
+  - UPDATED
+  - DELETED
+  - CANCELLED
+  - PARSER_OUTPUT_CHANGE
+  - METADATA_CHANGE
+
+p0_signals:
+  - eligibility_changed
+  - deadline_changed
+  - award_ceiling_or_floor_changed
+  - match_requirement_changed
+  - required_attachment_changed
+  - submission_path_changed
+  - geography_changed
+  - opportunity_cancelled
+  - mandatory_question_changed
+
+p1_signals:
+  - program_description_changed
+  - scoring_guidance_changed
+  - contact_changed
+  - explanatory_guidance_changed
+  - historical_award_corrected
