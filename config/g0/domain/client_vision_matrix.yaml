@@ -1,0 +1,55 @@
+# G0 Book 2 - B2.C18 Client Vision Coverage Matrix (machine-readable).
+# Proves the ontology can represent the product the client asked for. Every
+# Phase 1 client requirement is mapped to domain entities/relationships/state
+# machines; any uncovered requirement blocks Book 2 ratification.
+client_vision_version: "1.0"
+# The client's eight grant categories — supported through funding/opportunity
+# METADATA on the single GrantOpportunity entity, never eight entity types.
+grant_categories:
+- federal
+- state
+- local_county
+- foundation
+- corporate
+- tribal
+- educational_institution
+- private_other
+opportunity_entity_rule: single_grant_opportunity_entity_with_category_metadata
+coverage:
+# --- Intake ---
+- {client_requirement_id: CV-I01, requirement: organization identity,          domain_entities: [Organization, ExternalIdentifier], relationships: [ORGANIZATION_HAS_IDENTIFIER], state_machine_support: organization, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-I02, requirement: founder/contact,                domain_entities: [Person, OrganizationRole], relationships: [CONTACT_FOR], state_machine_support: none, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-I03, requirement: business concept,               domain_entities: [Artifact, ProposalSection], relationships: [ARTIFACT_USES_FACT], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-I04, requirement: mission/vision,                 domain_entities: [CanonicalFact, ProposalSection], relationships: [SECTION_LINKS_FACT], state_machine_support: canonical_fact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-I05, requirement: goals,                          domain_entities: [Artifact], relationships: [ARTIFACT_LINKS_OUTCOME], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-I06, requirement: target population,              domain_entities: [StatisticObservation, ProposalSection], relationships: [SECTION_LINKS_STATISTIC], state_machine_support: none, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-I07, requirement: geography,                      domain_entities: [StatisticObservation, Organization], relationships: [STATISTIC_APPLIES_TO_GEOGRAPHY], state_machine_support: none, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-I08, requirement: program/project concept,        domain_entities: [ApplicationProject, Program], relationships: [PROGRAM_HAS_OPPORTUNITY], state_machine_support: application_project, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-I09, requirement: financial assumptions,          domain_entities: [Budget, Assumption], relationships: [BUDGET_LINE_HAS_ASSUMPTION], state_machine_support: none, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-I10, requirement: existing partnerships/evidence, domain_entities: [EvidenceClaim, Artifact], relationships: [CLAIM_SUPPORTED_BY_SOURCE], state_machine_support: canonical_fact, external_mapping_if_any: none, covered: true, gap: ""}
+# --- Research & matching ---
+- {client_requirement_id: CV-R01, requirement: opportunity,                    domain_entities: [GrantOpportunity, OpportunityRevision], relationships: [OPPORTUNITY_HAS_REVISION], state_machine_support: opportunity, external_mapping_if_any: common_grants_Opportunity, covered: true, gap: ""}
+- {client_requirement_id: CV-R02, requirement: funder,                         domain_entities: [Organization, OrganizationRole], relationships: [FUNDER_OFFERS_PROGRAM], state_machine_support: none, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-R03, requirement: program,                        domain_entities: [Program], relationships: [PROGRAM_PUBLISHES_OPPORTUNITY], state_machine_support: none, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-R04, requirement: historical awards/winners,      domain_entities: [Award, ExternalIdentifier], relationships: [AWARD_RECEIVED_BY], state_machine_support: none, external_mapping_if_any: common_grants_Award, covered: true, gap: ""}
+- {client_requirement_id: CV-R05, requirement: eligibility rules/decision,     domain_entities: [EligibilityRule, EligibilityDecision], relationships: [OPPORTUNITY_HAS_RULE], state_machine_support: eligibility_decision, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-R06, requirement: match explanation,              domain_entities: [EligibilityDecision, Artifact], relationships: [APPLICATION_EVALUATED_FOR], state_machine_support: eligibility_decision, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-R07, requirement: research evidence,              domain_entities: [EvidenceClaim, SourceSnapshot], relationships: [CLAIM_SUPPORTED_BY_SOURCE], state_machine_support: none, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-R08, requirement: community statistics,           domain_entities: [StatisticObservation], relationships: [STATISTIC_APPLIES_TO_GEOGRAPHY], state_machine_support: none, external_mapping_if_any: none, covered: true, gap: ""}
+# --- Document generation ---
+- {client_requirement_id: CV-D01, requirement: proposal,                       domain_entities: [Artifact, ProposalSection], relationships: [SECTION_LINKS_REQUIREMENT], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-D02, requirement: business plan,                  domain_entities: [Artifact, BusinessPlanSection], relationships: [SECTION_LINKS_REQUIREMENT], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-D03, requirement: pitch deck,                     domain_entities: [Artifact], relationships: [ARTIFACT_USES_FACT], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-D04, requirement: financials,                     domain_entities: [Budget, BudgetLine], relationships: [BUDGET_LINE_HAS_ASSUMPTION], state_machine_support: none, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-D05, requirement: partnership/testimonial material, domain_entities: [Artifact, EvidenceClaim], relationships: [CLAIM_USED_IN_ARTIFACT], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-D06, requirement: goal sheets,                    domain_entities: [Artifact], relationships: [ARTIFACT_LINKS_OUTCOME], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-D07, requirement: research reports,               domain_entities: [Artifact, SourceSnapshot], relationships: [CLAIM_USED_IN_ARTIFACT], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+# --- Quality ---
+- {client_requirement_id: CV-Q01, requirement: requirement coverage,           domain_entities: [Requirement, RequirementResponse], relationships: [REQUIREMENT_HAS_RESPONSE], state_machine_support: requirement, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-Q02, requirement: factuality evidence,            domain_entities: [CanonicalFact, EvidenceClaim], relationships: [CLAIM_SUPPORTED_BY_SOURCE], state_machine_support: canonical_fact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-Q03, requirement: cross-document consistency,     domain_entities: [CanonicalFact, ProposalSection], relationships: [SECTION_LINKS_FACT], state_machine_support: canonical_fact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-Q04, requirement: alignment,                      domain_entities: [Artifact], relationships: [ARTIFACT_LINKS_OUTCOME], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-Q05, requirement: QA reports,                     domain_entities: [Artifact], relationships: [ARTIFACT_USES_FACT], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+- {client_requirement_id: CV-Q06, requirement: review state,                   domain_entities: [Artifact], relationships: [], state_machine_support: artifact, external_mapping_if_any: none, covered: true, gap: ""}
+# --- Submission-ready output ---
+- {client_requirement_id: CV-S01, requirement: submission-ready package,       domain_entities: [SubmissionPackage, ArtifactVersion], relationships: [PACKAGE_CONTAINS_VERSION], state_machine_support: application_project, external_mapping_if_any: common_grants_Application, covered: true, gap: "package readiness state only; never represents actual submission"}

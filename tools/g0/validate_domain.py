@@ -22,6 +22,8 @@ Missing files, malformed fields or unknown enum values are hard failures
 - C14 validate_outcome_policy
 - C15 validate_common_grants_mapping
 - C16 validate_extension_namespace
+- C18 validate_client_vision_matrix
+- C19 validate_draft_context_policy
 """
 from __future__ import annotations
 
@@ -558,6 +560,78 @@ def validate_extension_namespace(data: dict) -> tuple[bool, dict]:
     })
 
 
+COVERAGE_FIELDS = ("client_requirement_id", "requirement", "domain_entities",
+                   "relationships", "state_machine_support",
+                   "external_mapping_if_any", "covered", "gap")
+GRANT_CATEGORIES = {"federal", "state", "local_county", "foundation",
+                    "corporate", "tribal", "educational_institution",
+                    "private_other"}
+
+
+def validate_client_vision_matrix(data: dict) -> tuple[bool, dict]:
+    """B2.C18 — client vision matrix: every row complete, every Phase 1
+    requirement covered, eight grant categories via single opportunity entity."""
+    errors: list[str] = []
+    cats = set(data.get("grant_categories") or [])
+    if cats != GRANT_CATEGORIES:
+        errors.append(f"grant_categories must be exactly {sorted(GRANT_CATEGORIES)}")
+    if data.get("opportunity_entity_rule") != "single_grant_opportunity_entity_with_category_metadata":
+        errors.append("opportunity_entity_rule must forbid eight opportunity entity types")
+    rows = data.get("coverage") or []
+    if not rows:
+        errors.append("coverage matrix may not be empty")
+    seen: set[str] = set()
+    for row in rows:
+        rid = row.get("client_requirement_id")
+        missing = [f for f in COVERAGE_FIELDS if f not in row]
+        if missing:
+            errors.append(f"{rid}: missing fields {missing}")
+        if rid in seen:
+            errors.append(f"{rid}: duplicate requirement id")
+        seen.add(rid)
+        if not isinstance(row.get("covered"), bool):
+            errors.append(f"{rid}: covered must be boolean")
+        if row.get("covered") is not True:
+            errors.append(f"{rid}: uncovered Phase 1 requirement blocks ratification")
+        if not (row.get("domain_entities") or []):
+            errors.append(f"{rid}: domain_entities required")
+    return finish("domain_client_vision_matrix", not errors, {
+        "errors": errors, "coverage_count": len(seen),
+    })
+
+
+D0_RULES = {"exact_opportunity_revision_required", "eligibility_not_ineligible",
+            "mandatory_requirements_present", "unsupported_facts_not_silently_filled",
+            "material_assertions_link_evidence", "output_state_draft_or_mock",
+            "no_submission_state"}
+
+
+def validate_draft_context_policy(data: dict) -> tuple[bool, dict]:
+    """B2.C19 — D0 rules: the seven rules present, bundle members cover the
+    DraftContextBundle contract."""
+    errors: list[str] = []
+    rules = {r.get("rule") for r in data.get("d0_rules") or []}
+    if rules != D0_RULES:
+        errors.append(f"d0_rules must be exactly {sorted(D0_RULES)}")
+    members = data.get("bundle_members") or []
+    for member in ("Organization", "GrantOpportunity", "OpportunityRevision",
+                   "EligibilityDecision", "Requirement", "Budget",
+                   "ProposalTemplate"):
+        if member not in members:
+            errors.append(f"bundle_members must include '{member}'")
+    return finish("domain_draft_context_policy", not errors, {
+        "errors": errors, "d0_rule_count": len(rules),
+    })
+
+
+def load_client_vision_matrix() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "client_vision_matrix.yaml")
+
+
+def load_draft_context_policy() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "draft_context_policy.yaml")
+
+
 def load_extension_namespace() -> dict:
     return load_yaml(DOMAIN_CONFIG_DIR / "extension_namespace.yaml")
 
@@ -636,6 +710,8 @@ def main() -> int:
         ("outcome_policy", validate_outcome_policy, load_outcome_policy),
         ("common_grants_mapping", validate_common_grants_mapping, load_common_grants_mapping),
         ("extension_namespace", validate_extension_namespace, load_extension_namespace),
+        ("client_vision_matrix", validate_client_vision_matrix, load_client_vision_matrix),
+        ("draft_context_policy", validate_draft_context_policy, load_draft_context_policy),
     ]
     ok_all = True
     for name, fn, loader in checks:

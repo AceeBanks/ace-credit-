@@ -1,0 +1,25 @@
+# G0 Book 2 - B2.C19 D0 Shadow Draft Readiness Contract (machine-readable).
+# Book 2 does NOT build the drafting harness; it defines the minimum domain
+# bundle the D0 harness must consume after Book 3.
+draft_context_version: "1.0"
+bundle_members:
+- Organization
+- CanonicalFact
+- GrantOpportunity
+- OpportunityRevision
+- EligibilityDecision
+- Requirement
+- FunderProgram
+- EvidenceClaim
+- StatisticObservation
+- Budget
+- ResearchFinding
+- ProposalTemplate
+d0_rules:
+- {rule: exact_opportunity_revision_required,      note: The bundle must carry the exact OpportunityRevision; missing = fail.}
+- {rule: eligibility_not_ineligible,               note: Eligibility cannot be INELIGIBLE; unresolved mandatory eligibility marks mock incomplete.}
+- {rule: mandatory_requirements_present,           note: Missing mandatory requirement list = fail or explicit incomplete state.}
+- {rule: unsupported_facts_not_silently_filled,    note: Facts without support are flagged, never silently filled.}
+- {rule: material_assertions_link_evidence,        note: Mock proposal links each material factual assertion to evidence where practical.}
+- {rule: output_state_draft_or_mock,               note: Output Artifact state is DRAFT/MOCK.}
+- {rule: no_submission_state,                      note: No submission state/capability in the bundle.}
