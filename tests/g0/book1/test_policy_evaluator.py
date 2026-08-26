@@ -24,6 +24,10 @@ from prototype.g0.policy.registry import PolicyRegistry
 
 _ROOT = Path(__file__).resolve().parents[3]
 
+# Fixed, past, parseable decision timestamp for approval records (schema requires
+# decided_at; evaluator rejects unparseable/future decisions).
+_DECIDED = "2026-08-01T00:00:00Z"
+
 
 @pytest.fixture(scope="module")
 def reg() -> PolicyRegistry:
@@ -153,7 +157,8 @@ def test_ap2_without_approval_yields_require_approval(reg):
 
 def test_ap2_with_valid_human_approval_satisfied(reg):
     approval = ApprovalRef("ap-1", "human-owner", "HUMAN_CLIENT_APPROVER", "AP2",
-                           "tenant-alpha", "evidence.propose_promotion")
+                           "tenant-alpha", "evidence.propose_promotion",
+                           decided_at=_DECIDED)
     r = evaluate(reg, ceo(), "evidence.propose_promotion",
                  ctx(resource_type="evidence_record", approval_refs=(approval,)))
     assert r.decision is Decision.ALLOW
@@ -162,17 +167,21 @@ def test_ap2_with_valid_human_approval_satisfied(reg):
 def test_expired_approval_fails_closed(reg):
     approval = ApprovalRef("ap-1", "human-owner", "HUMAN_CLIENT_APPROVER", "AP2",
                            "tenant-alpha", "evidence.propose_promotion",
-                           status="EXPIRED")
+                           decided_at=_DECIDED, status="EXPIRED")
     r = evaluate(reg, ceo(), "evidence.propose_promotion",
                  ctx(resource_type="evidence_record", approval_refs=(approval,)))
     assert r.decision is Decision.REQUIRE_APPROVAL
 
 
 def test_agent_principal_approval_is_ignored(reg):
-    approval = ApprovalRef("ap-2", "agent-ceo-self", "HUMAN_CLIENT_APPROVER", "AP2",
-                           "tenant-alpha", "evidence.propose_promotion")
+    # The ApprovalRef contract now REJECTS agent principals at construction
+    # (LAW-B1-018); the evaluator keeps its own agent check as defense in depth.
+    with pytest.raises(ValueError):
+        ApprovalRef("ap-2", "agent-ceo-self", "HUMAN_CLIENT_APPROVER", "AP2",
+                    "tenant-alpha", "evidence.propose_promotion",
+                    decided_at=_DECIDED)
     r = evaluate(reg, ceo(), "evidence.propose_promotion",
-                 ctx(resource_type="evidence_record", approval_refs=(approval,)))
+                 ctx(resource_type="evidence_record"))
     assert r.decision is Decision.REQUIRE_APPROVAL
 
 
@@ -180,11 +189,13 @@ def test_ap3_requires_two_distinct_humans(reg):
     promote_ctx = ctx(tenant_id="tenant-alpha", resource_type="system_state",
                       project_id=None)
     a1 = ApprovalRef("a", "owner-1", "DUAL_OWNER_PLUS_ADMIN", "AP3",
-                     "tenant-alpha", "system.promote_change")
+                     "tenant-alpha", "system.promote_change", decided_at=_DECIDED)
     same_guy = [ApprovalRef("a", "owner-1", "DUAL_OWNER_PLUS_ADMIN", "AP3",
-                            "tenant-alpha", "system.promote_change"),
+                            "tenant-alpha", "system.promote_change",
+                            decided_at=_DECIDED),
                 ApprovalRef("b", "owner-1", "HUMAN_ADMIN_APPROVER", "AP3",
-                            "tenant-alpha", "system.promote_change")]
+                            "tenant-alpha", "system.promote_change",
+                            decided_at=_DECIDED)]
     r_same = evaluate(reg, Actor("admin-1", "ACTOR-HUMAN-ADMIN", (), AuthorityLevel.L5),
                       "system.promote_change",
                       PolicyContext(tenant_id=promote_ctx.tenant_id, project_id=None,
@@ -194,7 +205,8 @@ def test_ap3_requires_two_distinct_humans(reg):
 
     distinct = [same_guy[0],
                 ApprovalRef("c", "admin-2", "HUMAN_ADMIN_APPROVER", "AP3",
-                            "tenant-alpha", "system.promote_change")]
+                            "tenant-alpha", "system.promote_change",
+                            decided_at=_DECIDED)]
     r_ok = evaluate(reg, Actor("admin-1", "ACTOR-HUMAN-ADMIN", (), AuthorityLevel.L5),
                     "system.promote_change",
                     PolicyContext(tenant_id="tenant-alpha", project_id=None,
@@ -215,7 +227,8 @@ def test_evaluator_crash_fails_closed(monkeypatch, reg):
         raise RuntimeError("registry exploded")
     monkeypatch.setattr(ev, "_find_valid_approval", boom)
     approval = ApprovalRef("ap-1", "human-owner", "HUMAN_CLIENT_APPROVER", "AP2",
-                           "tenant-alpha", "evidence.propose_promotion")
+                           "tenant-alpha", "evidence.propose_promotion",
+                           decided_at=_DECIDED)
     r = ev.evaluate(reg, ceo(), "evidence.propose_promotion",
                     ctx(resource_type="evidence_record", approval_refs=(approval,)))
     assert r.decision is Decision.DENY  # internal failure never yields ALLOW

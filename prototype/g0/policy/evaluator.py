@@ -127,7 +127,8 @@ def _evaluate(registry: PolicyRegistry, actor: Actor | None, capability_id: str 
     # 10. approval requirement satisfied?
     if cap.approval_class in _APPROVABLE:
         matched = _find_valid_approval(ctx.approval_refs, cap.capability_id,
-                                       ctx.tenant_id, cap.approval_class)
+                                       ctx.tenant_id, ctx.project_id,
+                                       cap.approval_class)
         if matched is None:
             return PolicyDecisionResult(
                 Decision.REQUIRE_APPROVAL, Reason.APPROVAL_REQUIRED,
@@ -146,8 +147,51 @@ def _evaluate(registry: PolicyRegistry, actor: Actor | None, capability_id: str 
                                 matched_approval=None)
 
 
-def _find_valid_approval(refs, capability_id: str, tenant_id: str, needed_class: str):
-    now = datetime.now(timezone.utc)
+def _parse_dt(value: str):
+    """Parse an ISO-8601 datetime; naive values are assumed UTC. None on garbage."""
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def _time_valid(ref, now: datetime) -> bool:
+    """Time validity: status VALID AND decided_at parseable/not-future AND,
+    when expires_at is present, expires_at > evaluation time.
+    An expired timestamp MUST fail even if status is still VALID."""
+    if not ref.decided_at:
+        return False                        # schema-required field missing
+    decided = _parse_dt(ref.decided_at)
+    if decided is None or decided > now:
+        return False                        # unparseable or decided in the future
+    if ref.expires_at:
+        expires = _parse_dt(ref.expires_at)
+        if expires is None or expires <= now:
+            return False                    # expired even if status says VALID
+    return True
+
+
+def _find_valid_approval(refs, capability_id: str, tenant_id: str,
+                         project_id: str | None, needed_class: str,
+                         now: datetime | None = None):
+    """Find an approval that EXPLICITLY satisfies `needed_class` for this
+    capability/tenant/project at evaluation time.
+
+    Class semantics are exact and constitutional (approval_matrix.yaml):
+      - AP2 requires an AP2 approval.
+      - AP3 requires AP3 from two DISTINCT human principals.
+      - AP1 NEVER satisfies AP2/AP3 (no implicit privilege inheritance).
+      - APX is unsatisfiable.
+    Project scope: an approval carrying scope_project_id authorizes ONLY that
+    project; a project-scoped approval can never authorize another project.
+    """
+    if needed_class not in _APPROVABLE:
+        return None                         # AP0/AP1 need no record; APX unsatisfiable
+    if now is None:
+        now = datetime.now(timezone.utc)
     matched = None
     principals: set[str] = set()
     for ref in refs:
@@ -155,9 +199,15 @@ def _find_valid_approval(refs, capability_id: str, tenant_id: str, needed_class:
             continue
         if ref.scope_tenant_id != tenant_id:
             continue
+        if ref.scope_project_id is not None and ref.scope_project_id != project_id:
+            continue                        # project-scoped approval cannot cross projects
         if ref.status != "VALID":
             continue
-        if ref.approval_class == "APX":     # can never cure anything
+        if ref.approval_class != needed_class:
+            continue                        # no cross-class substitution (AP1 != AP2 != AP3)
+        if ref.approval_class == "APX":
+            continue                        # can never cure anything
+        if not _time_valid(ref, now):
             continue
         if ref.approver_principal.lower().startswith("agent"):
             continue                        # agent principal is not human (LAW-B1-018)

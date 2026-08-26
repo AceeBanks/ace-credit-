@@ -77,14 +77,34 @@ class Capability:
 
 @dataclass(frozen=True)
 class ApprovalRef:
-    """A human approval record (already validated to be agent-free upstream)."""
+    """A human approval record (already validated to be agent-free upstream).
+
+    Executable contract aligned with schemas/g0/policy/approval_policy.schema.json:
+    every field below is carried on the record. `decided_at` is REQUIRED
+    (matching the schema); `scope_project_id` and `expires_at` are nullable.
+    An approval may satisfy a requested class ONLY by an explicit, tested rule
+    (see evaluator._find_valid_approval) — never by implicit class inheritance.
+    """
     approval_id: str
     approver_principal: str                  # must be a HUMAN principal id
     approver_role: str
-    approval_class: str                      # AP1/AP2/AP3
+    approval_class: str                      # AP1/AP2/AP3 (APX can never approve)
     scope_tenant_id: str
     subject_capability_id: str
+    decided_at: str                          # ISO-8601 UTC; REQUIRED by schema
+    scope_project_id: str | None = None      # None = tenant-scoped; else exact project
+    expires_at: str | None = None            # ISO-8601 UTC or None (no expiry)
     status: str = "VALID"                    # VALID / EXPIRED / REVOKED
+
+    def __post_init__(self) -> None:
+        if not self.decided_at or not str(self.decided_at).strip():
+            raise ValueError("ApprovalRef.decided_at is required (approval_policy.schema.json)")
+        if self.approval_class not in {"AP1", "AP2", "AP3", "APX"}:
+            raise ValueError(f"unknown approval_class '{self.approval_class}'")
+        if self.status not in {"VALID", "EXPIRED", "REVOKED"}:
+            raise ValueError(f"unknown approval status '{self.status}'")
+        if self.approver_principal.lower().startswith("agent"):
+            raise ValueError("agent principal cannot appear on an approval (LAW-B1-018)")
 
 
 @dataclass(frozen=True)

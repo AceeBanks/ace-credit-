@@ -2,9 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schemas/g0/policy/approval_policy.schema.json",
   "title": "G0 Approval Reference",
+  "description": "Executable approval record contract. An approval satisfies a capability's required approval class ONLY by an explicit rule: AP2 requires an AP2 approval; AP3 requires AP3 from two distinct human principals; AP1 can NEVER satisfy AP2/AP3; APX is unsatisfiable. No implicit class inheritance exists.",
   "type": "object",
   "required": ["approval_id", "approver_principal", "approver_role", "approval_class",
-               "scope_tenant_id", "decided_at", "status"],
+               "scope_tenant_id", "subject_capability_id", "decided_at", "status"],
   "additionalProperties": false,
   "properties": {
     "approval_id": {"type": "string"},
@@ -19,12 +20,20 @@
       "description": "Required distinct second principal for AP3."
     },
     "approval_class": {"enum": ["AP1", "AP2", "AP3"],
-                       "description": "APX cannot be approved; AP0 needs no record."},
+                       "description": "Must EXACTLY match the capability's required class. APX cannot be approved; AP0 needs no record."},
     "scope_tenant_id": {"type": "string"},
-    "scope_project_id": {"type": ["string", "null"]},
-    "subject_capability_id": {"type": "string"},
-    "decided_at": {"type": "string", "format": "date-time"},
-    "expires_at": {"type": ["string", "null"], "format": "date-time"},
+    "scope_project_id": {
+      "type": ["string", "null"],
+      "description": "Tenant-scoped by default (null). When set, this approval authorizes ONLY that project; a project-scoped approval can never authorize another project. The evaluator rejects any approval whose scope_project_id differs from the request's project_id."
+    },
+    "subject_capability_id": {
+      "type": "string",
+      "description": "REQUIRED. The capability this approval was granted for. An approval for capability A can never satisfy capability B."
+    },
+    "decided_at": {"type": "string", "format": "date-time",
+                   "description": "REQUIRED. ISO-8601 decision timestamp; must parse and must not be in the future."},
+    "expires_at": {"type": ["string", "null"], "format": "date-time",
+                   "description": "When present, MUST be later than the evaluation time; an expired timestamp fails even if status is still VALID."},
     "status": {"enum": ["VALID", "EXPIRED", "REVOKED"]}
   }
 }

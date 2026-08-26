@@ -20,7 +20,7 @@
     "exit_code": 0,
     "passed": 50,
     "failed": 0,
-    "summary": "50 passed, 1 skipped in 8.64s",
+    "summary": "50 passed, 1 skipped in 6.81s",
     "scope": "tests/g0/book0 excluding G0_B0_REALITY_LOCK.json freshness self-test"
   },
   "validator_reports": {
