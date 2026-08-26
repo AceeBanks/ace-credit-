@@ -1,0 +1,79 @@
+# G0 Book 2 - B2.C7 State Machine Catalog (machine-readable).
+# Prevents arbitrary string-status mutation. Every transition declares the
+# capability required, authority level, preconditions (machine-checkable
+# codes), audit class and invalidation consequences.
+state_machines_version: "1.0"
+valid_precondition_codes: [eligibility_not_ineligible, revision_current,
+                           mandatory_requirements_satisfied, qa_passed,
+                           human_review_done, evidence_promoted,
+                           terms_immutable, draft_material_satisfied]
+state_machines:
+# --- GrantOpportunity (B2.C7 11.1) ---
+- state_machine: opportunity
+  states: [DISCOVERED, ACTIVE, AMENDED, CLOSED, CANCELLED, ARCHIVED]
+  future_states: []
+  transitions:
+  - {from: DISCOVERED, to: ACTIVE, capability: opportunity.normalize, authority_level: L2, preconditions: [], audit_class: A2, invalidation: none}
+  - {from: ACTIVE, to: AMENDED, capability: opportunity.snapshot, authority_level: L2, preconditions: [terms_immutable], audit_class: A2, invalidation: dependent_decisions_stale}
+  - {from: ACTIVE, to: CLOSED, capability: opportunity.fetch, authority_level: L2, preconditions: [], audit_class: A2, invalidation: none}
+  - {from: AMENDED, to: ACTIVE, capability: opportunity.compare_revision, authority_level: L2, preconditions: [], audit_class: A1, invalidation: none}
+  - {from: ACTIVE, to: CANCELLED, capability: opportunity.fetch, authority_level: L2, preconditions: [], audit_class: A2, invalidation: dependent_decisions_stale}
+  - {from: CLOSED, to: ARCHIVED, capability: opportunity.snapshot, authority_level: L2, preconditions: [], audit_class: A2, invalidation: none}
+  - {from: CANCELLED, to: ARCHIVED, capability: opportunity.snapshot, authority_level: L2, preconditions: [], audit_class: A2, invalidation: none}
+# --- EligibilityDecision (B2.C7 11.2) ---
+- state_machine: eligibility_decision
+  states: [PENDING_INPUTS, EVALUATED, SUPERSEDED]
+  future_states: []
+  transitions:
+  - {from: PENDING_INPUTS, to: EVALUATED, capability: eligibility.evaluate, authority_level: L3, preconditions: [evidence_promoted], audit_class: A2, invalidation: none}
+  - {from: EVALUATED, to: SUPERSEDED, capability: eligibility.validate_rule_set, authority_level: L3, preconditions: [terms_immutable], audit_class: A2, invalidation: dependent_decisions_stale}
+  - {from: PENDING_INPUTS, to: SUPERSEDED, capability: eligibility.validate_rule_set, authority_level: L3, preconditions: [terms_immutable], audit_class: A2, invalidation: none}
+# --- ApplicationProject (B2.C7 11.3) ---
+- state_machine: application_project
+  states: [IDEA, QUALIFYING, RESEARCH, DRAFTING, QA, HUMAN_REVIEW, SUBMISSION_READY, SUBMITTED, AWARDED, REJECTED, WITHDRAWN]
+  future_states: [SUBMITTED, AWARDED, REJECTED, WITHDRAWN]
+  transitions:
+  - {from: IDEA, to: QUALIFYING, capability: application.create_draft_project, authority_level: L2, preconditions: [], audit_class: A2, invalidation: none}
+  - {from: QUALIFYING, to: RESEARCH, capability: research.program, authority_level: L2, preconditions: [eligibility_not_ineligible], audit_class: A2, invalidation: none}
+  - {from: RESEARCH, to: DRAFTING, capability: application.create_blueprint, authority_level: L2, preconditions: [revision_current], audit_class: A2, invalidation: none}
+  - {from: DRAFTING, to: QA, capability: qa.requirement_coverage, authority_level: L2, preconditions: [draft_material_satisfied], audit_class: A1, invalidation: none}
+  - {from: QA, to: HUMAN_REVIEW, capability: qa.humanization, authority_level: L2, preconditions: [qa_passed], audit_class: A2, invalidation: none}
+  - {from: HUMAN_REVIEW, to: SUBMISSION_READY, capability: application.prepare_submission_package, authority_level: L2, preconditions: [eligibility_not_ineligible, revision_current, mandatory_requirements_satisfied, human_review_done], audit_class: A2, invalidation: none}
+  - {from: SUBMISSION_READY, to: SUBMITTED, capability: application.submit, authority_level: L5, preconditions: [], audit_class: A4, invalidation: none}
+  - {from: SUBMITTED, to: AWARDED, capability: application.submit, authority_level: L5, preconditions: [], audit_class: A4, invalidation: none}
+  - {from: SUBMITTED, to: REJECTED, capability: application.submit, authority_level: L5, preconditions: [], audit_class: A4, invalidation: none}
+  - {from: SUBMITTED, to: WITHDRAWN, capability: application.submit, authority_level: L5, preconditions: [], audit_class: A4, invalidation: none}
+  - {from: ANY, to: IDEA, capability: application.update_internal, authority_level: L2, preconditions: [terms_immutable], audit_class: A2, invalidation: dependent_decisions_stale}
+# --- Requirement (B2.C7 11.4) ---
+- state_machine: requirement
+  states: [IDENTIFIED, NORMALIZED, IN_PROGRESS, SATISFIED, VERIFIED, NOT_APPLICABLE, BLOCKED, WAIVED]
+  future_states: []
+  transitions:
+  - {from: IDENTIFIED, to: NORMALIZED, capability: eligibility.extract_candidate_rules, authority_level: L2, preconditions: [], audit_class: A1, invalidation: none}
+  - {from: NORMALIZED, to: IN_PROGRESS, capability: application.update_internal, authority_level: L2, preconditions: [], audit_class: A1, invalidation: none}
+  - {from: IN_PROGRESS, to: SATISFIED, capability: qa.requirement_coverage, authority_level: L2, preconditions: [draft_material_satisfied], audit_class: A1, invalidation: none}
+  - {from: SATISFIED, to: VERIFIED, capability: qa.factuality, authority_level: L3, preconditions: [evidence_promoted], audit_class: A2, invalidation: none}
+  - {from: IDENTIFIED, to: NOT_APPLICABLE, capability: eligibility.explain, authority_level: L2, preconditions: [], audit_class: A1, invalidation: none}
+  - {from: NORMALIZED, to: BLOCKED, capability: application.update_internal, authority_level: L2, preconditions: [], audit_class: A1, invalidation: none}
+  - {from: NORMALIZED, to: WAIVED, capability: organization.accept_verified_update, authority_level: L3, preconditions: [evidence_promoted], audit_class: A2, invalidation: none}
+# --- Artifact (B2.C7 11.5) ---
+- state_machine: artifact
+  states: [DRAFT, QA_PENDING, REVIEW_REQUIRED, APPROVED_INTERNAL, SUBMISSION_READY, SUPERSEDED, MOCK]
+  future_states: []
+  transitions:
+  - {from: DRAFT, to: QA_PENDING, capability: qa.requirement_coverage, authority_level: L2, preconditions: [], audit_class: A1, invalidation: none}
+  - {from: QA_PENDING, to: REVIEW_REQUIRED, capability: qa.humanization, authority_level: L2, preconditions: [], audit_class: A1, invalidation: none}
+  - {from: REVIEW_REQUIRED, to: APPROVED_INTERNAL, capability: qa.cross_document_consistency, authority_level: L2, preconditions: [qa_passed], audit_class: A2, invalidation: none}
+  - {from: APPROVED_INTERNAL, to: SUBMISSION_READY, capability: artifact.export, authority_level: L2, preconditions: [revision_current], audit_class: A2, invalidation: none}
+  - {from: ANY, to: SUPERSEDED, capability: artifact.version, authority_level: L2, preconditions: [], audit_class: A2, invalidation: supersedes_prior_versions}
+  - {from: ANY, to: MOCK, capability: application.draft_section, authority_level: L2, preconditions: [], audit_class: A1, invalidation: none}
+# --- CanonicalFact (B2.C7 11.6) ---
+- state_machine: canonical_fact
+  states: [PROPOSED, PROMOTED, CONFLICTED, SUPERSEDED, RETIRED]
+  future_states: []
+  transitions:
+  - {from: PROPOSED, to: PROMOTED, capability: evidence.resolve_conflict, authority_level: L3, preconditions: [evidence_promoted], audit_class: A2, invalidation: none}
+  - {from: PROMOTED, to: CONFLICTED, capability: evidence.propose_promotion, authority_level: L2, preconditions: [], audit_class: A2, invalidation: dependent_decisions_stale}
+  - {from: CONFLICTED, to: PROMOTED, capability: evidence.resolve_conflict, authority_level: L3, preconditions: [evidence_promoted], audit_class: A2, invalidation: none}
+  - {from: PROMOTED, to: SUPERSEDED, capability: evidence.resolve_conflict, authority_level: L3, preconditions: [], audit_class: A2, invalidation: dependent_decisions_stale}
+  - {from: ANY, to: RETIRED, capability: evidence.resolve_conflict, authority_level: L3, preconditions: [], audit_class: A2, invalidation: dependent_decisions_stale}

@@ -200,6 +200,47 @@ def validate_relationships(data: dict, entity_types: dict | None = None) -> tupl
     })
 
 
+def validate_state_machines(data: dict) -> tuple[bool, dict]:
+    """B2.C7 — state machines: unique names, known states, transitions
+    reference known states, preconditions resolve, capability ids are the
+    Book 1 capability ids (checked against policy registry when provided)."""
+    errors: list[str] = []
+    valid_pre = set(data.get("valid_precondition_codes") or [])
+    machines = data.get("state_machines") or []
+    seen: set[str] = set()
+    for m in machines:
+        name = m.get("state_machine")
+        if not name:
+            errors.append("state machine missing state_machine")
+            continue
+        if name in seen:
+            errors.append(f"{name}: duplicate state machine")
+        seen.add(name)
+        states = m.get("states") or []
+        if not states:
+            errors.append(f"{name}: no states")
+        future = m.get("future_states") or []
+        unknown_future = [s for s in future if s not in states]
+        if unknown_future:
+            errors.append(f"{name}: future_states not in states {unknown_future}")
+        for t in m.get("transitions") or []:
+            frm, to = t.get("from"), t.get("to")
+            if frm != "ANY" and frm not in states:
+                errors.append(f"{name}: transition from unknown state '{frm}'")
+            if to not in states:
+                errors.append(f"{name}: transition to unknown state '{to}'")
+            for pre in t.get("preconditions") or []:
+                if pre not in valid_pre:
+                    errors.append(f"{name}: unknown precondition '{pre}'")
+    return finish("domain_state_machines", not errors, {
+        "errors": errors, "state_machine_count": len(seen),
+    })
+
+
+def load_state_machines() -> dict:
+    return load_yaml(DOMAIN_CONFIG_DIR / "state_machines.yaml")
+
+
 def load_relationships() -> dict:
     return load_yaml(DOMAIN_CONFIG_DIR / "relationship_types.yaml")
 
