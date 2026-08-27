@@ -43,19 +43,19 @@
       "exit_code": 0,
       "passed": 324,
       "failed": 0,
-      "summary": "324 passed, 2 skipped in 1.67s"
+      "summary": "324 passed, 2 skipped in 1.47s"
     },
     "full_g0_test_results": {
       "exit_code": 0,
       "passed": 1728,
       "failed": 0,
-      "summary": "1728 passed, 14 skipped in 37.22s"
+      "summary": "1728 passed, 14 skipped in 38.32s"
     },
     "adversarial_results": {
       "exit_code": 0,
       "passed": 58,
       "failed": 0,
-      "summary": "58 passed in 0.26s"
+      "summary": "58 passed in 0.27s"
     },
     "seam_probes": {
       "grant_authority_enforced": true,

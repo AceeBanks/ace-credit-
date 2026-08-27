@@ -133,8 +133,24 @@ initial gates; no claim is made that they are empirically optimal.
 | Humanizer disposition | **DEFER / CANDIDATE** (pending live baseline-vs-humanized comparison) |
 | Submission | `submission_enabled = false` (unchanged) |
 
+## Live D2 closeout (after `G0-B7-D2-LIVE`)
+
+A governed model runtime was implemented (`G0-MODEL-RUNTIME-C1/C2`) and the
+first REAL model-generated grounded Grant draft was executed and evaluated:
+
+| Lane | Result |
+|---|---|
+| D2 live model | **PASS** — `minimax/minimax-m3:free` via the governed Model Gateway; deterministic QA all-pass, claim support 1.0, 0 unsupported claims, 0 protected elements dropped, hard gate PASS, `submission_enabled=false` |
+| Humanizer live | **PASS (disposition REVISE)** — bounded style-transform through the same gateway; protected-claim diff PASS, semantic preservation PASS; not promoted (C28 single-fixture discipline) |
+| Humanizer disposition | **REVISE** (bounded, provisional; no auto-PROMOTE) |
+| Book 7 Reality Lock | `status=PASS`, `p0_open=0`, `ready_for_book8_architecture=true`, **`ready_for_book8_execution=true`** (derived from live evidence), `submission_enabled=false` |
+| Submission | `submission_enabled = false` (unchanged, structurally impossible) |
+
 **External review status:** `EXTERNAL_REVIEW_REPAIR_COMPLETE` —
 `AWAITING_EXTERNAL_RATIFICATION`. External ratification is NOT claimed by
-this record; a human external reviewer must ratify before Book 8 execution
-is authorized. Note also that `ready_for_book8_execution = false` regardless
-(mission §20 condition 3 — live D2 model run — is not met).
+this record; a human external reviewer must still ratify the Book 7
+evaluation methodology, Humanizer results, and the live D2 draft before
+final Book 8 authorization. The derived lock authorizes Book 8 execution
+(§20 conditions 1–7 met: fresh lock, `p0_open=0`, live D2 run complete,
+baseline hard gates pass, Humanizer resolved truthfully,
+`ready_for_book8_execution=true`, no recorded blocker).
