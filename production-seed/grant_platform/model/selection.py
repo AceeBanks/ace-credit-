@@ -115,15 +115,26 @@ def _select_preferred(ctx: SelectionContext, profiles: list[ModelProfile],
     If incompatible, reject — never silently substitute another model here
     (substitution only happens via governed fallback)."""
     required = _required_context(ctx)
-    candidates = profiles
     if prefer_model_id:
         exact = [p for p in profiles if p.model_id == prefer_model_id]
-        if exact:
-            candidates = exact
+        if not exact:
+            # unknown model: DENY (Appendix A §9 — never silently treat a
+            # misspelled/unregistered model as "no preference")
+            return SelectionResult(
+                selected=None,
+                rejected_reasons=[f"unknown model {prefer_model_id} "
+                                  "(not in governed registry)"])
+        candidates = exact
     elif prefer_provider:
         prov = [p for p in profiles if p.provider_id == prefer_provider]
-        if prov:
-            candidates = prov
+        if not prov:
+            return SelectionResult(
+                selected=None,
+                rejected_reasons=[f"unknown provider {prefer_provider} "
+                                  "(not in governed registry)"])
+        candidates = prov
+    else:
+        candidates = profiles
     reasons: list[str] = []
     for p in candidates:
         reasons = _reject_reasons(p, ctx, required)

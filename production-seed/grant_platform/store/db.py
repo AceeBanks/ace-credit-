@@ -57,7 +57,10 @@ class Store:
     # -- schema ---------------------------------------------------------
     @classmethod
     def open(cls, path: str = ":memory:") -> "Store":
-        conn = sqlite3.connect(path)
+        # check_same_thread=False: the dev/CI SQLite store is shared with
+        # threaded servers (FastAPI TestClient/uvicorn). Production uses
+        # Postgres, which has no such affinity.
+        conn = sqlite3.connect(path, check_same_thread=False)
         conn.execute("PRAGMA foreign_keys=ON")
         store = cls(conn)
         store.migrate()
