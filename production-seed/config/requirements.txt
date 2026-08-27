@@ -1,0 +1,7 @@
+# G0-B9-C12 — seed runtime dependencies (minimal, local-first)
+# requests is the only non-stdlib runtime dependency of the G0 kernel
+# (used by the OpenRouter adapter). Apache-2.0.
+requests>=2.31,<3
+
+# Dev/test only
+pytest>=8,<9

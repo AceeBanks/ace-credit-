@@ -1,0 +1,73 @@
+{
+  "chapter": "B9.C11",
+  "status": "COMPLETE",
+  "note": "clean production repository creation is a pending operator action; seed prepared in isolated production-seed/ path",
+  "repo_creation": "CLEAN_REPO_CREATION_PENDING_OPERATOR_ACTION",
+  "seed_items": [
+    {
+      "seed_item_id": "seed-001",
+      "destination": "production-seed/migrations/001_initial_schema.sql",
+      "source_type": "SALVAGED",
+      "source_repo": "larger-lab (g0-worktree)",
+      "source_path": "prototype/g0/domain/, prototype/g0/evidence/, prototype/g0/security/",
+      "source_commit": "455a9d1242b895aed359a14ede033e64204aead2",
+      "license": "project-owned",
+      "modifications": "translated dataclass contracts to portable SQL DDL",
+      "owner_module": "platform/policy, sectors/grants/domain",
+      "reason": "canonical tables from Books 2-6 contracts",
+      "tests_required": true
+    },
+    {
+      "seed_item_id": "seed-002",
+      "destination": "production-seed/bootstrap.py",
+      "source_type": "NEW",
+      "source_repo": null,
+      "source_path": null,
+      "source_commit": null,
+      "license": "project-owned",
+      "modifications": null,
+      "owner_module": "platform/runtime",
+      "reason": "local-first bootstrap (C15/C25)",
+      "tests_required": true
+    },
+    {
+      "seed_item_id": "seed-003",
+      "destination": "production-seed/config/env.example",
+      "source_type": "NEW",
+      "source_repo": null,
+      "source_path": null,
+      "source_commit": null,
+      "license": "project-owned",
+      "modifications": null,
+      "owner_module": "platform/observability, infra",
+      "reason": "environment strategy (C14); secrets referenced never stored",
+      "tests_required": false
+    },
+    {
+      "seed_item_id": "seed-004",
+      "destination": "production-seed/config/requirements.txt",
+      "source_type": "NEW",
+      "source_repo": null,
+      "source_path": null,
+      "source_commit": null,
+      "license": "project-owned (requests Apache-2.0)",
+      "modifications": null,
+      "owner_module": "platform/runtime",
+      "reason": "dependency freeze (C12); minimal",
+      "tests_required": false
+    },
+    {
+      "seed_item_id": "seed-005",
+      "destination": "production-seed/tests/test_migration_seed.py",
+      "source_type": "NEW",
+      "source_repo": null,
+      "source_path": null,
+      "source_commit": null,
+      "license": "project-owned",
+      "modifications": null,
+      "owner_module": "tests",
+      "reason": "empty-DB migration verification (C13/C25)",
+      "tests_required": true
+    }
+  ]
+}
