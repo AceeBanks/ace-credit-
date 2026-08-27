@@ -1,6 +1,9 @@
 {
-  "decision": "BLOCKED_MODEL_RUNTIME",
-  "humanizer_disposition": "DEFER (no live run)",
-  "reason": "no model runtime; harness and deterministic baseline complete; promotion requires baseline-vs-candidate comparison",
+  "decision": "HARNESS_COMPLETE",
+  "harness": "deterministic baseline + evaluation chain",
+  "live_model_runtime": "AVAILABLE",
+  "live_lane_artifacts": "docs/grant-sector/g0/07-evaluation/d2-live/",
+  "humanizer_disposition": "SEE D2_LIVE_HUMANIZER_DECISION.json",
+  "reason": "deterministic harness complete; promotion requires baseline-vs-candidate comparison through the live lane (d2_live.py) when a governed runtime exists",
   "submission": "DISABLED"
 }

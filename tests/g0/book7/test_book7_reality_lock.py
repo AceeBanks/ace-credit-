@@ -6,9 +6,9 @@ Two responsibilities:
    hand-edited lock cannot authorize Book 8.
 2. DEFECT INJECTION: each injected defect flips a predicate / the overall
    status to FAIL — proving the lock is DERIVED, not hard-coded.
-3. HONESTY: submission stays disabled and the D2 live-model lane is reported
-   truthfully (BLOCKED_MODEL_RUNTIME => d2_live_model_run_complete=False),
-   never faked as a live run.
+3. HONESTY: submission stays disabled; the live D2 lane is reported from
+   recorded evidence (no live run => d2_live_model_run_complete=False,
+   recorded live run + passing hard gates => True). Never faked either way.
 """
 from __future__ import annotations
 
@@ -55,9 +55,12 @@ def _green_seam() -> dict:
 
 
 def _green_d2() -> dict:
+    """Green D2 evidence at the live-run state: harness ready AND a real
+    model draft + Humanizer transform recorded in d2-live/ with hard gates
+    passing. Matches the committed artifacts."""
     return {
         "harness_complete": True,
-        "humanizer_lane_status": "BLOCKED_MODEL_RUNTIME",
+        "humanizer_lane_status": "AVAILABLE",
         "protected_claim_diff_identity": True,
         "tamper_detected": True,
         "baseline_deterministic_qa_passed": True,
@@ -65,7 +68,22 @@ def _green_d2() -> dict:
         "baseline_unsupported_claims": 0,
         "requirement_coverage": 1.0,
         "submission_enabled": False,
+        "live_model_run_ok": True,
+        "live_hard_gate_pass": True,
+        "live_humanizer_transform": True,
+        "live_humanizer_gate_pass": True,
+        "live_submission_disabled": True,
     }
+
+
+def _d2_without_live() -> dict:
+    """D2 evidence as it existed BEFORE the live run (harness only)."""
+    d = dict(_green_d2())
+    for key in ("live_model_run_ok", "live_hard_gate_pass",
+                "live_humanizer_transform", "live_humanizer_gate_pass",
+                "live_submission_disabled"):
+        d[key] = False
+    return d
 
 
 def _live_lock(**overrides) -> dict:
@@ -92,7 +110,10 @@ def test_committed_lock_is_current_pass():
     recomputed = _live_lock()
     assert recomputed["status"] == "PASS"
     assert recomputed["ready_for_book8_architecture"] is True
-    assert recomputed["ready_for_book8_execution"] is False  # live gate
+    # execution gate derives from live evidence: with a recorded live model
+    # run + Humanizer transform it must be True; committed must agree
+    assert recomputed["ready_for_book8_execution"] is True
+    assert committed["ready_for_book8_execution"] is True
 
 
 @pytest.mark.skipif(os.environ.get("G0_SKIP_LOCK_FRESHNESS") == "1",
@@ -102,7 +123,7 @@ def test_stale_lock_cannot_authorize():
     recomputation must agree from current evidence."""
     committed = json.loads(COMMITTED_LOCK_PATH.read_text(encoding="utf-8"))
     assert committed["ready_for_book8_architecture"] is True
-    assert committed["ready_for_book8_execution"] is False
+    assert committed["ready_for_book8_execution"] is True
     recomputed = _live_lock()
     assert recomputed["status"] == committed["status"] == "PASS"
 
@@ -182,30 +203,42 @@ def test_injected_humanizer_defect_flips_protected_claim():
     assert lock["status"] == "FAIL"
 
 
-def test_contract_and_harness_pass_without_live_bakeoff():
-    """P1-02 split: contract + harness pass while the live bake-off lane is
-    truthfully false — architecture readiness does not imply a live run."""
+def test_contract_and_harness_pass_with_live_bakeoff():
+    """P1-02 split: contract + harness pass AND the live bake-off lane is
+    truthfully true once a real model draft + Humanizer transform are
+    recorded with passing hard gates."""
     lock = _live_lock()
     assert lock["humanizer_contract_pass"] is True
     assert lock["humanizer_bakeoff_harness_complete"] is True
-    assert lock["humanizer_live_bakeoff_complete"] is False
-    assert lock["d2_live_humanizer_run_complete"] is False
+    assert lock["humanizer_live_bakeoff_complete"] is True
+    assert lock["d2_live_humanizer_run_complete"] is True
     assert lock["status"] == "PASS"
 
 
-def test_execution_gate_false_without_live_evidence():
-    """P1-02: ready_for_book8_architecture can be true while
-    ready_for_book8_execution stays false (live D2 gate not passed)."""
+def test_execution_gate_true_with_live_evidence():
+    """P1-02: once live D2 evidence exists, ready_for_book8_execution derives
+    true (architecture + execution both ready)."""
     lock = _live_lock()
     assert lock["ready_for_book8_architecture"] is True
+    assert lock["ready_for_book8_execution"] is True
+    assert lock["p0_open"] == 0
+
+
+def test_execution_gate_false_without_live_evidence():
+    """P1-02: with harness-only evidence AND no runtime (the pre-live
+    state), the execution gate stays false while architecture stays ready —
+    the split still holds."""
+    lock = _live_lock(d2_results=_d2_without_live(), runtime_available=False)
+    assert lock["ready_for_book8_architecture"] is True
     assert lock["ready_for_book8_execution"] is False
+    assert lock["d2_live_model_run_complete"] is False
     assert lock["p0_open"] == 0  # blocked lane is not a defect
 
 
 def test_live_lanes_count_as_defects_when_runtime_available():
     """P1-02: once an authorized runtime exists, an incomplete live lane is a
     real defect (p0), not an informational false."""
-    lock = _live_lock(runtime_available=True)
+    lock = _live_lock(runtime_available=True, d2_results=_d2_without_live())
     assert lock["d2_live_model_run_complete"] is False
     assert lock["ready_for_book8_execution"] is False
     assert lock["p0_open"] >= 1
@@ -246,13 +279,28 @@ def test_missing_test_results_report_null_not_false_claim():
 
 
 def test_live_model_lane_reported_honestly_blocked():
-    """HONESTY-001: no configured model runtime => d2_live_model_run_complete
-    is False (BLOCKED_MODEL_RUNTIME), never faked as a live run."""
-    lock = _live_lock()
+    """HONESTY-001: with harness-only evidence (no recorded live run),
+    d2_live_model_run_complete is False (BLOCKED_MODEL_RUNTIME), never faked
+    as a live run."""
+    lock = _live_lock(d2_results=_d2_without_live(), runtime_available=False)
     assert lock["d2_harness_complete"] is True
     assert lock["d2_live_model_run_complete"] is False
     assert lock["submission_enabled"] is False
     assert lock["status"] == "PASS"  # blocked lane is not a defect
+
+
+def test_live_model_lane_honest_when_run_recorded():
+    """HONESTY-002: with a recorded live model run + Humanizer transform,
+    the live lanes flip true and the execution gate opens — derived from
+    evidence, not hand-set."""
+    lock = _live_lock()
+    assert lock["d2_harness_complete"] is True
+    assert lock["d2_live_model_run_complete"] is True
+    assert lock["d2_live_humanizer_run_complete"] is True
+    assert lock["humanizer_live_bakeoff_complete"] is True
+    assert lock["ready_for_book8_execution"] is True
+    assert lock["p0_open"] == 0
+    assert lock["status"] == "PASS"
 
 
 def test_required_predicate_set_present():
@@ -283,7 +331,7 @@ def test_required_predicate_set_present():
         assert key in lock, key
     assert lock["p0_open"] == 0
     assert lock["ready_for_book8_architecture"] is True
-    assert lock["ready_for_book8_execution"] is False
+    assert lock["ready_for_book8_execution"] is True
 
 
 def test_final_test_manifest_is_consistent():
@@ -330,6 +378,6 @@ def test_checkpoint_review_status_model():
     assert er["review_record"].endswith("G0_B7_EXTERNAL_REVIEW_01.md")
     assert er["repair_commit"].startswith("G0-B7-REPAIR-01")
     assert checkpoint["reality_lock"]["ready_for_book8_architecture"] is True
-    assert checkpoint["reality_lock"]["ready_for_book8_execution"] is False
+    assert checkpoint["reality_lock"]["ready_for_book8_execution"] is True
     assert checkpoint["reality_lock"]["submission_enabled"] is False
     assert checkpoint["submission_disabled"] is True

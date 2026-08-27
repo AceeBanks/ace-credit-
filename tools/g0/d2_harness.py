@@ -69,16 +69,23 @@ def _model_runtime_available() -> bool:
     """Probe for an AUTHORIZED, configured model runtime for the governed G0
     pipeline.
 
-    An authorized path is a repository-recognized provider adapter, OCE-
-    compatible model gateway, or approved provider configuration that the
-    Book 6 credential rules permit (server-side secrets, no hard-coded
-    credentials, no exposure to Hermes context). A bare environment variable
-    such as OPENROUTER_API_KEY is NOT by itself an authorized provider path:
-    the G0 pipeline has no adapter/gateway consuming it. Returns False so the
-    generation lanes report BLOCKED_MODEL_RUNTIME honestly. Nothing is
-    printed or committed; credentials are never touched.
+    Since G0-MODEL-RUNTIME-C1/C2 the governed Model Gateway exists
+    (prototype/g0/model/) with a provider profile registry; the live lane is
+    executed through it by tools/g0/d2_live.py. A runtime is available when
+    the governed profile is configured AND a server-side credential exists
+    in the process environment (DEV_RUNTIME_ONLY resolver). A bare env var
+    alone is still not enough — the governed gateway must exist too. No
+    credential value is printed or committed.
     """
-    return False
+    from pathlib import Path
+    try:
+        import os
+        from prototype.g0.model.gateway import ProviderProfileRegistry
+        profiles = ProviderProfileRegistry()
+        profiles.get("pp_openrouter_dev")  # raises if unconfigured
+        return bool(os.environ.get("OPENROUTER_API_KEY", ""))
+    except Exception:
+        return False
 
 
 def run_deterministic_qa(baseline_sections: dict[str, str]) -> dict:
@@ -167,9 +174,22 @@ def build_baseline_bundle() -> dict:
 
 
 def build_humanized_lane_status() -> dict:
-    """Honest status of the Humanizer lane: blocked without a live model."""
+    """Honest status of the Humanizer lane.
+
+    With a governed runtime available (G0-MODEL-RUNTIME), the live lane is
+    executed through the Model Gateway by tools/g0/d2_live.py and
+    tools/g0/humanizer_live.py; artifacts land in d2-live/. Without one,
+    the lane reports BLOCKED_MODEL_RUNTIME truthfully and nothing is
+    fabricated.
+    """
     if _model_runtime_available():
-        return {"status": "RUNNABLE", "note": "model runtime configured"}
+        return {
+            "status": "AVAILABLE",
+            "note": "governed model runtime configured; live lane executed "
+                    "through tools/g0/d2_live.py (see d2-live/ artifacts)",
+            "artifacts_dir": "docs/grant-sector/g0/07-evaluation/d2-live/",
+            "harness_complete": True,
+        }
     return {
         "status": "BLOCKED_MODEL_RUNTIME",
         "note": "no configured language model provider in this environment; "
@@ -262,13 +282,23 @@ def main() -> int:
         json.dumps(report["baseline_metrics"], indent=2), encoding="utf-8")
     (out / "D2_COMPARISON_REPORT.md").write_text(
         _comparison_markdown(report), encoding="utf-8")
+    runtime = _model_runtime_available()
+    decision = {
+        "decision": "HARNESS_COMPLETE",
+        "harness": "deterministic baseline + evaluation chain",
+        "live_model_runtime": "AVAILABLE" if runtime
+        else "BLOCKED_MODEL_RUNTIME",
+        "live_lane_artifacts": "docs/grant-sector/g0/07-evaluation/d2-live/"
+        if runtime else None,
+        "humanizer_disposition": "SEE D2_LIVE_HUMANIZER_DECISION.json"
+        if runtime else "DEFER (no live run)",
+        "reason": "deterministic harness complete; promotion requires "
+                  "baseline-vs-candidate comparison through the live lane "
+                  "(d2_live.py) when a governed runtime exists",
+        "submission": "DISABLED",
+    }
     (out / "D2_DECISION.json").write_text(
-        json.dumps({"decision": "BLOCKED_MODEL_RUNTIME",
-                    "humanizer_disposition": "DEFER (no live run)",
-                    "reason": "no model runtime; harness and deterministic "
-                              "baseline complete; promotion requires "
-                              "baseline-vs-candidate comparison",
-                    "submission": "DISABLED"}, indent=2), encoding="utf-8")
+        json.dumps(decision, indent=2), encoding="utf-8")
     (out / "D2_REPRODUCTION_MANIFEST.json").write_text(
         json.dumps({
             "experiment": report["experiment"],

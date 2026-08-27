@@ -22,6 +22,7 @@ from prototype.g0.evaluation.fixtures import (  # noqa: E402
     d2_budget_total,
 )
 from tools.g0.d2_harness import (  # noqa: E402
+    _model_runtime_available,
     build_d2_report,
     build_humanized_lane_status,
     run_claim_ledger_eval,
@@ -34,7 +35,8 @@ from tools.g0.d2_harness import (  # noqa: E402
 def test_d2_report_never_fabricates_humanized_draft():
     report = build_d2_report()
     assert report["humanized_draft"] is None  # never invented
-    assert report["humanizer_lane"]["status"] == "BLOCKED_MODEL_RUNTIME"
+    status = report["humanizer_lane"]["status"]
+    assert status in ("BLOCKED_MODEL_RUNTIME", "AVAILABLE")
 
 
 def test_d2_report_submission_disabled():
@@ -108,8 +110,13 @@ def test_d2_artifacts_exist_and_are_reviewable():
         assert (d2_dir / name).exists(), name
     decision = json.loads((d2_dir / "D2_DECISION.json").read_text(
         encoding="utf-8"))
-    assert decision["decision"] == "BLOCKED_MODEL_RUNTIME"
     assert decision["submission"] == "DISABLED"
+    # honest live-runtime awareness: when a governed runtime exists the
+    # harness must report it (AVAILABLE) instead of a stale BLOCKED
+    if _model_runtime_available():
+        assert decision["live_model_runtime"] == "AVAILABLE"
+    else:
+        assert decision["live_model_runtime"] == "BLOCKED_MODEL_RUNTIME"
 
 
 def test_d2_baseline_draft_uses_only_governed_values():
@@ -124,8 +131,16 @@ def test_d2_humanizer_disposition_is_defer_not_promote():
     decision = json.loads(
         (_ROOT / "docs/grant-sector/g0/07-evaluation/d2/D2_DECISION.json")
         .read_text(encoding="utf-8"))
-    assert "DEFER" in decision["humanizer_disposition"]
+    # never a PROMOTE from the harness alone; the live Humanizer decision
+    # lives in d2-live and is REVISE/REJECT/QUARANTINE/DEFER, never auto-
+    # PROMOTE (C28: one fixture is weak evidence)
     assert decision["humanizer_disposition"] != "PROMOTE"
+    if _model_runtime_available():
+        live = json.loads(
+            (_ROOT / "docs/grant-sector/g0/07-evaluation/d2-live/"
+             "D2_LIVE_HUMANIZER_DECISION.json")
+            .read_text(encoding="utf-8"))
+        assert live["disposition"] != "PROMOTE"
 
 
 def test_d2_standalone_functions_agree_with_report():
@@ -137,4 +152,5 @@ def test_d2_standalone_functions_agree_with_report():
         {"claim_id": "c", "support_status": "SUPPORTED", "material": True}])
     assert claims["supported"] == 1
     assert run_requirement_eval()["coverage"] == 1.0
-    assert build_humanized_lane_status()["status"] == "BLOCKED_MODEL_RUNTIME"
+    assert build_humanized_lane_status()["status"] in (
+        "BLOCKED_MODEL_RUNTIME", "AVAILABLE")

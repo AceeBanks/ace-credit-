@@ -26,36 +26,36 @@
   "external_tool_bakeoff_complete": true,
   "humanizer_contract_pass": true,
   "humanizer_bakeoff_harness_complete": true,
-  "humanizer_live_bakeoff_complete": false,
+  "humanizer_live_bakeoff_complete": true,
   "humanizer_protected_claim_pass": true,
   "d2_harness_complete": true,
-  "d2_live_model_run_complete": false,
-  "d2_live_humanizer_run_complete": false,
+  "d2_live_model_run_complete": true,
+  "d2_live_humanizer_run_complete": true,
   "adversarial_p0_pass": true,
   "cross_tenant_p0_pass": true,
   "submission_enabled": false,
   "p0_open": 0,
   "ready_for_book8_architecture": true,
-  "ready_for_book8_execution": false,
-  "runtime_available": false,
+  "ready_for_book8_execution": true,
+  "runtime_available": true,
   "evidence": {
     "book7_test_results": {
       "exit_code": 0,
-      "passed": 290,
+      "passed": 324,
       "failed": 0,
-      "summary": "290 passed, 2 skipped in 1.37s"
+      "summary": "324 passed, 2 skipped in 1.67s"
     },
     "full_g0_test_results": {
       "exit_code": 0,
-      "passed": 1694,
+      "passed": 1728,
       "failed": 0,
-      "summary": "1694 passed, 14 skipped in 41.01s"
+      "summary": "1728 passed, 14 skipped in 37.22s"
     },
     "adversarial_results": {
       "exit_code": 0,
       "passed": 58,
       "failed": 0,
-      "summary": "58 passed in 0.28s"
+      "summary": "58 passed in 0.26s"
     },
     "seam_probes": {
       "grant_authority_enforced": true,
@@ -66,14 +66,19 @@
     },
     "d2": {
       "harness_complete": true,
-      "humanizer_lane_status": "BLOCKED_MODEL_RUNTIME",
+      "humanizer_lane_status": "AVAILABLE",
       "protected_claim_diff_identity": true,
       "tamper_detected": true,
       "baseline_deterministic_qa_passed": true,
       "baseline_claim_support_rate": 1.0,
       "baseline_unsupported_claims": 0,
       "requirement_coverage": 1.0,
-      "submission_enabled": false
+      "submission_enabled": false,
+      "live_model_run_ok": true,
+      "live_hard_gate_pass": true,
+      "live_humanizer_transform": true,
+      "live_humanizer_gate_pass": true,
+      "live_submission_disabled": true
     },
     "failed_predicates": []
   }

@@ -98,8 +98,42 @@ def _live_seam_probes() -> dict:
 
 
 def _live_d2() -> dict:
+    """Harness evidence + live-lane evidence from the d2-live artifacts.
+
+    The harness report proves architecture readiness (deterministic QA,
+    protected-claim diff, coverage). The d2-live artifacts prove whether a
+    real model run and a real Humanizer transform actually happened and
+    passed their hard gates. Both are required for the live predicates.
+    """
+    import json
     from tools.g0.d2_harness import build_d2_report
     report = build_d2_report()
+    live = {
+        "live_model_run_ok": False, "live_hard_gate_pass": False,
+        "live_humanizer_transform": False,
+        "live_humanizer_gate_pass": False,
+        "live_submission_disabled": True,
+    }
+    live_dir = Path(__file__).resolve().parents[2] / \
+        "docs/grant-sector/g0/07-evaluation/d2-live"
+    try:
+        eval_doc = json.loads((live_dir / "D2_LIVE_BASELINE_EVAL.json")
+                              .read_text(encoding="utf-8"))
+        run_doc = json.loads((live_dir / "D2_LIVE_BASELINE_MODEL_RUN.json")
+                             .read_text(encoding="utf-8"))
+        hzr_decision = json.loads(
+            (live_dir / "D2_LIVE_HUMANIZER_DECISION.json")
+            .read_text(encoding="utf-8"))
+        live["live_model_run_ok"] = run_doc.get("status") == "OK"
+        live["live_hard_gate_pass"] = eval_doc.get("hard_gate_pass") is True
+        live["live_submission_disabled"] = \
+            eval_doc.get("submission_enabled") is False
+        live["live_humanizer_transform"] = (live_dir /
+                                             "D2_LIVE_HUMANIZED_DRAFT.md").exists()
+        live["live_humanizer_gate_pass"] = hzr_decision.get("gate_pass") \
+            is True
+    except (FileNotFoundError, json.JSONDecodeError, KeyError):
+        pass  # no live run recorded yet — lanes stay honest-false
     return {
         "harness_complete": report["humanizer_lane"]["harness_complete"],
         "humanizer_lane_status": report["humanizer_lane"]["status"],
@@ -116,6 +150,7 @@ def _live_d2() -> dict:
         "requirement_coverage": report["baseline_metrics"][
             "requirement_coverage"]["coverage"],
         "submission_enabled": report["submission_enabled"],
+        **live,
     }
 
 
@@ -201,15 +236,18 @@ def compute_lock(configs: dict, test_results: dict | None = None,
         not d2["submission_enabled"] and
         tests_green)
     # A real model-generated draft requires an authorized runtime AND a live
-    # lane that actually produced a draft (d2 report marks the lane RUNNABLE
-    # only when a provider exists; a run record would additionally exist).
+    # lane that actually produced a draft (a committed d2-live model run with
+    # a passing hard gate). The harness alone never flips this.
     live_model_run_complete = bool(
-        runtime_ok and d2["humanizer_lane_status"] == "RUNNABLE" and
+        runtime_ok and d2.get("live_model_run_ok") and
+        d2.get("live_hard_gate_pass") and
+        d2.get("live_submission_disabled") is not False and
         d2_harness_ready)
     # A real Humanizer transform requires the model lane AND an executed
-    # transform with a protected-claim diff against the live draft.
+    # transform whose protected-claim hard gates passed.
     live_humanizer_run_complete = bool(
-        live_model_run_complete and d2.get("live_humanizer_transform", False))
+        live_model_run_complete and d2.get("live_humanizer_transform") and
+        d2.get("live_humanizer_gate_pass"))
     live_bakeoff_complete = bool(
         live_model_run_complete and live_humanizer_run_complete)
 

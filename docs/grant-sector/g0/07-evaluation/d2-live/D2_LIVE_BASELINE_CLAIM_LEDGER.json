@@ -1,0 +1,51 @@
+[
+  {
+    "claim_id": "d2-c1",
+    "claim_class": "POPULATION_COMMUNITY_STATISTICS",
+    "claim_text_or_structured_ref": "county poverty rate 18.2 percent, Dade County GA, 2023",
+    "material": true,
+    "support_status": "SUPPORTED",
+    "evidence_refs": [
+      "ref:stat_ga_42"
+    ],
+    "qa_status": "PASSED",
+    "artifact_version_id": "d2-live-art-v1"
+  },
+  {
+    "claim_id": "d2-c2",
+    "claim_class": "ORGANIZATION_IDENTITY",
+    "claim_text_or_structured_ref": "Community Youth Works, Inc. is a Georgia nonprofit, founded 2012",
+    "material": true,
+    "support_status": "SUPPORTED",
+    "evidence_refs": [
+      "ref:snap-ga-1",
+      "ref:snap-ga-2"
+    ],
+    "qa_status": "PASSED",
+    "artifact_version_id": "d2-live-art-v1"
+  },
+  {
+    "claim_id": "d2-c3",
+    "claim_class": "DEADLINE",
+    "claim_text_or_structured_ref": "deadline October 15, 2026",
+    "material": true,
+    "support_status": "SUPPORTED",
+    "evidence_refs": [
+      "ref:opp_rev_ga_501_1"
+    ],
+    "qa_status": "PASSED",
+    "artifact_version_id": "d2-live-art-v1"
+  },
+  {
+    "claim_id": "d2-c4",
+    "claim_class": "FUNDING_AMOUNT",
+    "claim_text_or_structured_ref": "award ceiling $50,000",
+    "material": true,
+    "support_status": "SUPPORTED",
+    "evidence_refs": [
+      "ref:opp_rev_ga_501_1"
+    ],
+    "qa_status": "PASSED",
+    "artifact_version_id": "d2-live-art-v1"
+  }
+]

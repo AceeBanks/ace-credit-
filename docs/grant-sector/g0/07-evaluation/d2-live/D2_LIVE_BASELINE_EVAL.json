@@ -1,0 +1,309 @@
+{
+  "deterministic_qa": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "results": [
+      {
+        "check_id": "req_sections",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "check_id": "word_limit",
+        "passed": true,
+        "detail": "313 words (limit 3000)"
+      },
+      {
+        "check_id": "deadline",
+        "passed": true,
+        "detail": "draft='2026-10-15' expected='2026-10-15'"
+      },
+      {
+        "check_id": "funding_amount",
+        "passed": true,
+        "detail": "draft=50000.00 ceiling=50000.00"
+      },
+      {
+        "check_id": "revision_identity",
+        "passed": true,
+        "detail": "draft='opp_rev_ga_501_1' expected='opp_rev_ga_501_1'"
+      },
+      {
+        "check_id": "eligibility",
+        "passed": true,
+        "detail": "expected=ELIGIBLE draft='## community_impact\\n\\nCommunity Youth Works, Inc. proposes to serve Dade County, '"
+      },
+      {
+        "check_id": "fabrications",
+        "passed": true,
+        "detail": "affirmative hits: []"
+      },
+      {
+        "check_id": "submission_absent",
+        "passed": true,
+        "detail": "affirmative hits: []"
+      }
+    ],
+    "all_pass": true
+  },
+  "protected_elements": {
+    "organization_legal_name": {
+      "present": true,
+      "expected": [
+        "Community Youth Works, Inc."
+      ],
+      "found": [
+        "Community Youth Works, Inc."
+      ],
+      "required_in_draft": true
+    },
+    "organization_display_name": {
+      "present": true,
+      "expected": [
+        "Community Youth Works"
+      ],
+      "found": [
+        "Community Youth Works"
+      ],
+      "required_in_draft": true
+    },
+    "ein": {
+      "present": true,
+      "expected": [
+        "58-2345671"
+      ],
+      "found": [
+        "58-2345671"
+      ],
+      "required_in_draft": false
+    },
+    "state_registration": {
+      "present": false,
+      "expected": [
+        "1234567"
+      ],
+      "found": [],
+      "required_in_draft": false
+    },
+    "opportunity_title": {
+      "present": true,
+      "expected": [
+        "Georgia Rural Community Impact Grant FY2026"
+      ],
+      "found": [
+        "Georgia Rural Community Impact Grant FY2026"
+      ],
+      "required_in_draft": true
+    },
+    "opportunity_id": {
+      "present": true,
+      "expected": [
+        "opp_ga_501"
+      ],
+      "found": [
+        "opp_ga_501"
+      ],
+      "required_in_draft": false
+    },
+    "revision_id": {
+      "present": true,
+      "expected": [
+        "opp_rev_ga_501_1"
+      ],
+      "found": [
+        "opp_rev_ga_501_1"
+      ],
+      "required_in_draft": true
+    },
+    "deadline": {
+      "present": true,
+      "expected": [
+        "2026-10-15",
+        "October 15, 2026"
+      ],
+      "found": [
+        "2026-10-15",
+        "October 15, 2026"
+      ],
+      "required_in_draft": true
+    },
+    "funding_ceiling": {
+      "present": true,
+      "expected": [
+        "50000.00",
+        "$50,000"
+      ],
+      "found": [
+        "$50,000"
+      ],
+      "required_in_draft": true
+    },
+    "geography": {
+      "present": true,
+      "expected": [
+        "Georgia"
+      ],
+      "found": [
+        "Georgia"
+      ],
+      "required_in_draft": false
+    },
+    "county_statistic": {
+      "present": true,
+      "expected": [
+        "18.2"
+      ],
+      "found": [
+        "18.2"
+      ],
+      "required_in_draft": true
+    },
+    "county_statistic_unit": {
+      "present": true,
+      "expected": [
+        "percent"
+      ],
+      "found": [
+        "percent"
+      ],
+      "required_in_draft": false
+    },
+    "county_statistic_geography": {
+      "present": true,
+      "expected": [
+        "Dade County, GA"
+      ],
+      "found": [
+        "Dade County, GA"
+      ],
+      "required_in_draft": true
+    },
+    "county_statistic_period": {
+      "present": true,
+      "expected": [
+        "2023"
+      ],
+      "found": [
+        "2023"
+      ],
+      "required_in_draft": false
+    },
+    "eligibility_result": {
+      "present": true,
+      "expected": [
+        "ELIGIBLE"
+      ],
+      "found": [
+        "ELIGIBLE"
+      ],
+      "required_in_draft": true
+    }
+  },
+  "protected_missing": [],
+  "claim_support": {
+    "material_claim_support_rate": 1.0,
+    "supported": 4,
+    "unsupported": 0,
+    "conflicted": 0,
+    "stale": 0,
+    "total": 4
+  },
+  "unsupported_material_claims": [],
+  "citations": {
+    "citation_precision": 1.0,
+    "citation_recall": 1.0,
+    "resolvable": 5,
+    "supporting": 5,
+    "required_count": 5,
+    "total": 5
+  },
+  "requirement_coverage": {
+    "coverage": 1.0,
+    "covered": 2,
+    "mandatory_total": 2,
+    "missing": []
+  },
+  "model_run": {
+    "status": "OK",
+    "model_request": {
+      "model_id": "minimax/minimax-m3:free",
+      "purpose": "grant_drafting",
+      "temperature": 0.2,
+      "max_output_tokens": 2048,
+      "provider_profile_id": "pp_openrouter_dev"
+    },
+    "response": {
+      "model_response_id": "mrsp-8e5bf7f7b564",
+      "model_request_id": "d2-live-m1",
+      "provider": "openrouter",
+      "model_id": "minimax/minimax-m3:free",
+      "model_version_if_available": "minimax/minimax-m3:free",
+      "output_text_or_structured_payload": "## community_impact\n\nCommunity Youth Works, Inc. proposes to serve Dade County, GA (county-121), where the poverty rate stands at 18.2 percent according to the 2023 ACS 5-year estimate. This rate indicates that a substantial share of Dade County households experience economic hardship, which directly affects youth and families in the area.\n\nThe program will address the needs of youth and families impacted by these local economic conditions in Dade County, GA. UNKNOWN: specific number of youth and families to be served, demographic breakdown of program participants, and documented program outcomes (e.g., pre/post measurements, prior-year results, or evaluation methodology). The community_impact narrative should be supplemented with program-level outputs and outcomes data prior to submission if those figures are available internally.\n\n## organization\n\nLegal Name: Community Youth Works, Inc.\nType: Georgia nonprofit, founded 2012, headquartered in Atlanta, GA\nEIN: 58-2345671\n501(c)(3) status: Confirmed 501(c)(3) organization (per CanonicalFact fact_ga_1, promotion state: PROMOTED).\n\nCommunity Youth Works, Inc. has been determined ELIGIBLE for the Georgia Rural Community Impact Grant FY2026 (opportunity id: opp_ga_501, opportunity revision: opp_rev_ga_501_1). The eligibility result is ELIGIBLE.\n\nUNKNOWN: Dade County, GA service-site address, staff size, board composition, annual operating budget, prior grants received, and any Dade County\u2013specific programmatic history, as these facts were not provided.\n\n## budget_narrative\n\nThe total amount requested under the Georgia Rural Community Impact Grant FY2026 is $50,000.00, which does not exceed the published funding ceiling of $50,000.00. The budget is therefore consistent with the award ceiling.\n\nUNKNOWN: per-line budget amounts (e.g., personnel, fringe, travel, supplies, contractual, other direct costs, and indirect costs), cost-share or match contributions, and a line-item budget table. These items must be supplied from the organization's internal budget and appended prior to submission. No budget line items have been invented beyond the total requested amount.\n\n## deadline\n\nApplication deadline: October 15, 2026 (2026-10-15). The application must be submitted by this date. The application has not been submitted.",
+      "finish_reason": "stop",
+      "input_tokens": 721,
+      "output_tokens": 486,
+      "total_tokens": 1207,
+      "latency_ms": 7022.905,
+      "cost_usd_if_known": null,
+      "provider_request_id": "gen-1787855367-7hFtsnEkiOXuVLzNvlCm",
+      "retry_count": 0,
+      "safety_or_filter_metadata": {
+        "status_code": 200,
+        "provider_usage": {
+          "prompt_tokens": 721,
+          "completion_tokens": 486,
+          "total_tokens": 1207,
+          "cost": 0,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 706,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0,
+            "upstream_inference_prompt_cost": 0,
+            "upstream_inference_completions_cost": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        }
+      },
+      "generated_at": "2026-08-27T18:29:34.958898+00:00",
+      "audit_ref": "audit:mrsp-8e5bf7f7b564"
+    },
+    "audit": {
+      "model_request_id": "d2-live-m1",
+      "request_id": "d2-live-r1",
+      "principal_id": "d2-ceo",
+      "tenant_id": "tenant-a",
+      "project_id": "proj-d2",
+      "resource_id": "res:d2-draft",
+      "task_id": "task-d2-draft",
+      "purpose": "grant_drafting",
+      "provider": "openrouter",
+      "model_id": "minimax/minimax-m3:free",
+      "provider_profile_id": "pp_openrouter_dev",
+      "capability_id": "model.invoke",
+      "decision_id": "4d2587cc94dd899b3a79ea0d2b7d37c8",
+      "credential_ref": "ref:openrouter_dev",
+      "input_tokens": 721,
+      "output_tokens": 486,
+      "cost_usd_if_known": null,
+      "latency_ms": 7022.905,
+      "success": true,
+      "retry_count": 0,
+      "audit_ref": "audit:mrsp-8e5bf7f7b564",
+      "generated_at": "2026-08-27T18:29:34.958898+00:00"
+    },
+    "generated_at": "2026-08-27T18:29:34.958898+00:00"
+  },
+  "hard_gate_pass": true,
+  "submission_enabled": false,
+  "evaluated_at": "2026-08-27T18:29:34.960785+00:00"
+}

@@ -14,8 +14,8 @@
 
 ## Humanized Grounded Draft
 
-- **Status: BLOCKED_MODEL_RUNTIME**
-- no configured language model provider in this environment; BASELINE GROUNDED DRAFT generated deterministically from governed evidence. HUMANIZED GROUNDED DRAFT requires a live model. The protected-claim diff (HZR-007) and factuality revalidation (HZR-008) contracts are implemented and tested.
+- **Status: AVAILABLE**
+- governed model runtime configured; live lane executed through tools/g0/d2_live.py (see d2-live/ artifacts)
 
 ## Humanizer protected-claim diff (HZR-007)
 

@@ -1,0 +1,43 @@
+{
+  "protected_claim_diff_passed": true,
+  "protected_claim_diff_detail": "",
+  "baseline_protected_present": {
+    "organization_legal_name": true,
+    "organization_display_name": true,
+    "ein": true,
+    "state_registration": false,
+    "opportunity_title": true,
+    "opportunity_id": true,
+    "revision_id": true,
+    "deadline": true,
+    "funding_ceiling": true,
+    "geography": true,
+    "county_statistic": true,
+    "county_statistic_unit": true,
+    "county_statistic_geography": true,
+    "county_statistic_period": true,
+    "eligibility_result": true
+  },
+  "humanized_protected_present": {
+    "organization_legal_name": true,
+    "organization_display_name": true,
+    "ein": true,
+    "state_registration": false,
+    "opportunity_title": true,
+    "opportunity_id": true,
+    "revision_id": true,
+    "deadline": true,
+    "funding_ceiling": true,
+    "geography": true,
+    "county_statistic": true,
+    "county_statistic_unit": true,
+    "county_statistic_geography": true,
+    "county_statistic_period": true,
+    "eligibility_result": true
+  },
+  "protected_dropped": [],
+  "baseline_word_count": 313,
+  "humanized_word_count": 327,
+  "word_delta": 14,
+  "semantic_preservation": "PASS"
+}

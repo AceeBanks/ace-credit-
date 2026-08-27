@@ -1,0 +1,19 @@
+{
+  "promotion_decision_id": "pd-hzr-live-1",
+  "candidate_change_id": "cc-hzr-live-1",
+  "candidate": "blader/humanizer (bounded style transform)",
+  "baseline_version": "d2-live-art-v1 (model draft)",
+  "candidate_version": "d2-live-art-v2 (humanized)",
+  "model_id": "minimax/minimax-m3:free",
+  "hard_gates": {
+    "protected_claim_diff": true,
+    "semantic_preservation": true,
+    "submission_disabled": true
+  },
+  "gate_pass": true,
+  "disposition": "REVISE",
+  "decision_note": "Amendment 003 bounded contract. Protected-claim diff and semantic preservation must pass; unsupported claims must not rise. One fixture is weak evidence \u2014 no auto-PROMOTE; any positive result is PROVISIONAL/BOUNDED pending Book 8 evidence (C28).",
+  "submission": "DISABLED",
+  "decided_at": "2026-08-27T18:29:48.079240+00:00",
+  "decided_by": "Book 7 evaluation machinery (no self-promotion)"
+}

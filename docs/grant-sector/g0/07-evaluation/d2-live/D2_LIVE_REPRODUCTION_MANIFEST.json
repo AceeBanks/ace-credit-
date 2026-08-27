@@ -1,0 +1,14 @@
+{
+  "experiment": "D2 LIVE \u2014 first governed model-generated grant",
+  "fixture": "D2 \u2014 first grounded grant-writing quality experiment",
+  "opportunity_revision_id": "opp_rev_ga_501_1",
+  "model_id": "minimax/minimax-m3:free",
+  "provider": "openrouter",
+  "prompt_version": "D2-LIVE-PROMPT-v1",
+  "source_state": "G0-B7 + G0-MODEL-RUNTIME committed locks",
+  "eval_version": "G0-B7-C2-C10",
+  "reproduce": [
+    "python tools/g0/d2_live.py --model minimax/minimax-m3:free"
+  ],
+  "label": "MOCK_NON_SUBMISSION"
+}

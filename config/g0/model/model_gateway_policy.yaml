@@ -56,6 +56,8 @@ provider_profiles:
       - "openai/gpt-4o-mini"
       - "anthropic/claude-3.5-haiku"
       - "openrouter/free"  # free-tier router; zero-credit smoke/D2 lane
+      - "z-ai/glm-5.2:free"  # pinned free model: attributable, reproducible
+      - "minimax/minimax-m3:free"  # pinned free model; verified responsive
     allowed_capabilities:
       - model.invoke
     allowed_purposes:

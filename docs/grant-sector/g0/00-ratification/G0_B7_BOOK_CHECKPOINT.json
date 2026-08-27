@@ -29,7 +29,7 @@
     "status": "PASS",
     "p0_open": 0,
     "ready_for_book8_architecture": true,
-    "ready_for_book8_execution": false,
+    "ready_for_book8_execution": true,
     "submission_enabled": false
   },    "test_totals": {
     "current_at_head_4ca598001fed12d7e7070f4a144d7bc43e491d9e": {
@@ -49,9 +49,10 @@
     "manifest": "docs/grant-sector/g0/00-ratification/G0_B7_FINAL_TEST_MANIFEST.json"
   },
   "submission_disabled": true,
-  "d2_live_model_run_complete": false,
+  "d2_live_model_run_complete": true,
+  "d2_live_humanizer_run_complete": true,
   "d2_harness_complete": true,
-  "humanizer_disposition": "CANDIDATE / DEFER_PENDING_LIVE_BAKEOFF",
+  "humanizer_disposition": "REVISE (bounded style-transform hard gates pass; C28: single fixture, no auto-PROMOTE)",
   "external_review": {
     "finding_status": "REPAIR_REQUIRED",
     "repair_status": "COMPLETE",
@@ -59,8 +60,8 @@
     "review_record": "docs/grant-sector/g0/00-ratification/G0_B7_EXTERNAL_REVIEW_01.md",
     "repair_commit": "G0-B7-REPAIR-01 (72ad80d8)",
     "post_repair_commit": "G0-B7-EXT-REVIEW-01 post-repair record (4ca59800)",
-    "live_d2_status": "BLOCKED_MODEL_RUNTIME",
-    "live_humanizer_status": "BLOCKED_COMPONENT_RUNTIME"
+    "live_d2_status": "PASS",
+    "live_humanizer_status": "PASS (disposition REVISE)"
   },
-  "external_ratification": "NOT YET PERFORMED (awaiting external ratification; Book 8 execution additionally gated on ready_for_book8_execution)"
+  "external_ratification": "NOT YET PERFORMED (awaiting external ratification)"
 }

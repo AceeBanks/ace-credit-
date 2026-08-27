@@ -1,0 +1,43 @@
+{
+  "organization": "Community Youth Works, Inc.",
+  "opportunity": "Georgia Rural Community Impact Grant FY2026",
+  "opportunity_revision_id": "opp_rev_ga_501_1",
+  "deadline": "2026-10-15",
+  "funding_ceiling": "50000.00",
+  "eligibility": "ELIGIBLE",
+  "statistics": [
+    {
+      "metric": "county poverty rate",
+      "value": "18.2",
+      "unit": "percent",
+      "geography": "county-121 (Dade County, GA)",
+      "period": "2023"
+    }
+  ],
+  "requirements": [
+    {
+      "requirement_id": "req_ga_1",
+      "mandatory": true,
+      "type": "narrative",
+      "prompt": "Describe the community impact of your program.",
+      "word_limit": 2000,
+      "source_location": "ga-solicitation-sec-5a"
+    },
+    {
+      "requirement_id": "req_ga_2",
+      "mandatory": true,
+      "type": "budget",
+      "prompt": "Provide a budget consistent with the award ceiling.",
+      "ceiling": "50000.00",
+      "source_location": "ga-solicitation-sec-6"
+    }
+  ],
+  "evidence_refs": [
+    "ref:opp_rev_ga_501_1",
+    "ref:stat_ga_42",
+    "ref:snap-ga-1",
+    "ref:snap-ga-2"
+  ],
+  "label": "MOCK_NON_SUBMISSION",
+  "generated_at": "2026-08-27T18:29:34.960785+00:00"
+}
