@@ -12,7 +12,11 @@ if str(_ROOT) not in sys.path:
 
 from prototype.g0.evaluation.routing_eval import (  # noqa: E402
     ModelRun,
+    PARSER_LOCATOR_LINEAGE_THRESHOLD,
+    ROUTING_COST_JUSTIFICATION_FACTOR,
+    THRESHOLD_CALIBRATION,
     compare_models,
+    parser_eval,
     routing_must_beat_baseline,
     routing_structured_output_guard,
 )
@@ -104,3 +108,28 @@ def test_model_dimensions_visible_not_one_score():
     assert "factuality" in r["deltas"]
     assert "latency_ms" in r["deltas"]
     assert "cost_usd" in r["deltas"]
+
+
+def test_thresholds_marked_provisional_pending_book8_evidence():
+    """P2-01 repair: numeric routing/parser thresholds are machine-readably
+    labeled PROVISIONAL_G0_DEFAULT, recalibrate from Book 8 evidence — not
+    claimed empirically optimal."""
+    assert THRESHOLD_CALIBRATION["status"] == "PROVISIONAL_G0_DEFAULT"
+    assert THRESHOLD_CALIBRATION["recalibrate_from"] == \
+        "BOOK8_MEASURED_EVIDENCE"
+    params = {p["name"]: p["value"]
+              for p in THRESHOLD_CALIBRATION["parameters"]}
+    assert params["routing_cost_justification_factor"] == \
+        ROUTING_COST_JUSTIFICATION_FACTOR
+    assert params["parser_locator_lineage_threshold"] == \
+        PARSER_LOCATOR_LINEAGE_THRESHOLD
+    # the gates actually consume the labeled constants
+    assert routing_must_beat_baseline(simple_cost=1.0, routed_cost=0.89,
+                                      simple_correctness=0.9,
+                                      routed_correctness=0.9)["proven_value"]
+    pe = parser_eval(text_fidelity=1.0, heading_fidelity=1.0,
+                     table_fidelity=1.0,
+                     locator_lineage=PARSER_LOCATOR_LINEAGE_THRESHOLD,
+                     extraction_errors=0, latency_ms=1.0, cost_usd=0.001,
+                     failure_detected=False)
+    assert pe["passes_locator_hard_gate"] is True

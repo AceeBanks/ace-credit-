@@ -66,8 +66,18 @@ def _now() -> str:
 
 
 def _model_runtime_available() -> bool:
-    """No configured model/provider in this environment. Returns False so the
-    generation lanes report BLOCKED_MODEL_RUNTIME honestly."""
+    """Probe for an AUTHORIZED, configured model runtime for the governed G0
+    pipeline.
+
+    An authorized path is a repository-recognized provider adapter, OCE-
+    compatible model gateway, or approved provider configuration that the
+    Book 6 credential rules permit (server-side secrets, no hard-coded
+    credentials, no exposure to Hermes context). A bare environment variable
+    such as OPENROUTER_API_KEY is NOT by itself an authorized provider path:
+    the G0 pipeline has no adapter/gateway consuming it. Returns False so the
+    generation lanes report BLOCKED_MODEL_RUNTIME honestly. Nothing is
+    printed or committed; credentials are never touched.
+    """
     return False
 
 

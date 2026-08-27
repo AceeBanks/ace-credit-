@@ -23,7 +23,8 @@
     "path": "docs/grant-sector/g0/00-ratification/G0_B7_REALITY_LOCK.json",
     "status": "PASS",
     "p0_open": 0,
-    "ready_for_book8": true
+    "ready_for_book8_architecture": true,
+    "ready_for_book8_execution": false
   },
   "test_totals": {
     "full_suite": {"passed": 1687, "skipped": 14},
@@ -41,6 +42,11 @@
   "submission_disabled": true,
   "d2_live_model_run_complete": false,
   "d2_harness_complete": true,
-  "humanizer_disposition": "DEFER (no live model runtime; bake-off infrastructure + protected-claim guards complete, disposition per Book 7 promotion rules)",
-  "external_ratification": "NOT YET PERFORMED (Book 7 external-review checkpoint per mission stop point)"
+  "humanizer_disposition": "DEFER / CANDIDATE (no authorized model runtime; bake-off infrastructure + protected-claim guards complete, disposition per Book 7 promotion rules after a live baseline-vs-humanized comparison)",
+  "external_review": {
+    "record": "docs/grant-sector/g0/00-ratification/G0_B7_EXTERNAL_REVIEW_01.md",
+    "status": "REPAIR_REQUIRED",
+    "repair_commit": "G0-B7-REPAIR-01"
+  },
+  "external_ratification": "NOT YET PERFORMED (Book 7 external-review checkpoint per mission stop point; awaiting external ratification)"
 }

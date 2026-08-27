@@ -9,9 +9,12 @@ Derives every predicate from current repository evidence:
   * live Book 6 seam probes (security regression hard gates);
   * live D2 harness (protected-claim diff, baseline metrics).
 
-No predicate is hard-coded; no ready_for_book8 is asserted by fiat. The
-D2 live-model lane is honestly reported as BLOCKED_MODEL_RUNTIME and the
-lock distinguishes D2_HARNESS_READY from D2_LIVE_MODEL_RUN_COMPLETE.
+No predicate is hard-coded. G0-B7-REPAIR-01 (P1-02) separates ARCHITECTURE
+readiness from LIVE evaluation evidence: ready_for_book8_architecture vs
+ready_for_book8_execution, humanizer_bakeoff_harness_complete vs
+humanizer_live_bakeoff_complete. The D2 live-model lane is honestly reported
+as BLOCKED_MODEL_RUNTIME and the lock never fakes
+D2_LIVE_MODEL_RUN_COMPLETE.
 """
 from __future__ import annotations
 
@@ -116,6 +119,15 @@ def _live_d2() -> dict:
     }
 
 
+def _live_runtime_available() -> bool:
+    """Probe whether an AUTHORIZED, configured model runtime exists for the
+    governed G0 pipeline (an adapter, gateway, or provider config that Book 6
+    credential rules permit). A raw environment variable is NOT an authorized
+    provider path; nothing is printed or committed."""
+    from tools.g0.d2_harness import _model_runtime_available
+    return bool(_model_runtime_available())
+
+
 def _errors_ok(fn, cfg) -> bool:
     errors: list[str] = []
     res = fn(errors, cfg) if _takes_two(fn) else fn(cfg)
@@ -139,10 +151,20 @@ def compute_lock(configs: dict, test_results: dict | None = None,
                  full_results: dict | None = None,
                  adversarial_results: dict | None = None,
                  seam_results: dict | None = None,
-                 d2_results: dict | None = None) -> dict:
-    """Derive the Book 7 Reality Lock from current evidence."""
+                 d2_results: dict | None = None,
+                 runtime_available: bool | None = None) -> dict:
+    """Derive the Book 7 Reality Lock from current evidence.
+
+    G0-B7-REPAIR-01 (P1-02): the lock separates ARCHITECTURE/harness
+    readiness from LIVE evaluation evidence. Live lanes (real model draft,
+    real Humanizer transform, execution gate) are informational-false while
+    no authorized model runtime exists; they become defects only when a
+    runtime IS available yet the lane did not complete.
+    """
     seam = seam_results if seam_results is not None else _live_seam_probes()
     d2 = d2_results if d2_results is not None else _live_d2()
+    runtime_ok = (_live_runtime_available()
+                  if runtime_available is None else bool(runtime_available))
 
     constitution_ok = _validate_constitution_data(
         configs["evaluation_constitution.yaml"])
@@ -178,8 +200,18 @@ def compute_lock(configs: dict, test_results: dict | None = None,
         d2["requirement_coverage"] == 1.0 and
         not d2["submission_enabled"] and
         tests_green)
-    live_model_run_complete = (
-        d2["humanizer_lane_status"] == "RUNNABLE" and d2_harness_ready)
+    # A real model-generated draft requires an authorized runtime AND a live
+    # lane that actually produced a draft (d2 report marks the lane RUNNABLE
+    # only when a provider exists; a run record would additionally exist).
+    live_model_run_complete = bool(
+        runtime_ok and d2["humanizer_lane_status"] == "RUNNABLE" and
+        d2_harness_ready)
+    # A real Humanizer transform requires the model lane AND an executed
+    # transform with a protected-claim diff against the live draft.
+    live_humanizer_run_complete = bool(
+        live_model_run_complete and d2.get("live_humanizer_transform", False))
+    live_bakeoff_complete = bool(
+        live_model_run_complete and live_humanizer_run_complete)
 
     predicates = {
         "evaluation_constitution_pass": behavioral(constitution_ok),
@@ -207,12 +239,20 @@ def compute_lock(configs: dict, test_results: dict | None = None,
         "rollback_pass": behavioral(promotion_ok),
         "privacy_leakage_pass": behavioral(privacy_ok),
         "external_tool_bakeoff_complete": behavioral(taxonomy_ok),
-        "humanizer_bakeoff_complete": behavioral(taxonomy_ok),
+        # G0-B7-REPAIR-01 (P1-02): contract ratified (true), bake-off harness
+        # ready (true), live bake-off (false until a real transform ran).
+        "humanizer_contract_pass": behavioral(taxonomy_ok),
+        "humanizer_bakeoff_harness_complete": (
+            d2["harness_complete"] and
+            d2["protected_claim_diff_identity"] and
+            d2["tamper_detected"] and tests_green),
+        "humanizer_live_bakeoff_complete": live_bakeoff_complete,
         "humanizer_protected_claim_pass": (
             d2["protected_claim_diff_identity"] and
             d2["tamper_detected"] and tests_green),
         "d2_harness_complete": d2_harness_ready,
         "d2_live_model_run_complete": live_model_run_complete,
+        "d2_live_humanizer_run_complete": live_humanizer_run_complete,
     }
 
     if test_results is None and adversarial_results is None:
@@ -227,15 +267,25 @@ def compute_lock(configs: dict, test_results: dict | None = None,
     predicates["submission_enabled"] = bool(d2["submission_enabled"])
 
     # submission_enabled is a NEGATIVE gate: it must be False (disabled).
-    # d2_live_model_run_complete is informational: with no model runtime the
-    # honest value is False and it is not a defect (BLOCKED is an acceptable
-    # result per the mission; FAKE PASS is not).
+    # Live-evidence lanes (real model draft, real Humanizer transform, live
+    # bake-off, execution gate) are informational while NO authorized runtime
+    # exists: BLOCKED is an acceptable honest result (mission: FAKE PASS is
+    # not). They become defects when a runtime IS available yet the lane did
+    # not complete. ready_for_book8_architecture vs _execution split is the
+    # P1-02 repair: harness readiness does NOT imply the live D2 quality gate
+    # passed.
     submission_gate = predicates.get("submission_enabled") is False
+    live_evidence_keys = (
+        "d2_live_model_run_complete", "d2_live_humanizer_run_complete",
+        "humanizer_live_bakeoff_complete", "ready_for_book8_execution",
+    )
     p0_open = 0
     failed_preds = []
     for key, value in predicates.items():
-        if key in ("submission_enabled", "d2_live_model_run_complete"):
+        if key in ("submission_enabled",):
             continue
+        if key in live_evidence_keys and not runtime_ok:
+            continue  # honest informational-false while runtime is blocked
         if value is not True:
             p0_open += 1
             failed_preds.append(key)
@@ -243,13 +293,18 @@ def compute_lock(configs: dict, test_results: dict | None = None,
         p0_open += 1
         failed_preds.append("submission_enabled")
     status = "PASS" if (p0_open == 0 and tests_green and full_green) else "FAIL"
+    architecture_ready = status == "PASS"
 
     lock = {
         "book": "G0-B7",
         "status": status,
         **predicates,
         "p0_open": p0_open,
-        "ready_for_book8": status == "PASS",
+        "ready_for_book8_architecture": architecture_ready,
+        "ready_for_book8_execution": (
+            live_model_run_complete and live_humanizer_run_complete
+            and architecture_ready and not d2["submission_enabled"]),
+        "runtime_available": runtime_ok,
         "evidence": {
             "book7_test_results": test_results,
             "full_g0_test_results": full_results,
@@ -287,7 +342,9 @@ def main() -> int:
     out_path = args.out or COMMITTED_LOCK_PATH
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
-    print(f"status={lock['status']} ready_for_book8={lock['ready_for_book8']} "
+    print(f"status={lock['status']} "
+          f"ready_for_book8_architecture={lock['ready_for_book8_architecture']} "
+          f"ready_for_book8_execution={lock['ready_for_book8_execution']} "
           f"p0_open={lock['p0_open']}")
     if lock["status"] != "PASS":
         print("failed predicates:", lock["evidence"]["failed_predicates"])

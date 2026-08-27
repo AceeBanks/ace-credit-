@@ -24,33 +24,38 @@
   "rollback_pass": true,
   "privacy_leakage_pass": true,
   "external_tool_bakeoff_complete": true,
-  "humanizer_bakeoff_complete": true,
+  "humanizer_contract_pass": true,
+  "humanizer_bakeoff_harness_complete": true,
+  "humanizer_live_bakeoff_complete": false,
   "humanizer_protected_claim_pass": true,
   "d2_harness_complete": true,
   "d2_live_model_run_complete": false,
+  "d2_live_humanizer_run_complete": false,
   "adversarial_p0_pass": true,
   "cross_tenant_p0_pass": true,
   "submission_enabled": false,
   "p0_open": 0,
-  "ready_for_book8": true,
+  "ready_for_book8_architecture": true,
+  "ready_for_book8_execution": false,
+  "runtime_available": false,
   "evidence": {
     "book7_test_results": {
       "exit_code": 0,
-      "passed": 283,
+      "passed": 288,
       "failed": 0,
-      "summary": "283 passed, 2 skipped in 1.26s"
+      "summary": "288 passed, 2 skipped in 2.38s"
     },
     "full_g0_test_results": {
       "exit_code": 0,
-      "passed": 1687,
+      "passed": 1692,
       "failed": 0,
-      "summary": "1687 passed, 14 skipped in 36.91s"
+      "summary": "1692 passed, 14 skipped in 93.49s (0:01:33)"
     },
     "adversarial_results": {
       "exit_code": 0,
       "passed": 58,
       "failed": 0,
-      "summary": "58 passed in 0.29s"
+      "summary": "58 passed in 0.92s"
     },
     "seam_probes": {
       "grant_authority_enforced": true,

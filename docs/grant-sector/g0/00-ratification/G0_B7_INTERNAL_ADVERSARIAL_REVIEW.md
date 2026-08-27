@@ -98,7 +98,8 @@ deterministically from governed evidence).
 The completion claim **withstands** the self-review: no defect found that
 permits a candidate to promote itself, break a hard gate, leak private
 data, contaminate the corpus, or fake a D2 result. Book 7 stands sealed
-with `status=PASS`, `p0_open=0`, `ready_for_book8=true`, submission
+with `status=PASS`, `p0_open=0`, `ready_for_book8_architecture=true`,
+`ready_for_book8_execution=false` (live D2 gate pending), submission
 disabled, and the D2 live-model lane honestly reported as
 `BLOCKED_MODEL_RUNTIME` (`d2_live_model_run_complete=false`).
 

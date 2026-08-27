@@ -34,6 +34,17 @@ min_improvement: 0.05
 # justification (Pareto rule)
 optimization_tolerance: 0.05
 
+# G0-B7-REPAIR-01 (P2-01): these numeric thresholds are reasonable G0
+# defaults, not empirically calibrated values. They remain useful initial
+# gates but must be recalibrated from measured Book 8 evidence before they
+# are treated as production-optimal.
+calibration:
+  status: PROVISIONAL_G0_DEFAULT
+  recalibrate_from: BOOK8_MEASURED_EVIDENCE
+  parameters:
+    - {name: min_improvement, value: 0.05, note: "minimum relative improvement on at least one optimization dimension for PROMOTE"}
+    - {name: optimization_tolerance, value: 0.05, note: "maximum tolerated regression on an optimization dimension without documented justification"}
+
 hard_gate_families:
   - correctness
   - factuality

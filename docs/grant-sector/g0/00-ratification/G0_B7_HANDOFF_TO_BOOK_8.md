@@ -2,9 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Status | INTERNAL REALITY LOCK PASS (external review checkpoint next) |
+| Status | INTERNAL REALITY LOCK PASS + EXTERNAL REVIEW REPAIR COMPLETE (awaiting external ratification) |
 | Branch | `grant-sector-r0-salvage` |
-| Lock | `G0_B7_REALITY_LOCK.json` — status PASS, `ready_for_book8: true`, `p0_open: 0` |
+| Lock | `G0_B7_REALITY_LOCK.json` — status PASS, `ready_for_book8_architecture: true`, `ready_for_book8_execution: false`, `p0_open: 0` |
+| External review | `G0_B7_EXTERNAL_REVIEW_01.md` — P1-01/P1-02/P2-01 repaired by `G0-B7-REPAIR-01` |
 | Full suite | `python -m pytest tests/g0 -q` → **1687 passed, 14 skipped** |
 | Book 7 suite | 283 passed, 2 skipped (exclusive) |
 | Reality Lock freshness | 15 tests (book7) + 18 tests (book6) = **33 passed** unguarded |
@@ -46,16 +47,21 @@ apparatus. Book 8 receives:
 - **D2 harness** — first grounded grant-writing quality experiment; honest
   `BLOCKED_MODEL_RUNTIME` for live generation lanes.
 
-## Humanizer disposition (as sealed)
+## Humanizer disposition (as repaired)
 
-**DEFER** — per the mission's promotion law and `NO FAKE GREEN` rule:
+**CANDIDATE / DEFER_PENDING_LIVE_BAKEOFF** — per the mission's promotion law
+and `NO FAKE GREEN` rule (G0_B7_EXTERNAL_REVIEW_01 P1-01 repair):
 
 - Amendment 003 ratified (bounded STYLE_TRANSFORM candidate; protected
   claims, facts, citations, numbers, terminology cannot change).
 - ArtifactVersion N → STYLE_TRANSFORM → N+1 diff contract implemented and
   tested; protected-claim diff + factuality revalidation implemented.
-- No live model runtime is configured in this environment, so no real
-  humanized draft exists. `D2_LIVE_MODEL_RUN_COMPLETE` is honestly `false`.
+  Ledger Batch 07 corrected from `ADOPT_BOUNDED` — no adoption decision is
+  justified without a live baseline-vs-humanized comparison.
+- No authorized model runtime is configured for the governed G0 pipeline, so
+  no real humanized draft exists. `D2_LIVE_MODEL_RUN_COMPLETE`,
+  `D2_LIVE_HUMANIZER_RUN_COMPLETE` and `HUMANIZER_LIVE_BAKEOFF_COMPLETE` are
+  honestly `false`; `ready_for_book8_execution = false`.
 - Disposition derives from Book 7 promotion rules once a live run exists;
   the harness and guards are ready.
 
@@ -70,15 +76,16 @@ apparatus. Book 8 receives:
 
 ## STOP POINT
 
-Per the mission, **Book 8 is NOT begun**. The next step is the external
-review of Book 7: evaluation methodology, Humanizer results, D2 draft,
-Claim Ledger, factuality metrics, baseline-vs-candidate comparison, and
-Book 7 promotion decisions.
+Per the mission, **Book 8 is NOT begun**: `ready_for_book8_execution = false`
+(live D2 quality gate not passed — no authorized model runtime). The next
+step is external ratification of the repair: evaluation methodology,
+Humanizer results, D2 draft, Claim Ledger, factuality metrics,
+baseline-vs-candidate comparison, and Book 7 promotion decisions.
 
 ## External components
 
 - **blader/humanizer** — BOUNDED STYLE_TRANSFORM CANDIDATE (Amendment 003,
-  ratified; DEFER pending live-model run).
+  ratified; CANDIDATE / DEFER_PENDING_LIVE_BAKEOFF pending live-model run).
 - **Promptfoo / Guardrails / other bake-off candidates** — subordinate
   adapters; `external_tool_bakeoff_complete` derives from the governed
   adapter contract, no wholesale self-evolution stack installed.

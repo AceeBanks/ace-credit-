@@ -11,6 +11,26 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+# G0-B7-REPAIR-01 (P2-01): numeric thresholds below are reasonable G0
+# defaults, NOT empirically calibrated values. They remain useful initial
+# gates; recalibrate from measured Book 8 evidence before treating them as
+# production-optimal.
+ROUTING_COST_JUSTIFICATION_FACTOR = 0.9  # routed cost must be < 90% of simple
+PARSER_LOCATOR_LINEAGE_THRESHOLD = 0.9
+
+THRESHOLD_CALIBRATION = {
+    "status": "PROVISIONAL_G0_DEFAULT",
+    "recalibrate_from": "BOOK8_MEASURED_EVIDENCE",
+    "parameters": [
+        {"name": "routing_cost_justification_factor",
+         "value": ROUTING_COST_JUSTIFICATION_FACTOR,
+         "note": "routing candidate must be >=10% cheaper than the simple baseline to justify routing"},
+        {"name": "parser_locator_lineage_threshold",
+         "value": PARSER_LOCATOR_LINEAGE_THRESHOLD,
+         "note": "parser candidate must retain >=90%% locator lineage (Amendment 002 hard gate)"},
+    ],
+}
+
 
 @dataclass
 class ModelRun:
@@ -81,7 +101,9 @@ def routing_must_beat_baseline(*, simple_cost: float, routed_cost: float,
                                simple_correctness: float,
                                routed_correctness: float) -> dict:
     """C16: a routing candidate must prove value over the simpler baseline."""
-    cheaper = routed_cost < simple_cost * 0.9  # >=10% cheaper to justify
+    cheaper = routed_cost < simple_cost * ROUTING_COST_JUSTIFICATION_FACTOR
+    # >=10% cheaper to justify (PROVISIONAL_G0_DEFAULT — see
+    # THRESHOLD_CALIBRATION)
     as_correct = routed_correctness >= simple_correctness
     return {
         "cheaper_than_baseline": cheaper,
@@ -119,7 +141,8 @@ def parser_eval(*, text_fidelity: float, heading_fidelity: float,
         "latency_ms": latency_ms,
         "cost_usd": cost_usd,
         "failure_detected": failure_detected,
-        "passes_locator_hard_gate": locator_lineage >= 0.9,
+        "passes_locator_hard_gate": (
+            locator_lineage >= PARSER_LOCATOR_LINEAGE_THRESHOLD),
     }
 
 

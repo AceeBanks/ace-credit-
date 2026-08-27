@@ -77,6 +77,7 @@ def _live_lock(**overrides) -> dict:
                                               _fresh_results()),
         "seam_results": overrides.pop("seam_results", _green_seam()),
         "d2_results": overrides.pop("d2_results", _green_d2()),
+        "runtime_available": overrides.pop("runtime_available", None),
     }
     return compute_lock(cfg, **kwargs)
 
@@ -90,7 +91,8 @@ def test_committed_lock_is_current_pass():
     assert committed["status"] == "PASS"
     recomputed = _live_lock()
     assert recomputed["status"] == "PASS"
-    assert recomputed["ready_for_book8"] is True
+    assert recomputed["ready_for_book8_architecture"] is True
+    assert recomputed["ready_for_book8_execution"] is False  # live gate
 
 
 @pytest.mark.skipif(os.environ.get("G0_SKIP_LOCK_FRESHNESS") == "1",
@@ -99,7 +101,8 @@ def test_stale_lock_cannot_authorize():
     """FRESH-002: a hand-edited ready_for_book8=true is not trusted blindly —
     recomputation must agree from current evidence."""
     committed = json.loads(COMMITTED_LOCK_PATH.read_text(encoding="utf-8"))
-    assert committed["ready_for_book8"] is True
+    assert committed["ready_for_book8_architecture"] is True
+    assert committed["ready_for_book8_execution"] is False
     recomputed = _live_lock()
     assert recomputed["status"] == committed["status"] == "PASS"
 
@@ -140,6 +143,19 @@ def test_injected_promotion_defect_flips_lock():
     assert lock["status"] == "FAIL"
 
 
+def test_promotion_thresholds_marked_provisional():
+    """P2-01 repair: promotion thresholds are machine-readably labeled
+    PROVISIONAL_G0_DEFAULT, recalibrate from Book 8 measured evidence."""
+    cfg = _configs()["promotion_thresholds.yaml"]
+    cal = cfg["calibration"]
+    assert cal["status"] == "PROVISIONAL_G0_DEFAULT"
+    assert cal["recalibrate_from"] == "BOOK8_MEASURED_EVIDENCE"
+    params = {p["name"]: p["value"] for p in cal["parameters"]}
+    assert params["min_improvement"] == cfg["min_improvement"] == 0.05
+    assert params["optimization_tolerance"] == cfg["optimization_tolerance"]
+    assert params["optimization_tolerance"] == 0.05
+
+
 def test_injected_privacy_defect_flips_lock():
     configs = _configs()
     broken = copy.deepcopy(configs)
@@ -162,6 +178,37 @@ def test_injected_humanizer_defect_flips_protected_claim():
     d2["tamper_detected"] = False
     lock = _live_lock(d2_results=d2)
     assert lock["humanizer_protected_claim_pass"] is False
+    assert lock["humanizer_bakeoff_harness_complete"] is False
+    assert lock["status"] == "FAIL"
+
+
+def test_contract_and_harness_pass_without_live_bakeoff():
+    """P1-02 split: contract + harness pass while the live bake-off lane is
+    truthfully false — architecture readiness does not imply a live run."""
+    lock = _live_lock()
+    assert lock["humanizer_contract_pass"] is True
+    assert lock["humanizer_bakeoff_harness_complete"] is True
+    assert lock["humanizer_live_bakeoff_complete"] is False
+    assert lock["d2_live_humanizer_run_complete"] is False
+    assert lock["status"] == "PASS"
+
+
+def test_execution_gate_false_without_live_evidence():
+    """P1-02: ready_for_book8_architecture can be true while
+    ready_for_book8_execution stays false (live D2 gate not passed)."""
+    lock = _live_lock()
+    assert lock["ready_for_book8_architecture"] is True
+    assert lock["ready_for_book8_execution"] is False
+    assert lock["p0_open"] == 0  # blocked lane is not a defect
+
+
+def test_live_lanes_count_as_defects_when_runtime_available():
+    """P1-02: once an authorized runtime exists, an incomplete live lane is a
+    real defect (p0), not an informational false."""
+    lock = _live_lock(runtime_available=True)
+    assert lock["d2_live_model_run_complete"] is False
+    assert lock["ready_for_book8_execution"] is False
+    assert lock["p0_open"] >= 1
     assert lock["status"] == "FAIL"
 
 
@@ -186,7 +233,7 @@ def test_failing_test_results_flip_lock():
     bad = {"exit_code": 1, "passed": 0, "failed": 2, "summary": "2 failed"}
     lock = _live_lock(test_results=bad)
     assert lock["status"] == "FAIL"
-    assert lock["ready_for_book8"] is False
+    assert lock["ready_for_book8_architecture"] is False
 
 
 def test_missing_test_results_report_null_not_false_claim():
@@ -209,7 +256,9 @@ def test_live_model_lane_reported_honestly_blocked():
 
 
 def test_required_predicate_set_present():
-    """The 32-predicate contract from the mission (section 26) is sealed."""
+    """The sealed predicate contract, post P1-02 split: architecture vs
+    execution readiness are separate, live lanes are informational while no
+    authorized runtime exists."""
     required = [
         "evaluation_constitution_pass", "quality_taxonomy_pass",
         "eval_case_contract_pass", "corpus_governance_pass",
@@ -222,12 +271,16 @@ def test_required_predicate_set_present():
         "parser_retrieval_eval_pass", "evaluator_governance_pass",
         "skill_promotion_pass", "change_promotion_pass", "rollback_pass",
         "privacy_leakage_pass", "external_tool_bakeoff_complete",
-        "humanizer_bakeoff_complete", "humanizer_protected_claim_pass",
-        "d2_harness_complete", "adversarial_p0_pass",
-        "submission_enabled", "p0_open", "ready_for_book8",
+        "humanizer_contract_pass", "humanizer_bakeoff_harness_complete",
+        "humanizer_live_bakeoff_complete", "humanizer_protected_claim_pass",
+        "d2_harness_complete", "d2_live_model_run_complete",
+        "d2_live_humanizer_run_complete", "adversarial_p0_pass",
+        "submission_enabled", "p0_open", "ready_for_book8_architecture",
+        "ready_for_book8_execution", "runtime_available",
     ]
     lock = _live_lock()
     for key in required:
         assert key in lock, key
     assert lock["p0_open"] == 0
-    assert lock["ready_for_book8"] is True
+    assert lock["ready_for_book8_architecture"] is True
+    assert lock["ready_for_book8_execution"] is False
