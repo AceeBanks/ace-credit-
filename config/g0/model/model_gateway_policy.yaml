@@ -55,6 +55,7 @@ provider_profiles:
     allowed_models:
       - "openai/gpt-4o-mini"
       - "anthropic/claude-3.5-haiku"
+      - "openrouter/free"  # free-tier router; zero-credit smoke/D2 lane
     allowed_capabilities:
       - model.invoke
     allowed_purposes:

@@ -134,7 +134,13 @@ class DevRuntimeCredentialResolver:
     def __init__(self, env_var: str = "OPENROUTER_API_KEY") -> None:
         self.env_var = env_var
 
-    def resolve(self, *, provider: str) -> str:
+    def __call__(self, *, provider: str) -> str:
+        """Resolve the provider credential from the environment server-side.
+
+        Callable form so the gateway can treat it as a resolver function.
+        The raw value returns only to the trusted adapter call and is never
+        serialized into any request/response/log/audit record.
+        """
         import os
         value = os.environ.get(self.env_var, "")
         if not value:
@@ -142,6 +148,9 @@ class DevRuntimeCredentialResolver:
                 f"provider secret absent for {provider}; fail closed "
                 "(MR-004/H)")
         return value
+
+    def resolve(self, *, provider: str) -> str:
+        return self.__call__(provider=provider)
 
 
 def _blocked_destination(destination: str) -> bool:
