@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evaluation/candidate_change.schema.json",
+  "title": "CandidateChange",
+  "description": "G0-B7-C19 — any proposed improvement becomes a typed candidate. No candidate becomes production behavior without a PromotionDecision (EVAL-LAW-008).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "candidate_change_id",
+    "change_type",
+    "baseline_version",
+    "candidate_version",
+    "source_or_generator",
+    "reason",
+    "expected_benefit",
+    "risk_class",
+    "affected_capabilities",
+    "required_eval_suites",
+    "rollback_ref",
+    "status"
+  ],
+  "properties": {
+    "candidate_change_id": {"type": "string", "minLength": 1},
+    "change_type": {
+      "type": "string",
+      "enum": [
+        "PROMPT", "SKILL", "MODEL", "ROUTE", "PARSER", "RETRIEVAL",
+        "WORKFLOW", "CONFIG", "MEMORY_POLICY", "CONTEXT_ASSEMBLY",
+        "TOOL_ADAPTER", "RUNTIME_COMPONENT", "RUBRIC_EVALUATOR"
+      ]
+    },
+    "baseline_version": {"type": "string", "minLength": 1},
+    "candidate_version": {"type": "string", "minLength": 1},
+    "source_or_generator": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 1},
+    "expected_benefit": {"type": "string", "minLength": 1},
+    "risk_class": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    },
+    "affected_capabilities": {"type": "array", "items": {"type": "string"}},
+    "required_eval_suites": {"type": "array", "items": {"type": "string"}},
+    "rollback_ref": {"type": "string", "minLength": 1},
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT", "READY_FOR_EVAL", "IN_EVALUATION", "PROMOTED", "REVISE",
+        "REJECTED", "QUARANTINED", "DEFERRED"
+      ]
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "content_hash": {"type": "string"}
+  }
+}

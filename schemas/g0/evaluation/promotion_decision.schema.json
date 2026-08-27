@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evaluation/promotion_decision.schema.json",
+  "title": "PromotionDecision",
+  "description": "G0-B7-C21 — first-class auditable promotion decision (EVAL-LAW-008/009).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "promotion_decision_id",
+    "candidate_change_id",
+    "baseline_run_ref",
+    "candidate_run_ref",
+    "corpus_version_id",
+    "suite_id",
+    "suite_version",
+    "metric_comparison_ref",
+    "hard_gate_results",
+    "decision",
+    "reason_codes",
+    "rollout_policy_ref",
+    "rollback_ref",
+    "decided_by",
+    "decided_at"
+  ],
+  "properties": {
+    "promotion_decision_id": {"type": "string", "minLength": 1},
+    "candidate_change_id": {"type": "string", "minLength": 1},
+    "baseline_run_ref": {"type": "string", "minLength": 1},
+    "candidate_run_ref": {"type": "string", "minLength": 1},
+    "corpus_version_id": {"type": "string", "minLength": 1},
+    "suite_id": {"type": "string", "minLength": 1},
+    "suite_version": {"type": "integer", "minimum": 1},
+    "metric_comparison_ref": {"type": "string", "minLength": 1},
+    "hard_gate_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gate_id", "passed"],
+        "properties": {
+          "gate_id": {"type": "string"},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["PROMOTE", "REVISE", "REJECT", "QUARANTINE", "DEFER"]
+    },
+    "reason_codes": {"type": "array", "items": {"type": "string"}},
+    "reviewer_refs": {"type": "array", "items": {"type": "string"}},
+    "rollout_policy_ref": {"type": "string", "minLength": 1},
+    "rollback_ref": {"type": "string", "minLength": 1},
+    "decided_by": {"type": "string", "minLength": 1},
+    "decided_at": {"type": "string", "format": "date-time"}
+  }
+}

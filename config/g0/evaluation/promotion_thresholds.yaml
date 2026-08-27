@@ -1,0 +1,55 @@
+# G0-B7-C20/C21 — Promotion thresholds (machine-readable).
+# A candidate promotes only when hard gates pass AND the threshold rules
+# hold. Pareto behavior: explicit trade-offs allowed only if no hard gate
+# regresses and the trade-off is documented.
+
+promotion_thresholds_version: "1.0"
+
+rules:
+  - id: PROM-001
+    text: "All hard-gate dimensions must pass (no security/authority/factuality/correctness regression)."
+    enforcement: MANDATORY
+  - id: PROM-002
+    text: "A candidate must not regress any HARD dimension beyond tolerance 0.0 (any regression in a HARD dimension vetoes)."
+    enforcement: MANDATORY
+  - id: PROM-003
+    text: "Optimization dimensions may trade off only when no hard gate regresses and the trade-off is documented."
+    enforcement: MANDATORY
+  - id: PROM-004
+    text: "No candidate may promote if it increases unsupported material claims (C8 hard gate)."
+    enforcement: MANDATORY
+  - id: PROM-005
+    text: "Candidate generators cannot self-promote (EVAL-LAW-006); promotion requires independent evaluation."
+    enforcement: MANDATORY
+  - id: PROM-006
+    text: "Rollback identity is required before promotion (EVAL-LAW-009)."
+    enforcement: MANDATORY
+  - id: PROM-007
+    text: "For a material net improvement, at least one optimization dimension must improve by a minimum margin while the rest do not regress beyond tolerance."
+    enforcement: MANDATORY
+
+# minimum meaningful improvement on at least one optimization dimension
+min_improvement: 0.05
+# maximum tolerated regression on an optimization dimension without documented
+# justification (Pareto rule)
+optimization_tolerance: 0.05
+
+hard_gate_families:
+  - correctness
+  - factuality
+  - agent_quality
+  - security
+
+decision_matrix:
+  - when: hard_gate_failure
+    outcome: REJECT
+  - when: security_or_privacy_p0
+    outcome: QUARANTINE
+  - when: no_hard_gate_failure_and_improvement
+    outcome: PROMOTE
+  - when: no_hard_gate_failure_no_improvement
+    outcome: DEFER
+  - when: partial_improvement_with_documented_tradeoff
+    outcome: PROMOTE_WITH_CONDITIONS
+  - when: evaluator_disagreement_unresolved
+    outcome: REVISE
