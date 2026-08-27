@@ -73,6 +73,25 @@ def test_foreign_keys_enforced():
     conn.close()
 
 
+def test_sqlite_migrations_relabeled_dev_fast_path():
+    """P1-01 repair: the SQLite schema must be labeled TEST_ONLY /
+    DEV_FAST_PATH, never claiming Postgres portability, and the canonical
+    Postgres migration path must exist."""
+    for name in ("001_initial_schema.sql", "002_hermes_runtime.sql"):
+        sql = (MIGRATIONS_DIR / name).read_text(encoding="utf-8")
+        assert "TEST_ONLY" in sql, f"{name} missing TEST_ONLY label"
+        assert "DEV_FAST_PATH" in sql, f"{name} missing DEV_FAST_PATH label"
+        assert "portable SQL" not in sql.lower(), \
+            f"{name} still claims portability"
+        assert "portable" not in sql.lower()
+    pg_dir = MIGRATIONS_DIR / "postgres"
+    assert (pg_dir / "001_initial_schema.sql").exists()
+    assert (pg_dir / "002_hermes_runtime.sql").exists()
+    pg = (pg_dir / "001_initial_schema.sql").read_text(encoding="utf-8")
+    assert "TIMESTAMPTZ" in pg and "now()" in pg
+    assert "strftime" not in pg
+
+
 def test_seed_rows_insert_and_query():
     conn = sqlite3.connect(":memory:")
     _apply_migrations(conn)

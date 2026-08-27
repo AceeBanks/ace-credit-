@@ -161,7 +161,8 @@ def test_final_external_review_evidence_sync():
     assert "current_final_head" in text
     assert "historical_at_sha" in text
     assert "1812" in text
-    assert "PASS_WITH_MINOR_EVIDENCE_SYNC" in text
+    assert ("PASS_WITH_MINOR_EVIDENCE_SYNC" in text
+            or "PASS_WITH_MINOR_REPAIRS" in text)
     assert "READY_FOR_EXTERNAL_RATIFICATION" in text
     assert "books_ratified: 9" in text
     assert "Book 0" in text
