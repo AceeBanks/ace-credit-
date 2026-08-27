@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 
 _ROOT = Path(__file__).resolve().parents[1]
-MIGRATION = _ROOT / "migrations/001_initial_schema.sql"
+MIGRATIONS_DIR = _ROOT / "migrations"
 
 REQUIRED_TABLES = [
     "tenants", "users", "principals", "capabilities", "grants",
@@ -22,12 +22,15 @@ REQUIRED_TABLES = [
     "application_projects", "requirements", "source_snapshots",
     "decision_records", "audit_events", "artifacts", "tasks",
 ]
+# G1 Wave 3 Hermes runtime tables (migration 002)
+REQUIRED_TABLES += [
+    "conversations", "messages", "intents", "task_plans", "worker_results",
+]
 
 
 def _apply_migrations(conn: sqlite3.Connection) -> None:
-    sql = MIGRATION.read_text(encoding="utf-8")
-    # the portable SQL is written to run as one script in sqlite
-    conn.executescript(sql)
+    for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+        conn.executescript(path.read_text(encoding="utf-8"))
     conn.commit()
 
 
@@ -51,9 +54,10 @@ def test_schema_has_no_submission_capability():
         "SELECT name FROM sqlite_master WHERE type='table'")
     tables = {row[0] for row in cur.fetchall()}
     assert not any("submit" in t.lower() for t in tables)
-    sql = MIGRATION.read_text(encoding="utf-8").lower()
-    assert "application.submit" not in sql
-    assert "application_submit" not in sql
+    for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+        sql = path.read_text(encoding="utf-8").lower()
+        assert "application.submit" not in sql
+        assert "application_submit" not in sql
     conn.close()
 
 
