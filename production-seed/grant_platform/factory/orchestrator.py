@@ -1,0 +1,114 @@
+"""G1 Wave 4 — full Grant factory orchestrator (G1.7/G1.8).
+
+End-to-end: blueprint -> section drafting -> synthesis -> budget -> full QA
+-> DOCX/PDF rendering -> SUBMISSION_READY_MOCK package.
+
+The orchestrator is the composition boundary the Wave 5 API drives. It
+takes an optional governed model_invoke callable; None selects the honest
+deterministic lane (labeled as such, never passed off as model output).
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Callable
+
+from grant_platform.factory.blueprint import ApplicationBlueprint, build_blueprint
+from grant_platform.factory.budget import BudgetReport, build_budget
+from grant_platform.factory.drafting import DraftingReport, draft_sections
+from grant_platform.factory.qa import FullQAReport, run_full_qa
+from grant_platform.factory.render import render_docx, render_pdf
+from grant_platform.factory.synthesis import SynthesisReport, synthesize
+
+SUBMISSION_READY_MOCK = "SUBMISSION_READY_MOCK"
+BLOCKED = "BLOCKED"
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+@dataclass
+class FactoryPackage:
+    blueprint: ApplicationBlueprint
+    draft: DraftingReport
+    synthesis: SynthesisReport
+    budget: BudgetReport
+    qa: FullQAReport
+    docx: object
+    pdf: object
+    project_id: str
+    revision_id: str
+    status: str
+    model_runs: list[dict] = field(default_factory=list)
+    generated_at: str = ""
+
+    def summary(self) -> dict:
+        return {
+            "project_id": self.project_id,
+            "revision_id": self.revision_id,
+            "status": self.status,
+            "generation_mode": self.draft.generation_mode,
+            "sections": len(self.draft.sections),
+            "word_count": sum(s.word_count
+                              for s in self.draft.sections.values()),
+            "claims": len(self.draft.claims),
+            "unsupported": len(self.draft.unsupported_material_claims()),
+            "qa_pass": self.qa.pass_count,
+            "qa_fail": len(self.qa.failures),
+            "budget_total": self.budget.total,
+            "ceiling": self.budget.ceiling,
+            "within_ceiling": self.budget.within_ceiling,
+            "docx_pages": self.docx.page_count_estimate,
+            "pdf_pages": self.pdf.page_count_estimate,
+            "submission_enabled": False,
+            "generated_at": self.generated_at,
+        }
+
+
+def run_factory(*, project_id: str = "proj-1",
+                revision_id: str = "opp_rev_ga_501_1",
+                deadline: str | None = "2026-10-15",
+                ceiling: str | None = "50000.00",
+                model_invoke: Callable | None = None,
+                model_id: str | None = None,
+                client_budget_lines: list | None = None,
+                blueprint: ApplicationBlueprint | None = None) -> FactoryPackage:
+    """Run the full factory. Returns a SUBMISSION_READY_MOCK package when
+    all QA hard gates pass, BLOCKED otherwise (never fake-ready)."""
+    bp = blueprint or build_blueprint(
+        revision_id=revision_id, deadline=deadline,
+        funding_ceiling=ceiling)
+    draft = draft_sections(bp, model_invoke=model_invoke, model_id=model_id)
+    synthesis = synthesize(bp, draft)
+    budget = build_budget(ceiling=ceiling or "50000.00",
+                          client_lines=client_budget_lines)
+    qa = run_full_qa(blueprint=bp, draft=draft, budget=budget,
+                     synthesis=synthesis,
+                     expected_deadline=deadline or "",
+                     expected_revision=revision_id)
+    # per-section protected facts are a hard gate for LIVE_MODEL sections
+    model_sections = [s for s in draft.sections.values()
+                      if s.generation_mode == "LIVE_MODEL"]
+    if any(not s.protected_facts_preserved for s in model_sections):
+        qa.results.append(type(qa.results[0])(
+            "protected_facts_live_lane", "FAIL",
+            "live lane altered a protected fact"))
+
+    if qa.submission_ready_mock:
+        status = SUBMISSION_READY_MOCK
+    else:
+        status = BLOCKED
+
+    docx = render_docx(draft.sections,
+                       artifact_version_id=f"av-{project_id}-{_now()}",
+                       project_ref=project_id, revision_ref=revision_id)
+    pdf = render_pdf(draft.sections,
+                     artifact_version_id=f"av-{project_id}-{_now()}",
+                     project_ref=project_id, revision_ref=revision_id)
+
+    return FactoryPackage(
+        blueprint=bp, draft=draft, synthesis=synthesis, budget=budget,
+        qa=qa, docx=docx, pdf=pdf, project_id=project_id,
+        revision_id=revision_id, status=status,
+        model_runs=draft.model_runs, generated_at=_now())
