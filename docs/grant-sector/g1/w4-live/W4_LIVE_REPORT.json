@@ -1,0 +1,74 @@
+{
+  "experiment": "G1-W4-LIVE \u2014 first complete full-proposal experiment",
+  "label": "MOCK_NON_SUBMISSION",
+  "submission_enabled": false,
+  "generated_at": "2026-08-27T20:55:35.273844+00:00",
+  "summary": {
+    "project_id": "proj-w4",
+    "revision_id": "opp_rev_ga_501_1",
+    "status": "SUBMISSION_READY_MOCK",
+    "generation_mode": "LIVE_MODEL",
+    "sections": 7,
+    "word_count": 1607,
+    "claims": 24,
+    "unsupported": 17,
+    "qa_pass": 9,
+    "qa_fail": 0,
+    "budget_total": "50000.00",
+    "ceiling": "50000.00",
+    "within_ceiling": true,
+    "docx_pages": 7,
+    "pdf_pages": 3,
+    "submission_enabled": false,
+    "generated_at": "2026-08-27T20:55:35.261623+00:00"
+  },
+  "model_run": {
+    "provider": "openrouter",
+    "model_id": "minimax/minimax-m3:free",
+    "generation_mode": "LIVE_MODEL",
+    "model_runs": [
+      {
+        "section": "executive_summary",
+        "status": "OK",
+        "model_id": "minimax/minimax-m3:free"
+      },
+      {
+        "section": "organization_background",
+        "status": "OK",
+        "model_id": "minimax/minimax-m3:free"
+      },
+      {
+        "section": "statement_of_need",
+        "status": "OK",
+        "model_id": "minimax/minimax-m3:free"
+      },
+      {
+        "section": "program_narrative",
+        "status": "OK",
+        "model_id": "minimax/minimax-m3:free"
+      },
+      {
+        "section": "outcomes_evaluation",
+        "status": "OK",
+        "model_id": "minimax/minimax-m3:free"
+      },
+      {
+        "section": "sustainability",
+        "status": "OK",
+        "model_id": "minimax/minimax-m3:free"
+      },
+      {
+        "section": "budget_narrative",
+        "status": "OK",
+        "model_id": "minimax/minimax-m3:free"
+      }
+    ],
+    "model_available": true,
+    "honest_note": "governed model lane executed through the Model Gateway"
+  },
+  "docx_artifact": "docs\\grant-sector\\g1\\w4-live\\W4_LIVE_PROPOSAL.docx",
+  "pdf_artifact": "docs\\grant-sector\\g1\\w4-live\\W4_LIVE_PROPOSAL.pdf",
+  "reproduce": [
+    "python tools/g1/run_w4_live.py"
+  ]
+}

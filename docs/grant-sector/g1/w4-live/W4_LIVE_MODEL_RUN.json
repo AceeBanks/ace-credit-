@@ -1,0 +1,44 @@
+{
+  "provider": "openrouter",
+  "model_id": "minimax/minimax-m3:free",
+  "generation_mode": "LIVE_MODEL",
+  "model_runs": [
+    {
+      "section": "executive_summary",
+      "status": "OK",
+      "model_id": "minimax/minimax-m3:free"
+    },
+    {
+      "section": "organization_background",
+      "status": "OK",
+      "model_id": "minimax/minimax-m3:free"
+    },
+    {
+      "section": "statement_of_need",
+      "status": "OK",
+      "model_id": "minimax/minimax-m3:free"
+    },
+    {
+      "section": "program_narrative",
+      "status": "OK",
+      "model_id": "minimax/minimax-m3:free"
+    },
+    {
+      "section": "outcomes_evaluation",
+      "status": "OK",
+      "model_id": "minimax/minimax-m3:free"
+    },
+    {
+      "section": "sustainability",
+      "status": "OK",
+      "model_id": "minimax/minimax-m3:free"
+    },
+    {
+      "section": "budget_narrative",
+      "status": "OK",
+      "model_id": "minimax/minimax-m3:free"
+    }
+  ],
+  "model_available": true,
+  "honest_note": "governed model lane executed through the Model Gateway"
+}
