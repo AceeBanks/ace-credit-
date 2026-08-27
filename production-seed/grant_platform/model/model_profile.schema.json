@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://grant.dev/schemas/model_profile",
+  "title": "ModelProfile",
+  "type": "object",
+  "required": [
+    "model_id", "provider_id", "context_window_tokens", "max_output_tokens",
+    "enabled"
+  ],
+  "properties": {
+    "provider_id": {"type": "string"},
+    "provider_type": {"type": "string"},
+    "model_id": {"type": "string"},
+    "display_name": {"type": "string"},
+    "context_window_tokens": {"type": "integer", "minimum": 1},
+    "max_output_tokens": {"type": "integer", "minimum": 1},
+    "supports_structured_output": {"type": "boolean", "default": false},
+    "supports_tools": {"type": "boolean", "default": false},
+    "supports_vision": {"type": "boolean", "default": false},
+    "input_cost": {"type": "number", "minimum": 0},
+    "output_cost": {"type": "number", "minimum": 0},
+    "availability": {"enum": ["ENABLED", "BETA", "DISABLED"]},
+    "quality_tier": {"enum": ["HIGH", "MEDIUM", "LOW", "UNRATED"]},
+    "latency_tier": {"enum": ["FAST", "MEDIUM", "SLOW"]},
+    "cost_tier": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+    "evaluation_status": {"type": "string"},
+    "allowed_tasks": {"type": "array", "items": {"type": "string"}},
+    "full_proposal_eligible": {"type": "boolean", "default": false},
+    "research_eligible": {"type": "boolean", "default": false},
+    "qa_eligible": {"type": "boolean", "default": false},
+    "humanizer_eligible": {"type": "boolean", "default": false},
+    "extraction_eligible": {"type": "boolean", "default": false},
+    "minimum_context_headroom": {"type": "integer", "minimum": 0, "default": 0},
+    "fallback_compatible": {"type": "array", "items": {"type": "string"}},
+    "enabled": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}
