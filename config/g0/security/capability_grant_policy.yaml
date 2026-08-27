@@ -44,6 +44,7 @@ delegable_capabilities:
   - analysis.past_winners
   - analysis.community_evidence
   - budget.draft_materials
+  - model.invoke
 
 # capabilities that can never be delegated regardless of grant
 non_delegable_capabilities:

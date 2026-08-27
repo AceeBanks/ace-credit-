@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/model/model_request.schema.json",
+  "title": "ModelRequest",
+  "description": "G0-B7-PHASE-B — typed model request contract. Contains NO secret fields; credentials are resolved server-side by the governed Model Gateway.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "model_request_id",
+    "request_id",
+    "tenant_id",
+    "project_id",
+    "principal_id",
+    "task_id",
+    "capability_id",
+    "provider_profile_id",
+    "model_id",
+    "purpose",
+    "messages",
+    "created_at"
+  ],
+  "properties": {
+    "model_request_id": {"type": "string", "minLength": 1},
+    "request_id": {"type": "string", "minLength": 1},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "project_id": {"type": "string", "minLength": 1},
+    "principal_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "capability_id": {"type": "string", "minLength": 1},
+    "provider_profile_id": {"type": "string", "minLength": 1},
+    "model_id": {"type": "string", "minLength": 1},
+    "purpose": {"type": "string", "minLength": 1},
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "content"],
+        "properties": {
+          "role": {"type": "string", "enum": ["system", "user", "assistant"]},
+          "content": {"type": "string"}
+        }
+      }
+    },
+    "context_refs": {"type": "array", "items": {"type": "string"}},
+    "structured_output_schema_ref": {"type": "string"},
+    "temperature": {"type": "number", "minimum": 0, "maximum": 2},
+    "max_output_tokens": {"type": "integer", "minimum": 1},
+    "timeout_seconds": {"type": "integer", "minimum": 1},
+    "privacy_class": {"type": "string"},
+    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

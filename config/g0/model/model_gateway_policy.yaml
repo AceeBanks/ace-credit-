@@ -1,0 +1,110 @@
+# G0-B7-PHASE-B — Governed Model Gateway Policy
+#
+# The smallest Book-6-compliant model runtime boundary: a typed
+# ModelRequest / ModelResponse contract, a project-owned provider profile
+# registry (no caller-supplied base URLs or arbitrary models), server-side
+# credential resolution, capability/tenant/project/purpose authorization,
+# egress/SSRF control, one-shot replay protection and structured audit.
+
+policy_id: G0-MODEL-RUNTIME
+version: "1.0"
+
+# how long a PDP-issued ALLOW may be presented to the gateway
+decision_freshness_bound_seconds: 900
+
+model_statuses:
+  - ENABLED
+  - BETA
+  - DISABLED
+
+# capabilities that drive model execution (must exist in the capability
+# registry; model.invoke is delegable so workers can draft project-bound)
+model_capabilities:
+  - model.invoke
+
+egress_classes:
+  - APPROVED_API
+  - BLOCKED
+
+defaults:
+  timeout_seconds: 60
+  max_output_tokens: 2048
+  retries: 1
+
+# defense-in-depth copy of Book 6 EGR-002 blocked destinations; the model
+# gateway enforces these independently of the integration egress policy
+blocked_destinations:
+  - 127.0.0.1
+  - localhost
+  - 169.254.169.254
+  - 169.254.170.2
+  - ::1
+  - metadata.google.internal
+  - file://
+
+# Provider profiles are project-owned and configuration-frozen: base_url is
+# an exact origin (scheme://host[:port]); no runtime caller may supply a
+# different destination. The dev OpenRouter profile is DEV_RUNTIME_ONLY —
+# its credential is resolved from the process environment server-side and
+# never enters any ModelRequest/Response, log, or audit record.
+provider_profiles:
+  - provider_profile_id: pp_openrouter_dev
+    provider: openrouter
+    base_url: "https://openrouter.ai"
+    api_path: "/api/v1/chat/completions"
+    allowed_models:
+      - "openai/gpt-4o-mini"
+      - "anthropic/claude-3.5-haiku"
+    allowed_capabilities:
+      - model.invoke
+    allowed_purposes:
+      - grant_drafting
+      - grant_revision
+      - smoke_test
+    allowed_principal_types:
+      - HERMES_CEO
+      - WORKER_AGENT
+    credential_ref: "ref:openrouter_dev"
+    credential_mode: DEV_RUNTIME_ONLY
+    egress_class: APPROVED_API
+    tenant_scope: tenant-a
+    status: ENABLED
+    rate_limit_per_minute: 10
+    timeout_seconds: 60
+    fallback_policy: NO_FALLBACK
+
+rules:
+  - id: MR-001
+    text: "Model execution is a capability (model.invoke); the gateway enforces the AuthorizationDecision independently and never executes without a PDP-issued ALLOW."
+  - id: MR-002
+    text: "Unknown provider profiles and unknown/disabled models are DENIED; no arbitrary caller-supplied base URL or model name is honored."
+  - id: MR-003
+    text: "Provider destination must match the frozen profile origin; localhost, private networks, cloud metadata and file:// are blocked (EGR-002); redirects are revalidated before following (EGR-003)."
+  - id: MR-004
+    text: "Credentials are resolved server-side (vault ref or DEV_RUNTIME_ONLY env resolver) and never appear in ModelRequest/ModelResponse, logs, or audit; caller-supplied keys are rejected."
+  - id: MR-005
+    text: "Model requests are one-shot: a reused request_id/model_request_id is a replay and is refused."
+  - id: MR-006
+    text: "Every invocation emits structured audit evidence with the credential REFERENCE id, never the value."
+  - id: MR-007
+    text: "Purpose and principal type are enforced: Personal Hermes cannot use CEO-only profiles; unknown purpose denies."
+  - id: MR-008
+    text: "Model execution never enables submission; submission.execute stays phase-disabled and non-delegable."
+
+gateway_responsibilities:
+  - verify_authorization_decision_via_decision_registry
+  - bind_capability_to_profile
+  - bind_request_context
+  - resolve_provider_profile
+  - enforce_purpose_and_principal_type
+  - enforce_egress_and_ssrf
+  - resolve_credential_server_side
+  - redact_all_serialized_artifacts
+  - enforce_one_shot_replay
+  - emit_structured_audit
+
+gateway_non_responsibilities:
+  - decide_grant_eligibility
+  - own_canonical_application_state
+  - become_hermes_memory
+  - enable_submission
