@@ -1,0 +1,24 @@
+{
+  "adr_id": "G0_B9_RUNTIME_SUBSTRATE_ADR",
+  "chapter": "B9.C6",
+  "status": "OCE_NATIVE",
+  "ratified": true,
+  "date": "2026-08-27",
+  "candidates": {
+    "A_OCE_NATIVE": {"hard_gates_pass": true, "weighted_score": 4.72, "max_score": 5.0, "selected": true},
+    "B_COMPOZY_BOUNDED": {"hard_gates_pass": false, "eliminated": "hard gate 7 - framework-owned control state risks dual sovereignty", "selected": false},
+    "C_QM_BOUNDED": {"hard_gates_pass": false, "eliminated": "hard gate 7 - framework-owned session state risks dual sovereignty", "selected": false},
+    "D_HYBRID_BOUNDED": {"hard_gates_pass": null, "eliminated": "no component installed/adoptable; speculative glue with zero measured benefit", "selected": false}
+  },
+  "runtime": {
+    "language": "Python 3.11",
+    "canonical_state": "Postgres",
+    "artifacts_and_snapshots": "object storage",
+    "model_gateway": "governed Model Gateway (provider adapter registry)",
+    "durable_execution": "project-owned task/run foundation (G1.1); G0 record-level durability measured",
+    "submission_enabled": false
+  },
+  "exit_strategy": "project-owned plain Python + JSON records; semantic state export is the repo format; external component adoption requires re-passing all 15 hard gates behind our TaskContract",
+  "license_notes": "requests Apache-2.0; no proprietary framework obligations",
+  "g1_boundary": ["production task table/queue/scheduler", "Postgres and object-storage adapters", "production secret management replacing DEV_RUNTIME_ONLY resolver"]
+}
