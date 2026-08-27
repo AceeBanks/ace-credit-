@@ -1,0 +1,36 @@
+# G0-B7-C25 — Privacy, leakage & benchmark integrity (machine-readable).
+# Cross-tenant leakage = P0 (EVAL-LAW-011). Holdout contamination,
+# model-memorization-mistaken-for-capability, and tenant-private examples
+# entering global eval are hard failures.
+
+privacy_policies_version: "1.0"
+
+controls:
+  - id: PRIV-001
+    name: privacy_class_required
+    text: "Every eval case carries a privacy class and tenant scope."
+  - id: PRIV-002
+    name: tenant_scope_enforced
+    text: "Tenant-private cases never enter global corpus without governance approval."
+  - id: PRIV-003
+    name: holdout_separation
+    text: "Holdout cases never join development/eval corpora."
+  - id: PRIV-004
+    name: redaction_minimization
+    text: "Evaluation inputs are minimized/redacted; evaluators receive no unnecessary PII."
+  - id: PRIV-005
+    name: duplicate_analysis
+    text: "Duplicate/near-duplicate cases are tracked to avoid inflating scores."
+  - id: PRIV-006
+    name: export_audit
+    text: "Corpus exports are audited; unauthorized tenant cases are excluded."
+  - id: PRIV-007
+    name: no_memorization_as_capability
+    text: "Model memorization of eval examples is not treated as capability."
+  - id: PRIV-008
+    name: cross_tenant_leakage_p0
+    text: "Any confirmed cross-tenant leakage path is a release blocker."
+
+cross_tenant_leakage_severity: P0
+holdout_violation_severity: P0
+redaction_required_pii: [email, phone, address, tax_id, ein, ssn, dob]
