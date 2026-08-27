@@ -284,3 +284,52 @@ def test_required_predicate_set_present():
     assert lock["p0_open"] == 0
     assert lock["ready_for_book8_architecture"] is True
     assert lock["ready_for_book8_execution"] is False
+
+
+def test_final_test_manifest_is_consistent():
+    """G0-B7-REPAIR-02: the final-head test manifest must exist, be valid
+    JSON, reference the current HEAD, and be internally consistent
+    (full_g0 == sum of per-book totals; checkpoint totals match the
+    manifest). This prevents evidence drift between the lock, the
+    checkpoint and the report."""
+    rat_dir = _ROOT / "docs/grant-sector/g0/00-ratification"
+    manifest = json.loads(
+        (rat_dir / "G0_B7_FINAL_TEST_MANIFEST.json").read_text(encoding="utf-8"))
+    checkpoint = json.loads(
+        (rat_dir / "G0_B7_BOOK_CHECKPOINT.json").read_text(encoding="utf-8"))
+
+    assert manifest["manifest"] == "G0_B7_FINAL_TEST_MANIFEST"
+    assert len(manifest["head_sha"]) == 40
+
+    per_book = [f"book{i}" for i in range(8)]
+    total_passed = sum(manifest[b]["passed"] for b in per_book)
+    total_skipped = sum(manifest[b]["skipped"] for b in per_book)
+    assert total_passed == manifest["full_g0"]["passed"]
+    assert total_skipped == manifest["full_g0"]["skipped"]
+    assert manifest["full_g0"]["failed"] == 0
+
+    cur = checkpoint["test_totals"]["current_at_head_" + manifest["head_sha"]]
+    assert cur["full_suite"]["passed"] == manifest["full_g0"]["passed"]
+    assert cur["full_suite"]["skipped"] == manifest["full_g0"]["skipped"]
+    for b in per_book:
+        assert cur[b]["passed"] == manifest[b]["passed"]
+        assert cur[b]["skipped"] == manifest[b]["skipped"]
+
+
+def test_checkpoint_review_status_model():
+    """G0-B7-REPAIR-02: review status must be structured (finding_status /
+    repair_status / ratification_status), not one overloaded field; the
+    architecture/execution readiness split must be preserved."""
+    rat_dir = _ROOT / "docs/grant-sector/g0/00-ratification"
+    checkpoint = json.loads(
+        (rat_dir / "G0_B7_BOOK_CHECKPOINT.json").read_text(encoding="utf-8"))
+    er = checkpoint["external_review"]
+    assert er["finding_status"] == "REPAIR_REQUIRED"
+    assert er["repair_status"] == "COMPLETE"
+    assert er["ratification_status"] == "AWAITING_EXTERNAL_RATIFICATION"
+    assert er["review_record"].endswith("G0_B7_EXTERNAL_REVIEW_01.md")
+    assert er["repair_commit"].startswith("G0-B7-REPAIR-01")
+    assert checkpoint["reality_lock"]["ready_for_book8_architecture"] is True
+    assert checkpoint["reality_lock"]["ready_for_book8_execution"] is False
+    assert checkpoint["reality_lock"]["submission_enabled"] is False
+    assert checkpoint["submission_disabled"] is True

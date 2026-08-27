@@ -1,7 +1,7 @@
 {
   "checkpoint": "G0-B7-BOOK",
   "branch": "grant-sector-r0-salvage",
-  "head_sha": "c6924690",
+  "head_sha": "4ca598001fed12d7e7070f4a144d7bc43e491d9e",
   "boot_commit": {
     "sha": "610890a0",
     "message": "G0-B7-A1: authorize bounded Humanizer style-transform evaluation"
@@ -17,36 +17,50 @@
     {"sha": "fe4010ca", "message": "G0-B7-C22-C23: implement shadow canary rollback and human review protocols"},
     {"sha": "a3512c49", "message": "G0-B7-C24-C28: implement cost privacy failure harvesting and statistics discipline"},
     {"sha": "33852ab4", "message": "G0-B7-C29-C30: implement adversarial and integration property suites"},
-    {"sha": "c6924690", "message": "G0-B7-D2: first grounded grant-writing quality experiment (harness)"}
+    {"sha": "c6924690", "message": "G0-B7-D2: first grounded grant-writing quality experiment (harness)"},
+    {"sha": "49b84a65", "message": "G0-B7-BOOK: seal Book 7 evaluation and promotion system with derived Reality Lock"},
+    {"sha": "d0463f31", "message": "G0-B7-EXT-REVIEW-01: record Book 7 external review findings"},
+    {"sha": "72ad80d8", "message": "G0-B7-REPAIR-01: separate harness readiness from live evaluation evidence"},
+    {"sha": "7c6d2750", "message": "G0-B7-D2-LIVE-BLOCKED: record missing authorized model runtime without fabricated results"},
+    {"sha": "4ca59800", "message": "G0-B7-EXT-REVIEW-01: record post-repair resolution; await external ratification"}
   ],
   "reality_lock": {
     "path": "docs/grant-sector/g0/00-ratification/G0_B7_REALITY_LOCK.json",
     "status": "PASS",
     "p0_open": 0,
     "ready_for_book8_architecture": true,
-    "ready_for_book8_execution": false
-  },
-  "test_totals": {
-    "full_suite": {"passed": 1687, "skipped": 14},
-    "book0": {"passed": 50, "skipped": 1},
-    "book1": {"passed": 132, "skipped": 1},
-    "book2": {"passed": 254, "skipped": 1},
-    "book3": {"passed": 242, "skipped": 1},
-    "book4": {"passed": 275, "skipped": 1},
-    "book5": {"passed": 227, "skipped": 4},
-    "book6": {"passed": 224, "skipped": 3},
-    "book7": {"passed": 283, "skipped": 2},
-    "book7_reality_lock_freshness": 15,
-    "adversarial_p0_suite": "book7 test_adversarial_eval.py + test_security_regression.py + test_eval_properties.py + test_d2_experiment.py"
+    "ready_for_book8_execution": false,
+    "submission_enabled": false
+  },    "test_totals": {
+    "current_at_head_4ca598001fed12d7e7070f4a144d7bc43e491d9e": {
+      "full_suite": {"passed": 1703, "failed": 0, "skipped": 3},
+      "book0": {"passed": 51, "skipped": 0},
+      "book1": {"passed": 133, "skipped": 0},
+      "book2": {"passed": 255, "skipped": 0},
+      "book3": {"passed": 243, "skipped": 0},
+      "book4": {"passed": 276, "skipped": 0},
+      "book5": {"passed": 228, "skipped": 3},
+      "book6": {"passed": 227, "skipped": 0},
+      "book7": {"passed": 290, "skipped": 0},
+      "book7_reality_lock_freshness": 19,
+      "book6_reality_lock_freshness": 18
+    },
+    "historical_at_sha_49b84a65": {"full_suite": {"passed": 1687, "skipped": 14}, "note": "seal commit totals, retained historically"},
+    "manifest": "docs/grant-sector/g0/00-ratification/G0_B7_FINAL_TEST_MANIFEST.json"
   },
   "submission_disabled": true,
   "d2_live_model_run_complete": false,
   "d2_harness_complete": true,
-  "humanizer_disposition": "DEFER / CANDIDATE (no authorized model runtime; bake-off infrastructure + protected-claim guards complete, disposition per Book 7 promotion rules after a live baseline-vs-humanized comparison)",
+  "humanizer_disposition": "CANDIDATE / DEFER_PENDING_LIVE_BAKEOFF",
   "external_review": {
-    "record": "docs/grant-sector/g0/00-ratification/G0_B7_EXTERNAL_REVIEW_01.md",
-    "status": "REPAIR_REQUIRED",
-    "repair_commit": "G0-B7-REPAIR-01"
+    "finding_status": "REPAIR_REQUIRED",
+    "repair_status": "COMPLETE",
+    "ratification_status": "AWAITING_EXTERNAL_RATIFICATION",
+    "review_record": "docs/grant-sector/g0/00-ratification/G0_B7_EXTERNAL_REVIEW_01.md",
+    "repair_commit": "G0-B7-REPAIR-01 (72ad80d8)",
+    "post_repair_commit": "G0-B7-EXT-REVIEW-01 post-repair record (4ca59800)",
+    "live_d2_status": "BLOCKED_MODEL_RUNTIME",
+    "live_humanizer_status": "BLOCKED_COMPONENT_RUNTIME"
   },
-  "external_ratification": "NOT YET PERFORMED (Book 7 external-review checkpoint per mission stop point; awaiting external ratification)"
+  "external_ratification": "NOT YET PERFORMED (awaiting external ratification; Book 8 execution additionally gated on ready_for_book8_execution)"
 }

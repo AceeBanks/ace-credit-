@@ -1,0 +1,45 @@
+{
+  "manifest": "G0_B7_FINAL_TEST_MANIFEST",
+  "head_sha": "4ca598001fed12d7e7070f4a144d7bc43e491d9e",
+  "branch": "grant-sector-r0-salvage",
+  "generated_at": "2026-08-27T00:00:00Z",
+  "generator": "G0-B7-REPAIR-02 (Book 7 evidence synchronization)",
+  "commands": {
+    "full_suite": "python -m pytest tests/g0 -q",
+    "per_book": "python -m pytest tests/g0/book{0..7} -q --no-header",
+    "reality_lock": "python tools/g0/build_book7_reality_lock.py",
+    "book6_seam_validation": "python tools/g0/validate_seam_bindings.py",
+    "d2_harness": "python tools/g0/d2_harness.py",
+    "freshness": "python -m pytest tests/g0/book7/test_book7_reality_lock.py tests/g0/book6/test_book6_reality_lock.py -q"
+  },
+  "book0": {"passed": 51, "failed": 0, "skipped": 0},
+  "book1": {"passed": 133, "failed": 0, "skipped": 0},
+  "book2": {"passed": 255, "failed": 0, "skipped": 0},
+  "book3": {"passed": 243, "failed": 0, "skipped": 0},
+  "book4": {"passed": 276, "failed": 0, "skipped": 0},
+  "book5": {"passed": 228, "failed": 0, "skipped": 3},
+  "book6": {"passed": 227, "failed": 0, "skipped": 0},
+  "book7": {"passed": 290, "failed": 0, "skipped": 0},
+  "full_g0": {"passed": 1703, "failed": 0, "skipped": 3},
+  "reality_lock_freshness": {"book7_lock_freshness_tests": 19, "book6_lock_freshness_tests": 18, "total": 37, "passed": 37},
+  "book6_seam_validation": {"exit_code": 0, "grant_authority_enforced": "OK", "authorization_capability_binding": "OK", "authorization_resource_binding": "OK", "project_scope": "OK", "approval_registry_integration": "OK"},
+  "d2_harness": {"exit_code": 0, "status": "harness_complete", "live_lane": "BLOCKED_MODEL_RUNTIME"},
+  "humanizer_protected_claim_tests": {
+    "test": "test_all_10_humanizer_attacks_blocked (tests/g0/book7/test_adversarial_eval.py)",
+    "passed": true,
+    "red_green_provable": true,
+    "note": "10 Humanizer-specific attacks (HZR-A..J) all blocked; red-green proof in test_hzr_attacks_are_red_green_provable"
+  },
+  "historical_totals": {
+    "historical_at_sha_49b84a65": {"full_g0": {"passed": 1687, "skipped": 14}, "note": "Book 7 seal commit; lock-freshness self-guard skips"},
+    "historical_at_sha_c6924690": {"full_g0": {"passed": 1687, "skipped": 14}, "note": "D2 harness commit"},
+    "explanation": "Earlier totals are retained historically only; current truth is the final-head block above."
+  },
+  "reality_lock": {
+    "status": "PASS",
+    "p0_open": 0,
+    "ready_for_book8_architecture": true,
+    "ready_for_book8_execution": false,
+    "submission_enabled": false
+  }
+}

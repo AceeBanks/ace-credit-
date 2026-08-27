@@ -17,6 +17,29 @@ Batch 07, Humanizer Amendment 003).
 | Post-repair verification | see below |
 | External review resolution | `EXTERNAL_REVIEW_REPAIR_COMPLETE` — **AWAITING_EXTERNAL_RATIFICATION** |
 
+### Machine-readable status model
+
+Per the Book 7 closeout mission, review status is not one overloaded field:
+
+```json
+{
+  "external_review": {
+    "finding_status": "REPAIR_REQUIRED",
+    "repair_status": "COMPLETE",
+    "ratification_status": "AWAITING_EXTERNAL_RATIFICATION",
+    "review_record": "docs/grant-sector/g0/00-ratification/G0_B7_EXTERNAL_REVIEW_01.md",
+    "repair_commit": "G0-B7-REPAIR-01 (72ad80d8)",
+    "post_repair_commit": "G0-B7-EXT-REVIEW-01 post-repair record (4ca59800)",
+    "live_d2_status": "BLOCKED_MODEL_RUNTIME",
+    "live_humanizer_status": "BLOCKED_COMPONENT_RUNTIME"
+  }
+}
+```
+
+This structured form is mirrored in `G0_B7_BOOK_CHECKPOINT.json` and
+`G0_B7_FINAL_TEST_MANIFEST.json`; all three reference the same final-head
+evidence (`4ca59800`).
+
 ## Overall assessment
 
 **No P0 security/authority defect found in Book 7.** The Book 7 architecture
