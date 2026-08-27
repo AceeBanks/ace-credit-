@@ -1,0 +1,84 @@
+# G0-B7-C1 — Evaluation Constitutional Laws (machine-readable).
+# Config of truth: docs/grant-sector/g0/07-evaluation/G0_B7_EVALUATION_CONSTITUTION.md
+# Validator: tools/g0/validate_evaluation_constitution.py
+
+evaluation_constitution_version: "1.0"
+
+laws:
+  - id: EVAL-LAW-001
+    name: baseline_required
+    text: "No candidate is 'better' without an explicit baseline and baseline version."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-002
+    name: corpus_version_required
+    text: "Quality claims identify the exact evaluation corpus and suite version."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-003
+    name: critical_regressions_veto_aggregate_improvement
+    text: "A candidate cannot offset a security/authority/factuality P0 regression with better style or lower cost."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-004
+    name: deterministic_assertions_dominate_subjective_graders
+    text: "Where correctness can be checked deterministically, use deterministic evaluation."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-005
+    name: llm_judges_are_advisory_unless_independently_anchored
+    text: "Model graders may assess dimensions such as clarity/alignment, but cannot alone authorize production promotion."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-006
+    name: evaluator_independence
+    text: "A candidate should not be sole evaluator of itself; use deterministic checks, independent models, human review or combinations appropriate to risk."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-007
+    name: evidence_lineage_required
+    text: "Eval cases inherit Book 5 lineage."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-008
+    name: promotion_is_explicit
+    text: "No auto-writing candidate becomes production behavior without a PromotionDecision."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-009
+    name: promotion_is_reversible
+    text: "Every promoted behavioral change has rollback identity and path."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-010
+    name: security_is_non_compensatory
+    text: "Book 1/6 security and authority violations are hard vetoes; a security regression cannot be compensated by any other score."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-011
+    name: tenant_privacy_is_non_compensatory
+    text: "Cross-tenant leakage is P0 regardless of other scores."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-012
+    name: production_feedback_is_not_automatically_ground_truth
+    text: "User acceptance, win/loss, or downstream outcome may be informative but requires interpretation and lineage."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-013
+    name: quality_dimensions_remain_visible
+    text: "Do not collapse everything into one opaque score."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-014
+    name: evaluation_infrastructure_is_replaceable
+    text: "Promptfoo, Hermes Eval Lab, Dojo, SkillClaw or any other tool sits behind project-owned contracts."
+    enforcement: FAIL_CLOSED
+  - id: EVAL-LAW-015
+    name: no_silent_online_self_modification
+    text: "G0 prohibits a production agent from observing itself and silently rewriting/promoting its own skills/prompts/routes."
+    enforcement: FAIL_CLOSED
+
+required_law_ids:
+  - EVAL-LAW-001
+  - EVAL-LAW-002
+  - EVAL-LAW-003
+  - EVAL-LAW-004
+  - EVAL-LAW-005
+  - EVAL-LAW-006
+  - EVAL-LAW-007
+  - EVAL-LAW-008
+  - EVAL-LAW-009
+  - EVAL-LAW-010
+  - EVAL-LAW-011
+  - EVAL-LAW-012
+  - EVAL-LAW-013
+  - EVAL-LAW-014
+  - EVAL-LAW-015
