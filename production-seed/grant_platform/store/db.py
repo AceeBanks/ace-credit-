@@ -290,6 +290,34 @@ class Store:
             " version_number", (project_id,))
         return [dict(r) for r in rows]
 
+    # -- source snapshots --------------------------------------------------
+    def create_snapshot(self, snap: dict) -> None:
+        """Persist an immutable source snapshot. content_hash is unique;
+        re-capturing identical content is idempotent."""
+        self.conn.execute(
+            "INSERT OR IGNORE INTO source_snapshots (snapshot_id,"
+            " source_uri, fetched_at, content_hash, tenant_id, revision_id,"
+            " payload_ref) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (snap["snapshot_id"], snap["canonical_url"],
+             snap["retrieved_at"], snap["content_hash"],
+             snap["tenant_id"], snap.get("revision_id"),
+             snap["payload_ref"]))
+        self.conn.commit()
+
+    def latest_snapshot(self, source_id: str,
+                        tenant_id: str) -> dict | None:
+        row = self.conn.execute(
+            "SELECT * FROM source_snapshots WHERE tenant_id=? AND"
+            " source_uri LIKE ? ORDER BY fetched_at DESC LIMIT 1",
+            (tenant_id, f"%{source_id}%")).fetchone()
+        return dict(row) if row else None
+
+    def snapshots_for(self, tenant_id: str) -> list[dict]:
+        rows = self.conn.execute(
+            "SELECT * FROM source_snapshots WHERE tenant_id=? ORDER BY"
+            " fetched_at", (tenant_id,))
+        return [dict(r) for r in rows]
+
     # -- durable tasks ------------------------------------------------------
     def create_task(self, t: Task) -> None:
         self.conn.execute(
