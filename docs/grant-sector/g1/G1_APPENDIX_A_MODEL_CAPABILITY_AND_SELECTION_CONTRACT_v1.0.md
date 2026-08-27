@@ -4,6 +4,8 @@
 **Status:** FROZEN (G1 implementation contract)
 **Supersedes:** nothing — extends Book 7 model runtime + Book 9 ADR
 (`OCE_NATIVE`). It does NOT reopen Book 9 architecture.
+**G1 scope:** G1.7 application drafting (governed Model Gateway),
+G1.8 QA/evaluation lanes, and the Appendix B model picker.
 
 ## 1. Model provider principle
 
@@ -123,8 +125,12 @@ Normal clients do not need to understand model infrastructure.
 
 - Profiles live in config (`config/g1/model/`) and are validated against
   the schema in CI.
-- Selection logic (`platform/model/selection.py`) is unit-tested: context
-  gate, task-eligibility gate, fallback, Auto routing.
+- Selection logic (`grant_platform/model/selection.py`) is unit-tested:
+  context gate, task-eligibility gate, fallback, Auto routing.
 - Gateway integration re-uses Book 7 PDP/egress/credential rules unchanged.
+- **Submission invariant:** model execution never enables submission;
+  `submission.execute` stays phase-disabled and non-delegable (Book 6
+  MR-008). A model selection failure is a deny, never a path around
+  governance.
 
 ## Commit: `G1-APPENDIX-A`
