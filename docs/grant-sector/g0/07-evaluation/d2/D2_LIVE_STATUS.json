@@ -1,0 +1,29 @@
+{
+  "record": "G0-B7-D2-LIVE-BLOCKED",
+  "experiment": "D2 — FIRST GROUNDED GRANT-WRITING QUALITY EXPERIMENT",
+  "d2_live_status": "BLOCKED_MODEL_RUNTIME",
+  "humanizer_live_status": "BLOCKED_COMPONENT_RUNTIME",
+  "model": {
+    "provider": "none",
+    "model_id": "none",
+    "model_version": "none",
+    "note": "No repository-authorized model runtime exists for the governed G0 pipeline. A bare OPENROUTER_API_KEY environment variable exists in the shell but is consumed only by workspace tools (tools/, projects/ai-tools/); the G0 pipeline has no adapter, OCE-compatible gateway, or approved provider config, and Book 6 credential rules (server-side secrets, no hard-coded credentials, no exposure to Hermes context) forbid improvising an unauthorized external provider integration."
+  },
+  "baseline_live_grant": {
+    "artifact": "docs/grant-sector/g0/07-evaluation/d2/D2_BASELINE_DRAFT.md",
+    "generation": "DETERMINISTIC_FROM_GOVERNED_EVIDENCE",
+    "model_generated": false,
+    "note": "Existing D2 baseline draft is deterministic (harness), never presented as an AI-generated draft."
+  },
+  "humanizer_live": {
+    "status": "BLOCKED_COMPONENT_RUNTIME",
+    "artifact": "none",
+    "protected_claim_diff": "not performed on a live draft (harness identity/tamper diff green)",
+    "disposition": "CANDIDATE / DEFER_PENDING_LIVE_BAKEOFF"
+  },
+  "no_fabrication": true,
+  "generated_at": "2026-08-27T00:00:00Z",
+  "submission_enabled": false,
+  "repository": "dabiggestpoppa/larger-lab",
+  "branch": "grant-sector-r0-salvage"
+}
