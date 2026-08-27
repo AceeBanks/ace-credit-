@@ -9,7 +9,7 @@ G1-W1-C3 (scheduler) → G1-W1-C4 (object storage) → G1-W1-BOOK.
 | Component | Classification | Location |
 |---|---|---|
 | Domain records (promoted from G0, JSON-serializable) | PROMOTE_FROM_G0 | `grant_platform/domain/records.py` |
-| Durable Store (SQLite dev/CI, portable schema, tenant-scoped) | HARDEN_FROM_G0 | `grant_platform/store/db.py` |
+| Durable Store (SQLite dev/CI — TEST_ONLY / DEV_FAST_PATH per P1-01; canonical Postgres migration path in `migrations/postgres/`, tenant-scoped) | HARDEN_FROM_G0 | `grant_platform/store/db.py` |
 | Durable task/run system (claim, checkpoint, resume, retry, idempotency, lease/STALE recovery) | REIMPLEMENT_PRODUCTION | `grant_platform/runtime/tasks.py` |
 | Postgres-backed job queue / scheduler | NEW | `grant_platform/runtime/scheduler.py` |
 | Object storage abstraction (local fs now, S3 interface) | NEW | `grant_platform/store/objects.py` |
@@ -42,7 +42,13 @@ G1-W1-C3 (scheduler) → G1-W1-C4 (object storage) → G1-W1-BOOK.
 
 ## Remaining (honest)
 
-- Postgres adapter (SQLAlchemy/psycopg) replaces sqlite in production —
-  same table layout, same repository interface (G1.2 completion).
+- Postgres repository adapter (SQLAlchemy/psycopg) over the canonical
+  production migration path `migrations/postgres/` (G1.2 completion).
+  The P1-01 migration-truth repair established `migrations/postgres/`
+  (TIMESTAMPTZ/`now()`/jsonb) as the production path and relabeled the
+  SQLite schema as TEST_ONLY / DEV_FAST_PATH — SQLite is not evidence of
+  Postgres correctness. `tests/test_postgres_migration.py` runs the real
+  PG integration when `PG_TEST_DSN` is reachable and reports
+  `BLOCKED_ENVIRONMENT` otherwise.
 - Live concurrent multi-worker lease contention beyond single-process
   sqlite is exercised at staging.

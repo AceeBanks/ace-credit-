@@ -1,7 +1,7 @@
 # G1 Wave 3 — Production Dual Hermes Runtime
 
 **Line:** `grant-sector-g1-production`
-**Status:** IMPLEMENTED (SQLite dev/CI store; Postgres production adapter follows)
+**Status:** IMPLEMENTED (SQLite dev/CI store is TEST_ONLY / DEV_FAST_PATH per P1-01; canonical Postgres migration path `migrations/postgres/`; repository adapter follows)
 **Commit series:** `G1-W3-C1` … `G1-W3-BOOK`
 
 ## Constitutional Invariant
@@ -79,8 +79,13 @@ empty-DB migration test now covers the new tables.
 
 ## Honest Status
 
-- Store is SQLite-backed for dev/CI; the schema is portable and the
-  Postgres repository adapter is the G1.1 hardening item (same table
-  layout, same repository interface).
+- Store is SQLite-backed for dev/CI only (TEST_ONLY / DEV_FAST_PATH —
+  P1-01 migration-truth repair; SQLite is not Postgres evidence). The
+  canonical production migrations are `migrations/postgres/`
+  (TIMESTAMPTZ/`now()`/jsonb), exercised by
+  `tests/test_postgres_migration.py` (`BLOCKED_ENVIRONMENT` without a
+  reachable server, never fake PASS). The Postgres repository adapter
+  remains the G1.1 hardening item (same table layout, same repository
+  interface).
 - Worker drafting tasks are wired to handlers here; the governed Model
   Gateway call for `application.draft_section` lands in Wave 4.

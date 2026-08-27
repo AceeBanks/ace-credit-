@@ -1,9 +1,21 @@
 # G0 Final — External Review Record
 
 **Review id:** `G0_FINAL_EXTERNAL_REVIEW`
-**Date:** 2026-08-27
-**Status:** `PASS_WITH_MINOR_EVIDENCE_SYNC` → `READY_FOR_EXTERNAL_RATIFICATION`
-**Review range:** `4ca59800..84ebd8b9` (final G0 head)
+**Date:** 2026-08-27 (updated for P1-01 Postgres migration-truth repair)
+**Status:** `PASS_WITH_MINOR_REPAIRS` → `READY_FOR_EXTERNAL_RATIFICATION`
+**Review range:** `4ca59800..84ebd8b9` (final G0 head) + G1 repair commits
+
+## Post-Review Repairs (P1-01 / P1-02 / P2-01)
+
+| Finding | Severity | Disposition | Status |
+|---|---|---|---|
+| P1-01 — `migrations/001_initial_schema.sql` claimed SQLite/Postgres portability while using SQLite-only `strftime()` defaults | P1 | Production Postgres migration path created (`migrations/postgres/001` + `002`: TIMESTAMPTZ, `DEFAULT now()`, jsonb, CHECK constraints, UNIQUE append-only revision semantics, content-dedup snapshots); SQLite relabeled `TEST_ONLY / DEV_FAST_PATH`; runnable PG integration test added (`tests/test_postgres_migration.py`, `BLOCKED_ENVIRONMENT` when no server — never fake PASS). A static structural guard catches comment-swallowed-comma syntax errors without a server. | RESOLVED (PG execution pending server) |
+| P1-02 — final ratification packet quoted stale 1778 total | P1 | Packet now classifies `historical_at_sha` vs `current_final_head`; final = **1812 passed / 3 skipped** at `84ebd8b9`. | RESOLVED |
+| P2-01 — Book 0 vs Books 1–9 semantics | P2 | Explicit: Book 0 = foundation (not ratified); Books 1–9 = nine ratified implementation Books; `books_ratified: 9` intentional. | RESOLVED |
+
+**Note:** the migration files under `migrations/*.sql` (SQLite) were
+relabeled but never re-used as production evidence; the canonical
+production database is Postgres via `migrations/postgres/`.
 
 ## Book counting semantics (explicit)
 

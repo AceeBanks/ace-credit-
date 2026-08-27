@@ -42,8 +42,12 @@ proof of universal proposal quality (single fixture, small sample).
 ## Honest Gaps (production-hardening input — Wave 6)
 
 1. **Auth:** dev principal header; production session/JWT is G1.10.
-2. **Persistence:** SQLite in dev/pilot; Postgres production adapter G1.10
-   (same repository interface, portable schema, migration-tested).
+2. **Persistence:** SQLite in dev/pilot is TEST_ONLY / DEV_FAST_PATH
+   (P1-01 migration-truth repair — SQLite is not Postgres evidence);
+   canonical production migrations are `migrations/postgres/`
+   (TIMESTAMPTZ/`now()`/jsonb) with a runnable integration test
+   (`tests/test_postgres_migration.py`, `BLOCKED_ENVIRONMENT` without a
+   server); Postgres repository adapter is G1.10.
 3. **Human review:** `NOT_PERFORMED` — no reviewer available; no score
    invented. Review packet structure exists.
 4. **Writing quality:** small sample; more Book 7 evaluation runs needed

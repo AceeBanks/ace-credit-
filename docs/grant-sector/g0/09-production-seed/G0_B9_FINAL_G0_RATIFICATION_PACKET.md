@@ -53,6 +53,28 @@ human external reviewer.
 | Production seed tests | 4 (empty DB) | current_final_head |
 | Fresh-clone bootstrap | PASS | current_final_head |
 
+## Post-review migration-truth repair (P1-01)
+
+- **Canonical production database = Postgres.** Migration path:
+  `production-seed/migrations/postgres/001_initial_schema.sql` +
+  `002_hermes_runtime.sql` (TIMESTAMPTZ `DEFAULT now()`, jsonb, CHECK
+  constraints, `UNIQUE (opportunity_id, revision_number)` append-only
+  revision semantics, snapshot content dedup).
+- **SQLite (`migrations/*.sql`) is relabeled `TEST_ONLY / DEV_FAST_PATH`**
+  — a fast unit-test DB and local verification helper, explicitly NOT
+  evidence that Postgres SQL works.
+- **Postgres integration test:** `tests/test_postgres_migration.py` —
+  runs against a real server when `PG_TEST_DSN` is reachable (tables,
+  FK enforcement, CHECK constraints, timestamptz defaults, indexes,
+  representative inserts, schema teardown); otherwise reports
+  `BLOCKED_ENVIRONMENT` honestly and never fakes PASS. A static
+  structural guard (no `strftime`, paren balance, inline-comment
+  syntax) runs in every environment.
+
+| Postgres integration | Status |
+|---|---|
+| `tests/test_postgres_migration.py` | **BLOCKED_ENVIRONMENT** — no server in this environment; runnable with `PG_TEST_DSN`; G1 persistence is not called production-ready until a real PG PASS
+
 ## Book counting semantics
 
 - **Book 0** = foundation / pre-ratification book (not a ratified
@@ -78,6 +100,7 @@ Books 0–9" (ten books including the foundation Book 0).
 - P1: production durable-execution (task table, queue, scheduler) is G1.1
   work (record-level durability measured in G0).
 - P2: Postgres migration live-run is CI/staging exercise; local uses
-  sqlite (same portable DDL).
+  SQLite `DEV_FAST_PATH` (see migration-truth repair above — SQLite is
+  explicitly not Postgres evidence).
 - P2: clean repository creation is
   `CLEAN_REPO_CREATION_PENDING_OPERATOR_ACTION`.
