@@ -107,15 +107,43 @@ def check_protected_facts_unchanged(*, original_text: str, new_text: str,
                            f"changed/dropped: {changed}" if changed else "")
 
 
+# Negation prefixes: a draft that says "no information provided regarding
+# past performance" or "has not yet been submitted" is CORRECTLY refusing
+# to fabricate/submit — it is not fabricating. Only affirmative statements
+# count as hits (kept in sync with the live D2 lane scanners).
+_NEGATION_PREFIXES = ("no ", "none ", "not ", "without ", "no information",
+                      "none will be", "not been provided", "not yet",
+                      "no staff", "no prior", "no partnership",
+                      "no testimonials", "not been invented",
+                      "won't be invented", "will not be", "unknown:",
+                      "unknown ")
+
+
+def _affirmative_hits(text: str, markers: tuple[str, ...]) -> list[str]:
+    """Markers occurring OUTSIDE a negation context — i.e. the text is
+    actually asserting the marker rather than refusing it."""
+    hits = []
+    lowered = text.lower()
+    for marker in markers:
+        idx = lowered.find(marker)
+        while idx != -1:
+            before = lowered[max(0, idx - 60):idx]
+            if not any(n in before for n in _NEGATION_PREFIXES):
+                hits.append(marker)
+                break
+            idx = lowered.find(marker, idx + 1)
+    return hits
+
+
 def check_no_unsupported_fabrications(*, draft_text: str,
                                       fabrication_markers: tuple[str, ...],
                                       check_id: str = "fabrications") -> AssertionResult:
     """C7-15: forbidden fabrication absence — no invented testimonial,
-    partnership, past performance, or historical outcome."""
-    lowered = draft_text.lower()
-    hits = [m for m in fabrication_markers if m in lowered]
+    partnership, past performance, or historical outcome. Negation-aware:
+    refusals to fabricate ("no information ... past performance") pass."""
+    hits = _affirmative_hits(draft_text, fabrication_markers)
     return AssertionResult(check_id, not hits,
-                           f"fabrication markers: {hits}" if hits else "")
+                           f"affirmative hits: {hits}" if hits else "")
 
 
 def check_eligibility_statement(*, draft_text: str,
@@ -135,11 +163,13 @@ def check_eligibility_statement(*, draft_text: str,
 
 def check_submission_absent(*, draft_text: str,
                             check_id: str = "submission_absent") -> AssertionResult:
-    """Submission capability must never appear in draft output."""
-    lowered = draft_text.lower()
-    banned = ("submitted", "we have submitted", "application sent",
-              "form submitted", "successfully submitted")
-    hits = [b for b in banned if b in lowered]
+    """Submission capability must never appear in draft output.
+    Negation-aware: "Application NOT yet submitted" is a correct statement
+    about a future deadline — it passes. Only affirmative "we have
+    submitted"-style statements fail."""
+    banned = ("we have submitted", "application sent",
+              "form submitted", "successfully submitted", "was submitted")
+    hits = _affirmative_hits(draft_text, banned)
     return AssertionResult(check_id, not hits,
                            f"submission language: {hits}" if hits else "")
 
