@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""G0-B9-C15/C25 — local-first bootstrap.
+"""G0-B9-C15/C25 — local-first bootstrap (SQLite TEST_ONLY / DEV_FAST_PATH).
 
-Migrations the canonical schema onto an EMPTY database from the portable
-migration file. Supports sqlite (dev/CI) and any DBAPI-compatible URL;
-Postgres is exercised in staging/CI with the same file.
+Applies the SQLite migration files (migrations/*.sql) onto an EMPTY sqlite
+database for dev/CI and local seed verification. These SQLite files are
+NOT production Postgres SQL — per the P1-01 migration-truth repair the
+canonical production path is migrations/postgres/ (TIMESTAMPTZ/now()/jsonb),
+exercised by the G1 migration runner and tests/test_postgres_migration.py.
 
 Usage:
     python bootstrap.py --db sqlite:///./dev.db
-    python bootstrap.py --db postgres://user:pass@host/grantdb
 """
 from __future__ import annotations
 
@@ -30,13 +31,15 @@ def _migrate_sqlite(path: str) -> None:
 
 
 def _migrate_postgres(url: str) -> None:
-    # Postgres path requires a DBAPI driver (e.g. psycopg) present in the
-    # deployment environment. Same migration files; executed transactionally
-    # by the migration runner in staging/CI.
+    # Postgres is NOT bootstrapped from the SQLite files: they use
+    # SQLite-only strftime() defaults and are TEST_ONLY / DEV_FAST_PATH.
+    # The canonical production path is migrations/postgres/, applied by the
+    # G1 migration runner in staging/CI (needs a DBAPI driver, e.g. psycopg).
     raise SystemExit(
         "Postgres bootstrap requires the G1 migration runner (psycopg + "
-        "alembic-style runner). The portable SQL files are identical; this "
-        "is exercised in CI staging, not locally.")
+        "alembic-style runner) applying migrations/postgres/ — the SQLite "
+        "DEV_FAST_PATH files are not Postgres SQL and must not be run "
+        "against a Postgres server.")
 
 
 def main() -> int:

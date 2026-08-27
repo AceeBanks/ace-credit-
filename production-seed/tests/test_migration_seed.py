@@ -1,9 +1,11 @@
 """G0-B9-C13 — migration seed must build from an EMPTY database.
 
-Runs the portable initial schema against a fresh in-memory sqlite DB and
-asserts every canonical table exists. The same file is Postgres-compatible
-(no server-specific types); a live Postgres run is exercised in CI
-(staging migration job). Proves no dependency on local historical DB state.
+Runs the SQLite TEST_ONLY / DEV_FAST_PATH schema (migrations/*.sql) against
+a fresh in-memory sqlite DB and asserts every canonical table exists. This
+is NOT Postgres evidence (P1-01 migration-truth repair): the canonical
+production path is migrations/postgres/, exercised by
+tests/test_postgres_migration.py. Proves no dependency on local historical
+DB state.
 """
 from __future__ import annotations
 

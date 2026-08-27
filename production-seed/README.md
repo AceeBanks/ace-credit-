@@ -20,10 +20,11 @@ immutable payloads; governed Model Gateway for model execution.
 
 ```text
 production-seed/
-  migrations/        # canonical Postgres/portable schema (append-only)
+  migrations/        # SQLite TEST_ONLY / DEV_FAST_PATH (append-only)
+  migrations/postgres/  # canonical production schema (TIMESTAMPTZ/now()/jsonb)
   config/            # environment config (secrets referenced, never stored)
   tests/             # seed verification tests
-  bootstrap.py       # local bootstrap: init env, run migrations on a DB
+  bootstrap.py       # local bootstrap: SQLite DEV_FAST_PATH only
 ```
 
 ## Bootstrap (local-first, no paid cloud)
@@ -35,15 +36,14 @@ python bootstrap.py --db sqlite:///./dev.db        # migrate empty DB
 python -m pytest tests/ -q                          # seed verification
 ```
 
-With Postgres (staging/production):
+Postgres (staging/production) uses the canonical `migrations/postgres/`
+path applied by the G1 migration runner; `bootstrap.py` is SQLite-only
+(TEST_ONLY / DEV_FAST_PATH) and is NOT used against Postgres.
 
-```bash
-python bootstrap.py --db postgres://user:pass@host/grantdb
-```
-
-The same portable migration file runs on both sqlite (CI/dev) and
-Postgres (staging/production). No reliance on developer machine state, old
-paths, hidden env files, or archived Hermes memory.
+SQLite (CI/dev) runs `migrations/*.sql` (DEV_FAST_PATH); Postgres runs
+`migrations/postgres/` (canonical). The two are NOT interchangeable — see
+the P1-01 migration-truth repair. No reliance on developer machine state,
+old paths, hidden env files, or archived Hermes memory.
 
 ## Verification contract (B9.C25)
 
