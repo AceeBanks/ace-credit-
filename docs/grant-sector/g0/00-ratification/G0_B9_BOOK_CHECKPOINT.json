@@ -1,7 +1,7 @@
 {
   "checkpoint": "G0-B9-BOOK",
   "branch": "grant-sector-r0-salvage",
-  "head_sha": "299d0f1a15630f34f94dbd5fbe4182478272f1ab",
+  "head_sha": "2af78177",
   "boot_commit": {
     "sha": "6b673582",
     "message": "G0-B8-EXT-REVIEW-01: record Book 8 external review and authorize Book 9 planning"
@@ -15,7 +15,7 @@
     {"sha": "c1691c02", "message": "G0-B9-C18-C23: freeze observability SLO recovery secrets security and cost baselines"},
     {"sha": "82db1377", "message": "G0-B9-C24-C25: prepare clean repository seed and verify fresh-clone bootstrap"},
     {"sha": "299d0f1a", "message": "G0-B9-C26-C30: freeze G1 backlog architecture decisions contradiction sweep and reconstruction test"},
-    {"sha": "SEAL_PENDING", "message": "G0-B9-BOOK: seal Book 9 with final G0 Reality Lock"}
+    {"sha": "2af78177", "message": "G0-B9-BOOK: seal Book 9 with final G0 Reality Lock"}
   ],
   "reality_lock": {
     "path": "docs/grant-sector/g0/00-ratification/G0_FINAL_REALITY_LOCK.json",
