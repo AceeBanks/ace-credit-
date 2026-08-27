@@ -1,0 +1,75 @@
+{
+  "pilot": "G1-W5-PILOT \u2014 first client-pilot checkpoint (MOCK client)",
+  "label": "MOCK_NON_SUBMISSION",
+  "submission_enabled": false,
+  "generated_at": "2026-08-27T21:06:26.270511+00:00",
+  "events": [
+    {
+      "step": "chat_intake",
+      "intent_id": "int-conv-pilot-1-2026-08-27T21:06:26.058247+00:00",
+      "intent_type": "BUILD_APPLICATION",
+      "authority_scope": "PREPARE_ONLY"
+    },
+    {
+      "step": "ceo_plan",
+      "plan_id": "plan-int-conv-pilot-1-2026-08-27T21:06:26.058247+00:00",
+      "task_count": 10
+    }
+  ],
+  "measured": {
+    "total_runtime_s": 0.21,
+    "task_execution_s": 0.0,
+    "factory_s": 0.21,
+    "task_count": 10,
+    "tasks_completed": 10,
+    "worker_fanout": 10,
+    "source_count": 4,
+    "evidence_claim_count": 11,
+    "unsupported_material_claims": 4,
+    "requirements_complete": true,
+    "proposal_sections": 7,
+    "proposal_words": 238,
+    "proposal_pages_docx": 7,
+    "artifact_count": 3,
+    "clarification_count": 0,
+    "failures_retries": 0,
+    "model_calls": 0,
+    "model_calls_generation_mode": "DETERMINISTIC_BASELINE"
+  },
+  "quality": {
+    "qa_pass": 9,
+    "qa_fail": 0,
+    "budget_total": "50000.00",
+    "ceiling": "50000.00",
+    "within_ceiling": true,
+    "status": "SUBMISSION_READY_MOCK"
+  },
+  "cold_reconstruction": {
+    "raw_chat_required": false,
+    "completeness": {
+      "organization": true,
+      "intent": true,
+      "project": true,
+      "revision": true,
+      "plan": true,
+      "tasks": true,
+      "worker_results": true
+    }
+  },
+  "open_issues": [
+    "pilot used deterministic drafting lane; LIVE model lane evidenced separately in G1-W4-LIVE (minimax-m3:free)",
+    "human review NOT_PERFORMED (no reviewer available)",
+    "auth is dev principal header; production session/JWT is G1.10",
+    "Postgres production adapter is G1.10 (SQLite in pilot)",
+    "single fixture; writing quality remains small-sample"
+  ],
+  "stop_boundary": {
+    "production_hardening": "NOT STARTED (post-review Wave 6)",
+    "public_launch": "NOT STARTED",
+    "g2_architecture": "NOT STARTED",
+    "submission": "DISABLED"
+  },
+  "reproduce": [
+    "python tools/g1/pilot_simulation.py"
+  ]
+}
