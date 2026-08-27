@@ -1,0 +1,18 @@
+{
+  "chapter": "B9.C10",
+  "status": "FROZEN",
+  "structure": {
+    "apps": ["api", "web"],
+    "platform": ["auth", "policy", "runtime", "model", "tools", "evidence", "evaluation", "artifacts", "observability"],
+    "agents": ["personal_hermes", "ceo_hermes", "workers", "contracts"],
+    "sectors": {"grants": ["domain", "sources", "eligibility", "matching", "research", "applications", "budgets", "qa"]},
+    "top_level": ["schemas", "config", "migrations", "tests", "evals", "infra", "docs"]
+  },
+  "hard_rules": [
+    "no trading directories",
+    "each directory maps to exactly one owner module",
+    "contracts live once in agents/contracts + schemas",
+    "canonical tables created only by migrations",
+    "secrets never in config - only refs to secret store"
+  ]
+}
