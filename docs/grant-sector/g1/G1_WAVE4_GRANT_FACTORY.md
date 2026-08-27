@@ -44,6 +44,13 @@ statistic (Dade County 18.2%, 2023 ACS).
 experiment — it proves the factory architecture and grounding, not
 universal proposal quality (same statistical discipline as D2).
 
+**Adversarial finding (re-run):** the free-tier model lane shows honest
+variance across runs — a later re-run produced a BLOCKED package because
+the model dropped a protected fact in one section. The per-section
+protected-fact hard gate caught it and failed closed; BLOCKED was recorded
+honestly rather than a forced green. This is the gate doing its job, and
+it matches the variance already documented in G0's D2 live record.
+
 ## Tests
 
 `tests/test_grant_factory.py` — 11 tests: blueprint catalog, deterministic
