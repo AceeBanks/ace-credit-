@@ -151,3 +151,27 @@ def test_clean_repo_seeded_path_exists():
     seed = _ROOT / "production-seed"
     assert (seed / "migrations/001_initial_schema.sql").exists()
     assert (seed / "bootstrap.py").exists()
+
+
+def test_final_external_review_evidence_sync():
+    """G0-FINAL-REPAIR-01: the final review record classifies historical
+    vs current totals and states the book-count semantics explicitly."""
+    p = _ROOT / "docs/grant-sector/g0/00-ratification/G0_FINAL_EXTERNAL_REVIEW.md"
+    text = p.read_text(encoding="utf-8")
+    assert "current_final_head" in text
+    assert "historical_at_sha" in text
+    assert "1812" in text
+    assert "PASS_WITH_MINOR_EVIDENCE_SYNC" in text
+    assert "READY_FOR_EXTERNAL_RATIFICATION" in text
+    assert "books_ratified: 9" in text
+    assert "Book 0" in text
+
+
+def test_ratification_packet_uses_final_head_totals():
+    p = _ROOT / "docs/grant-sector/g0/09-production-seed" \
+        / "G0_B9_FINAL_G0_RATIFICATION_PACKET.md"
+    text = p.read_text(encoding="utf-8")
+    assert "1812 passed, 3 skipped" in text
+    assert "current_final_head" in text
+    assert "historical_at_sha" in text
+    assert "books_ratified=9" in text

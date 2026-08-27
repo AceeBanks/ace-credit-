@@ -45,12 +45,23 @@ human external reviewer.
 
 ## Test totals
 
-| Suite | Result |
-|---|---|
-| Full G0 (`tests/g0`) | 1778 passed, 3 skipped (final head) |
-| Book 9 tests | 21 + 12 lock-freshness |
-| Production seed tests | 4 (empty DB) |
-| Fresh-clone bootstrap | PASS |
+| Suite | Result | Classification |
+|---|---|---|
+| Full G0 (`tests/g0`) | **1812 passed, 3 skipped** | current_final_head at `84ebd8b9` |
+| Full G0 at Book 8 seal | 1778 passed, 3 skipped | historical_at_sha `72a9082a` |
+| Book 9 tests | 34 passed | current_final_head |
+| Production seed tests | 4 (empty DB) | current_final_head |
+| Fresh-clone bootstrap | PASS | current_final_head |
+
+## Book counting semantics
+
+- **Book 0** = foundation / pre-ratification book (not a ratified
+  implementation Book).
+- **Books 1–9** = nine ratified implementation Books, each with its own
+  Reality Lock.
+
+Therefore `books_ratified=9` (Books 1–9) is consistent with "G0 spans
+Books 0–9" (ten books including the foundation Book 0).
 
 ## Reviewer checklist (external, not performed by the build agent)
 
