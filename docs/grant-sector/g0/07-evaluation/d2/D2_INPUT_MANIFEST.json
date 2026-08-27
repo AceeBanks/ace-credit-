@@ -1,0 +1,18 @@
+{
+  "name": "D2 \u2014 first grounded grant-writing quality experiment",
+  "organization": "Community Youth Works, Inc.",
+  "opportunity": "Georgia Rural Community Impact Grant FY2026",
+  "opportunity_revision_id": "opp_rev_ga_501_1",
+  "revision_deadline": "2026-10-15",
+  "revision_ceiling": "50000.00",
+  "eligibility": "ELIGIBLE",
+  "statistics": [
+    {
+      "metric": "county poverty rate",
+      "value": "18.2",
+      "unit": "percent",
+      "geography": "county-121 (Dade County, GA)",
+      "period": "2023"
+    }
+  ]
+}

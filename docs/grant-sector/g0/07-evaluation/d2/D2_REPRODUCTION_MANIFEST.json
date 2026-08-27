@@ -1,0 +1,11 @@
+{
+  "experiment": "D2 \u2014 FIRST GROUNDED GRANT-WRITING QUALITY EXPERIMENT",
+  "fixture": "D2 \u2014 first grounded grant-writing quality experiment",
+  "opportunity_revision_id": "opp_rev_ga_501_1",
+  "model_or_version": "none (deterministic baseline)",
+  "source_state": "G0-B7 committed locks",
+  "eval_version": "G0-B7-C2-C10",
+  "reproduce": [
+    "python tools/g0/d2_harness.py"
+  ]
+}

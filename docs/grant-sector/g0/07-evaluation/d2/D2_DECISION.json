@@ -1,0 +1,6 @@
+{
+  "decision": "BLOCKED_MODEL_RUNTIME",
+  "humanizer_disposition": "DEFER (no live run)",
+  "reason": "no model runtime; harness and deterministic baseline complete; promotion requires baseline-vs-candidate comparison",
+  "submission": "DISABLED"
+}

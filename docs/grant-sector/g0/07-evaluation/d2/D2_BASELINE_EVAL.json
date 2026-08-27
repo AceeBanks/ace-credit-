@@ -1,0 +1,71 @@
+{
+  "deterministic_qa": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "results": [
+      {
+        "check_id": "req_sections",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "check_id": "word_limit",
+        "passed": true,
+        "detail": "86 words (limit 3000)"
+      },
+      {
+        "check_id": "deadline",
+        "passed": true,
+        "detail": "draft='2026-10-15' expected='2026-10-15'"
+      },
+      {
+        "check_id": "funding_amount",
+        "passed": true,
+        "detail": "draft=50000.00 ceiling=50000.00"
+      },
+      {
+        "check_id": "revision_identity",
+        "passed": true,
+        "detail": "draft='opp_rev_ga_501_1' expected='opp_rev_ga_501_1'"
+      },
+      {
+        "check_id": "budget_reconcile",
+        "passed": true,
+        "detail": "lines=50000.00 declared=50000.00"
+      },
+      {
+        "check_id": "fabrications",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "check_id": "submission_absent",
+        "passed": true,
+        "detail": ""
+      }
+    ],
+    "all_pass": true
+  },
+  "claim_support": {
+    "material_claim_support_rate": 1.0,
+    "supported": 4,
+    "unsupported": 0,
+    "conflicted": 0,
+    "stale": 0,
+    "total": 4
+  },
+  "requirement_coverage": {
+    "coverage": 1.0,
+    "covered": 2,
+    "mandatory_total": 2,
+    "missing": []
+  },
+  "budget_total": "50000.00",
+  "eligibility_result": "ELIGIBLE",
+  "deadline": "2026-10-15",
+  "funding_ceiling": "50000.00",
+  "opportunity_revision_id": "opp_rev_ga_501_1",
+  "organization": "Community Youth Works, Inc.",
+  "fixture_name": "D2 \u2014 first grounded grant-writing quality experiment"
+}
