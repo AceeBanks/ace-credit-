@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evaluation/rollout_event.schema.json",
+  "title": "RolloutEvent",
+  "description": "G0-B7-C22 — rollout class for a promoted behavioral change. Consequential external submission remains disabled regardless of class.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "rollout_event_id",
+    "promotion_decision_id",
+    "release_candidate_ref",
+    "rollout_class",
+    "started_at",
+    "rollback_ref"
+  ],
+  "properties": {
+    "rollout_event_id": {"type": "string", "minLength": 1},
+    "promotion_decision_id": {"type": "string", "minLength": 1},
+    "release_candidate_ref": {"type": "string", "minLength": 1},
+    "rollout_class": {
+      "type": "string",
+      "enum": [
+        "OFFLINE_ONLY", "SHADOW", "INTERNAL_CANARY",
+        "BOUNDED_CLIENT_CANARY", "FULL"
+      ]
+    },
+    "started_at": {"type": "string", "format": "date-time"},
+    "ended_at": {"type": ["string", "null"], "format": "date-time"},
+    "rollback_ref": {"type": "string", "minLength": 1},
+    "monitor_refs": {"type": "array", "items": {"type": "string"}}
+  }
+}

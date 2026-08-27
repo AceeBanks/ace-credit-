@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evaluation/rollback_event.schema.json",
+  "title": "RollbackEvent",
+  "description": "G0-B7-C22 — rollback restores the known baseline configuration/version without depending on agent memory (EVAL-LAW-009).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "rollback_event_id",
+    "rollout_event_id",
+    "restored_version_ref",
+    "trigger_reason",
+    "trigger_code",
+    "rolled_back_at"
+  ],
+  "properties": {
+    "rollback_event_id": {"type": "string", "minLength": 1},
+    "rollout_event_id": {"type": "string", "minLength": 1},
+    "restored_version_ref": {"type": "string", "minLength": 1},
+    "trigger_reason": {"type": "string", "minLength": 1},
+    "trigger_code": {
+      "type": "string",
+      "enum": [
+        "HARD_GATE_FAILURE", "FACTUALITY_DEGRADATION", "SECURITY_ALERT",
+        "LATENCY_COST_RUNAWAY", "STRUCTURED_OUTPUT_FAILURE",
+        "HUMAN_QUALITY_REGRESSION", "EXPLICIT"
+      ]
+    },
+    "rolled_back_at": {"type": "string", "format": "date-time"}
+  }
+}

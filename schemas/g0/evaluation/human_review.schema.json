@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evaluation/human_review.schema.json",
+  "title": "HumanReview",
+  "description": "G0-B7-C23 — attributable human review record. Inter-reviewer disagreement is data, not something to hide.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_id",
+    "reviewer_identity",
+    "reviewer_role",
+    "subject_ref",
+    "rubric_ref",
+    "decision",
+    "reason_codes",
+    "reviewed_at"
+  ],
+  "properties": {
+    "review_id": {"type": "string", "minLength": 1},
+    "reviewer_identity": {"type": "string", "minLength": 1},
+    "reviewer_role": {"type": "string", "minLength": 1},
+    "subject_ref": {"type": "string", "minLength": 1},
+    "rubric_ref": {"type": ["string", "null"]},
+    "scores": {
+      "type": "object",
+      "description": "dimension -> score"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["APPROVE", "REQUEST_EDITS", "REJECT", "CONFIRM_FACT", "RESOLVE_AMBIGUITY"]
+    },
+    "reason_codes": {"type": "array", "items": {"type": "string"}},
+    "comments": {"type": ["string", "null"]},
+    "conflict_of_interest": {"type": ["string", "null"]},
+    "reviewed_at": {"type": "string", "format": "date-time"}
+  }
+}
