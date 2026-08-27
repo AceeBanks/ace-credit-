@@ -1,0 +1,76 @@
+{
+  "phase": "G0",
+  "status": "PASS",
+  "books_ratified": 9,
+  "p0_open": 0,
+  "submission_enabled": false,
+  "ready_for_g1": true,
+  "predicates": {
+    "books_ratified": 9,
+    "runtime_substrate_selected": true,
+    "runtime_hard_gates_pass": true,
+    "canonical_ownership_frozen": true,
+    "service_topology_frozen": true,
+    "dependency_manifest_complete": true,
+    "license_review_pass": true,
+    "clean_repo_seeded": true,
+    "fresh_clone_bootstrap_pass": true,
+    "migration_seed_pass": true,
+    "security_baseline_pass": true,
+    "recovery_test_pass": true,
+    "observability_baseline_defined": true,
+    "g1_backlog_complete": true,
+    "cross_book_contradiction_pass": true
+  },
+  "evidence": {
+    "book_locks": {
+      "pass": true,
+      "missing": [],
+      "failed": [],
+      "count": 9
+    },
+    "seed_docs": {
+      "complete": true,
+      "missing": [],
+      "count": 25
+    },
+    "adr": {
+      "ratified": true,
+      "status": "OCE_NATIVE"
+    },
+    "clean_repo": {
+      "pass": true
+    },
+    "migration_seed": {
+      "pass": true,
+      "passed": 4,
+      "summary": "4 passed in 0.05s"
+    },
+    "fresh_clone_bootstrap": {
+      "pass": true,
+      "summary": "fresh-clone seed verification: PASS"
+    },
+    "submission": {
+      "pass": true,
+      "detail": "all locks + migration seed"
+    },
+    "g1_backlog": {
+      "complete": true,
+      "epic_count": 10,
+      "item_count": 47
+    },
+    "contradiction_sweep": {
+      "pass": true
+    },
+    "observability": {
+      "pass": true
+    },
+    "recovery": {
+      "pass": true
+    },
+    "security": {
+      "pass": true
+    },
+    "failed_predicates": []
+  }
+}

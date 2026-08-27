@@ -1,0 +1,40 @@
+{
+  "checkpoint": "G0-B9-BOOK",
+  "branch": "grant-sector-r0-salvage",
+  "head_sha": "299d0f1a15630f34f94dbd5fbe4182478272f1ab",
+  "boot_commit": {
+    "sha": "6b673582",
+    "message": "G0-B8-EXT-REVIEW-01: record Book 8 external review and authorize Book 9 planning"
+  },
+  "chapter_commits": [
+    {"sha": "7883ec4a", "message": "G0-B9-C1-C2: freeze production workload evidence and runtime requirements"},
+    {"sha": "9f27dca8", "message": "G0-B9-C3-C6: profile runtime candidates eliminate hard-gate failures and ratify OCE_NATIVE substrate ADR"},
+    {"sha": "b67765f8", "message": "G0-B9-C7-C10: freeze canonical state ownership service topology interfaces and repository structure"},
+    {"sha": "9d52ccec", "message": "G0-B9-C11-C13: seed production repository skeleton dependency freeze and initial migrations"},
+    {"sha": "d71400d5", "message": "G0-B9-C14-C17: freeze environment local development deployment and CI/CD policy"},
+    {"sha": "c1691c02", "message": "G0-B9-C18-C23: freeze observability SLO recovery secrets security and cost baselines"},
+    {"sha": "82db1377", "message": "G0-B9-C24-C25: prepare clean repository seed and verify fresh-clone bootstrap"},
+    {"sha": "299d0f1a", "message": "G0-B9-C26-C30: freeze G1 backlog architecture decisions contradiction sweep and reconstruction test"},
+    {"sha": "SEAL_PENDING", "message": "G0-B9-BOOK: seal Book 9 with final G0 Reality Lock"}
+  ],
+  "reality_lock": {
+    "path": "docs/grant-sector/g0/00-ratification/G0_FINAL_REALITY_LOCK.json",
+    "status": "PASS",
+    "p0_open": 0,
+    "ready_for_g1": true,
+    "submission_enabled": false
+  },
+  "runtime_substrate": "OCE_NATIVE",
+  "test_totals": {
+    "current_at_head_299d0f1a": {
+      "full_suite": {"passed": 1812, "failed": 0, "skipped": 3},
+      "book0": {"passed": 51}, "book1": {"passed": 133},
+      "book2": {"passed": 255}, "book3": {"passed": 243},
+      "book4": {"passed": 276}, "book5": {"passed": 228, "skipped": 3},
+      "book6": {"passed": 227}, "book7": {"passed": 326},
+      "book8": {"passed": 39}, "book9": {"passed": 34}
+    }
+  },
+  "submission_disabled": true,
+  "external_ratification": "NOT YET PERFORMED (awaiting external ratification)"
+}
