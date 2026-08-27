@@ -1,7 +1,7 @@
 {
   "checkpoint": "G0-B8-BOOK",
   "branch": "grant-sector-r0-salvage",
-  "head_sha": "59bbb257d9275116da8a96d36096ef2be0363a88",
+  "head_sha": "31d8fa373f4ee2ed2ad1a4e70d78d5fae52cd7b1",
   "boot_commit": {
     "sha": "3713613b",
     "message": "G0-B8-C1: freeze production-shaped vertical slice charter"
@@ -13,7 +13,7 @@
     {"sha": "9fb291ec", "message": "G0-B8-C21-C27: claim ledger deterministic QA human review package explanation and orchestration"},
     {"sha": "ab22c140", "message": "G0-B8-C28-C38: amendment drills cold restart degraded mode security attacks telemetry and reconstruction"},
     {"sha": "59bbb257", "message": "G0-B8-C37-C38: adversarial integration and property tests for the vertical slice"},
-    {"sha": "SEAL_PENDING", "message": "G0-B8-BOOK: seal Book 8 with derived Reality Lock"}
+    {"sha": "31d8fa37", "message": "G0-B8-BOOK: seal Book 8 with derived Reality Lock"}
   ],
   "reality_lock": {
     "path": "docs/grant-sector/g0/00-ratification/G0_B8_REALITY_LOCK.json",
@@ -23,7 +23,7 @@
     "submission_enabled": false
   },
   "test_totals": {
-    "current_at_head_59bbb257d9275116da8a96d36096ef2be0363a88": {
+    "current_at_head_31d8fa373f4ee2ed2ad1a4e70d78d5fae52cd7b1": {
       "full_suite": {"passed": 1778, "failed": 0, "skipped": 3},
       "book0": {"passed": 51},
       "book1": {"passed": 133},

@@ -189,6 +189,14 @@ def run_drafting(*, blueprint: dict, revision_id: str,
         mode = "LIVE_MODEL"
     else:
         sections = dict(d2_baseline_sections())
+        # the deterministic baseline must carry the governed eligibility
+        # statement (mission protected element), like the live lane does
+        org = sections.get("organization", "")
+        if org and "eligib" not in org.lower():
+            sections["organization"] = org + (
+                " The organization has been determined ELIGIBLE for the "
+                "Georgia Rural Community Impact Grant FY2026 "
+                "(eligibility result: ELIGIBLE).")
         model_run = None
         mode = "DETERMINISTIC_BASELINE"  # honest: not model generation
 

@@ -38,9 +38,9 @@
   "evidence": {
     "test_suite": {
       "exit_code": 0,
-      "passed": 26,
+      "passed": 38,
       "failed": 0,
-      "summary": "26 passed in 0.34s"
+      "summary": "38 passed, 1 skipped in 0.51s"
     },
     "vertical_slice_probe": {
       "all_stages": true,

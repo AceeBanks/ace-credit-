@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 
 from prototype.g0.evaluation.assertions import (
     check_deadline_consistency,
+    check_eligibility_statement,
     check_funding_amount,
     check_no_unsupported_fabrications,
     check_required_sections_present,
@@ -81,6 +82,9 @@ def run_assurance(*, sections: dict[str, str], revision_id: str,
             draft_revision_id=revision_id if revision_id in joined
             else "MISSING",
             expected_revision_id=D2_FIXTURE["revision"].revision_id),
+        check_eligibility_statement(
+            draft_text=joined,
+            expected_result=D2_FIXTURE["decision"].result.value),
         check_no_unsupported_fabrications(
             draft_text=joined, fabrication_markers=FABRICATION_MARKERS),
         check_submission_absent(draft_text=joined),
