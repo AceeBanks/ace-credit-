@@ -189,6 +189,8 @@ def test_inv7_tool_execution_maps_to_registered_capability():
 
 
 def test_inv8_external_side_effects_require_separate_capability():
+    authz, principals, scope, grants = _stack()
+    _grant(authz, grants, "tool.run")  # READ-style capability only
     reg = ToolRegistry()
     reg.approve_capability("tool.run")
     reg.approve_capability("egress.send_external")
@@ -197,14 +199,18 @@ def test_inv8_external_side_effects_require_separate_capability():
                       side_effect_class="EXTERNAL_SEND",
                       capability_ids=["egress.send_external"]),
                  reviewed=True)
-    gw = ToolGateway(reg)
-    # a READ-only grant can never dispatch the EXTERNAL_SEND tool
+    # REPAIR-01: a real, sealed decision for the read capability can never
+    # drive the EXTERNAL_SEND tool — the decision's capability is not
+    # declared by it (mandatory binding, AUTH-R6)
+    gw = ToolGateway(reg, decisions=authz.decisions)
+    decision = authz.authorize(dict(
+        request_id="r-inv8", principal_id="ceo", capability_id="tool.run",
+        tenant_id="tenant-a", resource_id="artifact-a1"))
+    assert decision["decision"] == "ALLOW"
     with pytest.raises(Exception):
         gw.dispatch(tool_id="send.tool", request_body={},
-                    authorization_decision={"decision": "ALLOW",
-                                            "granted_capability_id":
-                                                "tool.run"},
-                    actor="worker")
+                    authorization_decision=decision,
+                    actor="ceo")
 
 
 def test_inv9_mcp_cannot_bypass_policy():

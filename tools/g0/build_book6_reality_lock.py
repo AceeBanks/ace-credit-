@@ -24,6 +24,12 @@ Readiness is COMPUTED from repository evidence — never asserted:
         AND secret_exposure_p0_pass
         AND adversarial_p0_pass is True
         AND p0_open == 0
+        AND grant_authority_enforced              (G0-B6-REPAIR-01)
+        AND authorization_capability_binding_pass  (G0-B6-REPAIR-01)
+        AND authorization_resource_binding_pass    (G0-B6-REPAIR-01)
+        AND project_scope_pass                     (G0-B6-REPAIR-01)
+        AND approval_registry_integration_pass     (G0-B6-REPAIR-01)
+        AND authorizer_gateway_e2e_pass            (G0-B6-REPAIR-01)
 
 Usage:
     python tools/g0/build_book6_reality_lock.py [--no-tests] [--out PATH]
@@ -68,6 +74,7 @@ from tools.g0.validate_lifecycle_security import (  # noqa: E402
 from tools.g0.validate_security_constitution import (  # noqa: E402
     validate as validate_constitution,
 )
+from tools.g0.validate_seam_bindings import run_all as run_seam_probes  # noqa: E402
 from tools.g0.validate_tool_gateway import (  # noqa: E402
     validate as validate_tool_gateway,
 )
@@ -147,8 +154,13 @@ def _ok(res: tuple[bool, dict]) -> bool:
 
 
 def compute_lock(configs: dict, test_results: dict | None = None,
-                 adversarial_results: dict | None = None) -> dict:
-    """Compute the Reality Lock from loaded configs (+ optional live runs)."""
+                 adversarial_results: dict | None = None,
+                 seam_results: dict | None = None) -> dict:
+    """Compute the Reality Lock from loaded configs (+ optional live runs).
+
+    ``seam_results`` maps G0-B6-REPAIR-01 binding-probe names to booleans;
+    when omitted the probes execute live against the current code."""
+    seam = seam_results if seam_results is not None else run_seam_probes()
 
     constitution_ok = _errors_ok(validate_constitution,
                                  configs["security_constitution.yaml"])
@@ -206,6 +218,18 @@ def compute_lock(configs: dict, test_results: dict | None = None,
         "break_glass_pass": behavioral(lifecycle_ok),
         "submission_disabled": submission_disabled,
         "attack_surface_register_pass": behavioral(surface_ok),
+        # G0-B6-REPAIR-01 — authorization-to-tool binding seams,
+        # derived from executable probes plus suite health
+        "grant_authority_enforced": behavioral(seam["grant_authority_enforced"]),
+        "authorization_capability_binding_pass": behavioral(
+            seam["authorization_capability_binding"]),
+        "authorization_resource_binding_pass": behavioral(
+            seam["authorization_resource_binding"]),
+        "project_scope_pass": behavioral(seam["project_scope"]),
+        "approval_registry_integration_pass": behavioral(
+            seam["approval_registry_integration"]),
+        "authorizer_gateway_e2e_pass": (
+            tests_green and all(bool(v) for v in seam.values())),
     }
 
     if test_results is None and adversarial_results is None:

@@ -3,6 +3,10 @@
 policy_id: G0-B6-C9
 version: "1.0"
 
+# G0-B6-REPAIR-01: how long a PDP-issued ALLOW may be presented to the
+# gateway after issuance; older decisions fail closed (replay window).
+decision_freshness_bound_seconds: 900
+
 tool_statuses:
   - EXPERIMENTAL
   - APPROVED_INTERNAL
@@ -29,7 +33,7 @@ rules:
   - id: TOOL-005
     text: "No dynamically discovered MCP/community tool becomes production-authorized automatically; promotion requires the full review path."
   - id: TOOL-006
-    text: "Tool availability does NOT imply permission; the gateway enforces the AuthorizationDecision independently (SEC-LAW-007)."
+    text: "Tool availability does NOT imply permission; the gateway enforces the AuthorizationDecision independently (SEC-LAW-007). The decision's capability_id is mandatory and must be declared by the tool; request context (request id, principal, tenant, project, resource) must match the decision."
   - id: TOOL-007
     text: "Credentials are injected server-side and are invisible to the caller; callers cannot override the injected auth header."
   - id: TOOL-008
@@ -42,9 +46,14 @@ rules:
     text: "Personal Hermes cannot call CEO-only tools; CEO cannot discover hidden submission tools; task workers receive reduced tool manifests."
   - id: TOOL-012
     text: "External-side-effect tool requests are idempotent: a reused request_id/nonce is a replay and is refused (no duplicate external side effect)."
+  - id: TOOL-013
+    text: "G0-B6-REPAIR-01: the gateway consumes only PDP-issued decisions (DecisionRegistry verification); caller-forged ALLOW JSON fails closed and no optional capability-matching path exists."
 
 gateway_responsibilities:
   - verify_authorization_decision
+  - verify_decision_issuance_via_decision_registry
+  - require_decision_capability_binding
+  - bind_tenant_project_resource_request_context
   - resolve_tool_definition
   - resolve_credential_reference
   - inject_credential_server_side

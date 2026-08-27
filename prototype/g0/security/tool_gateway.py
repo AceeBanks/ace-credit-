@@ -8,10 +8,30 @@ credentials injected server-side and invisible to callers, egress on
 redirects, external side effects need their own capability, returned
 payloads never contain credentials, and role surfaces are filtered
 (Personal vs CEO vs worker manifests).
+
+G0-B6-REPAIR-01 — authorization-to-tool binding hardening:
+
+- AUTH-R6  the decision's capability_id is MANDATORY and must be one of
+           tool.capability_ids; a missing capability id DENIES; there is no
+           optional "if granted then check" path any more.
+- AUTH-R7  tool-request context is bound through the gateway: request id,
+           principal, tenant, project, resource and capability must match
+           the AuthorizationDecision. An ALLOW cannot be replayed against a
+           different tool, tenant, project or resource.
+- AUTH-R8  when the gateway holds a DecisionRegistry (the trusted PDP store)
+           every presented decision must verify against it — caller-forged
+           JSON fails closed. Without a registry, structural integrity of
+           the decision is still enforced.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
+
+from prototype.g0.security.authorization import (
+    DecisionRegistry,
+    decision_shape_ok,
+)
 
 
 class ToolError(ValueError):
@@ -107,9 +127,20 @@ class ToolGateway:
     """Executes governed requests; enforces policy independently."""
 
     def __init__(self, registry: ToolRegistry,
-                 policy: dict | None = None) -> None:
+                 policy: dict | None = None,
+                 decisions: DecisionRegistry | None = None,
+                 max_decision_age_seconds: float | None = None) -> None:
         self.registry = registry
         self.policy = policy or _POLICY
+        # G0-B6-REPAIR-01: trusted PDP decision store — when present the
+        # gateway consumes ONLY decisions verifiable against it (AUTH-R8).
+        self.decisions = decisions
+        # bound how long an issued ALLOW may be presented after the fact
+        self.max_decision_age_seconds = (
+            max_decision_age_seconds
+            if max_decision_age_seconds is not None
+            else float(self.policy.get("decision_freshness_bound_seconds",
+                                       900)))
         self._audit: list[dict] = []
         self._executed: dict[str, str] = {}  # request_id -> tool_id
 
@@ -131,38 +162,106 @@ class ToolGateway:
                     f"{self._executed[key]} (TOOL-012)")
             self._executed[key] = tool["tool_id"]
 
+    def _verify_decision(self, decision: Any, tool_id: str) -> None:
+        """AUTH-R2/R8 — fail closed unless the presented decision validates.
+
+        With a DecisionRegistry configured the decision must have been issued
+        by that PDP (structural check + issuance + deep equality); without
+        one the structural/integrity contract still applies.
+        """
+        if decision is None or \
+                not isinstance(decision, dict) or \
+                decision.get("decision") != "ALLOW":
+            reason = ((decision or {})
+                      .get("reason_code") if isinstance(decision, dict)
+                      else None) or "DECISION_UNAVAILABLE"
+            raise ToolError(
+                f"tool {tool_id} denied by AuthorizationDecision "
+                f"({reason}) (TOOL-006)")
+        if self.decisions is not None:
+            ok, err = self.decisions.verify(decision)
+        else:
+            ok, err = decision_shape_ok(decision)
+        if not ok:
+            raise ToolError(
+                f"AuthorizationDecision rejected for {tool_id}: {err} "
+                "(TOOL-006)")
+        # freshness: a presented decision older than the bound fails closed
+        try:
+            issued = datetime.fromisoformat(
+                str(decision.get("decision_timestamp")).replace("Z", "+00:00"))
+            if issued.tzinfo is None:
+                issued = issued.replace(tzinfo=timezone.utc)
+            age = (datetime.now(timezone.utc) - issued).total_seconds()
+        except (TypeError, ValueError):
+            raise ToolError(
+                f"unparseable decision_timestamp for {tool_id} "
+                "(TOOL-006/AUTH-R7)")
+        if age > self.max_decision_age_seconds:
+            raise ToolError(
+                f"AuthorizationDecision for {tool_id} is stale: age "
+                f"{age:.0f}s exceeds bound {self.max_decision_age_seconds:g}s "
+                "(TOOL-006)")
+
+    @staticmethod
+    def _bind_context(decision: dict, context: dict, tool_id: str) -> None:
+        """AUTH-R7 — presented request context must MATCH the decision.
+        Any CONFLICTING value denies: an ALLOW cannot be reused across
+        request ids, tenants, projects or resources. Fields the caller does
+        not present at all are the orchestrator's contract duty (the
+        Book-9/G1 trusted channel closes that residual); they never defeat
+        the other enforcement layers."""
+        for field, actual in context.items():
+            expected = decision.get(field)
+            if expected and actual and actual != expected:
+                raise ToolError(
+                    f"context mismatch on {field}: request carries "
+                    f"{actual!r} but decision binds {expected!r} "
+                    f"(TOOL-006/AUTH-R7)")
+
     def dispatch(self, *, tool_id: str, request_body: dict,
                  authorization_decision: dict, actor: str,
                  credential_ref_id: str | None = None,
-                 vault=None, tenant_id: str = "") -> dict:
-        """TOOL-006: the gateway enforces the decision; availability is not
-        permission."""
+                 vault=None, tenant_id: str = "",
+                 project_id: str | None = None,
+                 resource_id: str | None = None) -> dict:
+        """TOOL-006 + REPAIR-01: the gateway enforces the decision — its
+        capability binding and its resource/tenant/project/request context —
+        independently of the PDP; availability is not permission."""
         tool = self.registry.get(tool_id)
         if tool["status"] == "DISABLED":
             raise ToolError(f"tool {tool_id} is disabled (TOOL-004)")
 
-        # the AuthorizationDecision must ALLOW for the tool's capability;
-        # a missing/erroring decision fails closed (no availability = no
-        # permission)
-        if authorization_decision is None or \
-                authorization_decision.get("decision") != "ALLOW":
-            reason = ((authorization_decision or {})
-                      .get("reason_code") or "DECISION_UNAVAILABLE")
-            raise ToolError(
-                f"tool {tool_id} denied by AuthorizationDecision "
-                f"({reason}) (TOOL-006)")
+        # structured, registry-backed validation of the presented decision
+        self._verify_decision(authorization_decision, tool_id)
 
-        capability_ids = tool["capability_ids"]
-        granted = authorization_decision.get("granted_capability_id")
-        if granted and granted not in capability_ids:
+        # AUTH-R6 — mandatory capability binding: missing => DENY; not
+        # declared by the tool => DENY. There is no optional check.
+        capability_ids = tool.get("capability_ids", [])
+        capability_id = authorization_decision.get("capability_id")
+        if not capability_id:
             raise ToolError(
-                f"capability/tool mismatch: {granted} not declared by "
-                f"{tool_id} (TOOL-003)")
+                f"missing capability_id in AuthorizationDecision; denying "
+                f"{tool_id} (TOOL-006/AUTH-R6)")
+        if capability_id not in capability_ids:
+            raise ToolError(
+                f"capability/tool mismatch: {capability_id} not declared by "
+                f"{tool_id} (TOOL-003/AUTH-R6)")
+
+        # AUTH-R7 — bind request/tenant/project/resource/principal context
+        self._bind_context(authorization_decision, {
+            "request_id": request_body.get("request_id"),
+            "principal_id": actor,
+            "tenant_id": tenant_id,
+            "project_id": project_id,
+            "resource_id": resource_id,
+        }, tool_id)
 
         # TOOL-009: external side effects require the matching capability
         side = tool["side_effect_class"]
         if side in ("EXTERNAL_SEND", "EXTERNAL_SUBMIT"):
-            if granted not in ("egress.send_external", "submission.execute"):
+            if capability_id not in ("egress.send_external",
+                                     "submission.execute"):
                 raise ToolError(
                     f"tool {tool_id} has external side effect {side}; "
                     "requires side-effect capability (TOOL-009)")
@@ -188,7 +287,7 @@ class ToolGateway:
                 raise ToolError("credential reference requires a vault")
             secret_payload = vault.resolve(
                 ref_id=credential_ref_id, requesting_tenant=tenant_id,
-                capability_id=granted or capability_ids[0],
+                capability_id=capability_id,
                 destination=destination)
 
         result = self._execute(tool, request_body)
@@ -199,6 +298,12 @@ class ToolGateway:
                 "credential leaked into returned payload (TOOL-010)")
 
         self._audit.append({"tool_id": tool_id, "actor": actor,
+                            "capability_id": capability_id,
+                            "decision_id":
+                                authorization_decision.get("decision_id"),
+                            "tenant_id": tenant_id,
+                            "project_id": project_id,
+                            "resource_id": resource_id,
                             "side_effect_class": side,
                             "request_id": request_body.get("request_id")})
         return result

@@ -92,7 +92,9 @@ class ScopeEvaluator:
     def __init__(self, policy: dict | None = None) -> None:
         self.policy = policy or _POLICY
         self._memberships: dict[str, dict] = {}
-        self._resource_owners: dict[str, str] = {}  # resource_id -> tenant_id
+        self._resource_owners: dict[str, str] = {}  # legacy id -> tenant view
+        # G0-B6-REPAIR-01 AUTH-R3: structural resource metadata
+        self._resources: dict[str, dict] = {}
 
     def add_membership(self, *, membership_id: str, tenant_id: str,
                        principal_id: str, role_ids: list[str],
@@ -132,9 +134,35 @@ class ScopeEvaluator:
 
     def register_resource(self, resource_id: str, tenant_id: str,
                           project_id: str | None = None) -> None:
+        """Store resource scope metadata structurally (REPAIR-01):
+        resource_id -> {tenant_id, project_id}."""
+        self._resources[resource_id] = {
+            "resource_id": resource_id, "tenant_id": tenant_id,
+            "project_id": project_id}
         self._resource_owners[resource_id] = tenant_id
         if project_id:
             self._resource_owners[f"{resource_id}@{project_id}"] = tenant_id
+
+    def resource_meta(self, resource_id: str) -> dict | None:
+        meta = self._resources.get(resource_id)
+        return dict(meta) if meta else None
+
+    def project_of(self, resource_id: str) -> str | None:
+        """Project binding of a registered resource; None when the resource
+        is unknown or registered tenant-wide (no project constraint)."""
+        meta = self._resources.get(resource_id)
+        return meta["project_id"] if meta else None
+
+    def project_scope_ok(self, *, resource_id: str,
+                         request_project_id: str | None,
+                         grant_project_id: str | None = None) -> bool:
+        """AUTH-R3 helper: a project-scoped resource accepts only the
+        matching explicit request project (grant binding may not substitute)."""
+        res_project = self.project_of(resource_id)
+        if res_project is None:
+            return True  # tenant-wide resource carries no project constraint
+        return bool(request_project_id) and \
+            request_project_id == res_project
 
     def register_public_resource(self, resource_id: str) -> None:
         """Shared public source: reusable by any tenant while private
@@ -159,9 +187,9 @@ class ScopeEvaluator:
                              assigned_project_id: str) -> list[str]:
         """A worker assigned Project A cannot access Project B by default."""
         allowed = []
-        for resource, tenant in self._resource_owners.items():
-            if "@" in resource:
-                base, _, project = resource.partition("@")
-                if project == assigned_project_id:
-                    allowed.append(base)
+        for rid, meta in self._resources.items():
+            if meta["tenant_id"] == "__public__":
+                continue
+            if meta["project_id"] == assigned_project_id:
+                allowed.append(rid)
         return allowed

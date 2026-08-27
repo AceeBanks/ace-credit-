@@ -23,6 +23,8 @@ rules:
     text: "Phase-disabled capabilities cannot be enabled through a grant alone."
   - id: GRANT-006
     text: "A grant revoked mid-task blocks the next protected action immediately."
+  - id: GRANT-007
+    text: "G0-B6-REPAIR-01: delegation (worker) grants are project-bound; a project-bound grant authorizes only its project and same-tenant cross-project access is denied. The grant authority level must satisfy capability requirement <= grant level <= principal authority ceiling; unknown or malformed levels fail closed."
 
 authority_levels:
   - L0

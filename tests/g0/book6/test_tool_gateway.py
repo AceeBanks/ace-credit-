@@ -24,6 +24,15 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from prototype.g0.security.authn import CredentialVault  # noqa: E402
+from prototype.g0.security.authorization import (  # noqa: E402
+    Authorizer,
+    GrantRegistry,
+)
+from prototype.g0.security.identity import (  # noqa: E402
+    PrincipalRegistry,
+    ScopeEvaluator,
+)
+from prototype.g0.security.models import Principal  # noqa: E402
 from prototype.g0.security.tool_gateway import (  # noqa: E402
     MCPFacade,
     ToolError,
@@ -32,6 +41,7 @@ from prototype.g0.security.tool_gateway import (  # noqa: E402
 )
 
 T_FAR = "2027-12-31T00:00:00+00:00"
+T0 = "2026-08-26T00:00:00+00:00"
 
 
 def _registry() -> ToolRegistry:
@@ -53,9 +63,50 @@ def _definition(**kw) -> dict:
     return base
 
 
-def _allow(cap: str = "research.run") -> dict:
-    return {"decision": "ALLOW", "reason_code": "ALLOW",
-            "granted_capability_id": cap}
+def _allow(cap: str = "research.run", **kw) -> dict:
+    """REPAIR-01: no hand-built decisions — obtain a real, sealed ALLOW
+    through the live authorizer chain."""
+    stack = _authz_stack()
+    req = dict(request_id=kw.pop("request_id", f"gw-{cap}"),
+               principal_id=kw.pop("principal_id", "ceo"),
+               capability_id=cap, tenant_id="tenant-a",
+               resource_id="res:any")
+    req.update(kw)
+    d = stack.authorize(req)
+    assert d["decision"] == "ALLOW", d
+    return d
+
+
+_AUTHZ_STACK_CACHE: list = []
+
+
+def _authz_stack() -> Authorizer:
+    if _AUTHZ_STACK_CACHE:
+        return _AUTHZ_STACK_CACHE[0]
+    principals = PrincipalRegistry()
+    scope = ScopeEvaluator()
+    grants = GrantRegistry()
+    principals.register(
+        Principal(principal_id="ceo", principal_type="HERMES_CEO",
+                  subject_id="ceo-1", status="ACTIVE",
+                  authentication_method="SERVICE_TOKEN",
+                  tenant_memberships=["tenant-a"], created_at=T0,
+                  credential_class="VAULT_REF", authority_level="L3"))
+    scope.add_membership(membership_id="m-gw", tenant_id="tenant-a",
+                         principal_id="ceo", role_ids=["ADMIN"],
+                         valid_from=T0, valid_to=T_FAR)
+    scope.register_public_resource("res:any")
+    authz = Authorizer(principals=principals, scope=scope, grants=grants)
+    for cap in ("research.run", "client.read_approved_data",
+                "application.draft_internal", "egress.send_external",
+                "operational.state_bounded", "qa.run"):
+        authz.register_capability(cap, required_level="L0")
+        grants.issue(grant_id=f"g-gw-{cap}", principal_id="ceo",
+                     capability_id=cap, tenant_id="tenant-a",
+                     authority_level="L3", valid_from=T0,
+                     expires_at=T_FAR, issued_by="admin")
+    _AUTHZ_STACK_CACHE.append(authz)
+    return authz
 
 
 def _vault(ref_id: str = "cred:search", cap: str = "research.run") -> \
@@ -148,7 +199,7 @@ def test_credential_never_appears_in_returned_payload():
         tool_id="tool:search",
         request_body={"destination": "https://api.example",
                       "request_id": "r1"},
-        authorization_decision=_allow(), actor="ceo",
+        authorization_decision=_allow(request_id="r1"), actor="ceo",
         credential_ref_id="cred:search", vault=vault, tenant_id="tenant-a")
     assert "secret-search-key" not in str(result)
 
@@ -245,7 +296,11 @@ def test_request_context_propagation_audited():
     gateway = ToolGateway(reg)
     gateway.dispatch(tool_id="tool:search",
                      request_body={"request_id": "req-42"},
-                     authorization_decision=_allow(), actor="ceo")
+                     authorization_decision=_allow(request_id="req-42"),
+                     actor="ceo")
     trail = gateway.audit_trail()
     assert trail and trail[0]["request_id"] == "req-42"
     assert trail[0]["actor"] == "ceo"
+    assert trail[0]["capability_id"] == "research.run"
+    assert trail[0]["decision_id"] == \
+        gateway.audit_trail()[0]["decision_id"]

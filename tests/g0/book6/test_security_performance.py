@@ -80,14 +80,22 @@ def test_authorization_decision_stays_within_measured_envelope():
 
 
 def test_gateway_overhead_stays_single_digit_of_total():
+    # REPAIR-01: the overhead now includes registry-backed decision
+    # verification, mandatory capability binding and context binding —
+    # proving no control was skipped for latency (PERF-001)
+    authz, _ = _stack()
     reg = ToolRegistry()
     reg.approve_capability("app.read")
     reg.register(dict(tool_id="read.tool", version="1.0",
                       status="APPROVED_PRODUCTION",
                       side_effect_class="READ_ONLY",
                       capability_ids=["app.read"]), reviewed=True)
-    gw = ToolGateway(reg)
-    dec = {"decision": "ALLOW", "granted_capability_id": "app.read"}
+    gw = ToolGateway(reg, decisions=authz.decisions)
+    dec = authz.authorize(dict(request_id="perf-1", principal_id="ceo",
+                               capability_id="app.read",
+                               tenant_id="tenant-a",
+                               resource_id="artifact-a1"))
+    assert dec["decision"] == "ALLOW"
     total = 0.0
     for _ in range(300):
         t0 = time.perf_counter()

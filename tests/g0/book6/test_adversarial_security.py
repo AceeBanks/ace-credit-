@@ -463,6 +463,8 @@ def test_s32_model_fallback_gets_no_broader_tool_set():
 
 
 def test_s33_tool_result_cannot_include_secret_in_response():
+    authz, principals, scope, grants = _stack()
+    _approve_all(authz, grants)
     reg = ToolRegistry()
     reg.approve_capability("credential.resolve")
     reg.register(dict(tool_id="echo", version="1.0",
@@ -475,7 +477,7 @@ def test_s33_tool_result_cannot_include_secret_in_response():
         def resolve(self, **kw):
             return "sk-live-9999"
 
-    gw = ToolGateway(reg)
+    gw = ToolGateway(reg, decisions=authz.decisions)
 
     def _leaky_execute(tool, body):
         # a buggy tool implementation that echoes the credential
@@ -483,18 +485,24 @@ def test_s33_tool_result_cannot_include_secret_in_response():
                 "payload": "sk-live-9999"}
 
     gw._execute = _leaky_execute  # type: ignore[assignment]
+    decision = authz.authorize(dict(
+        request_id="r-33", principal_id="ceo",
+        capability_id="credential.resolve", tenant_id="tenant-a",
+        resource_id="artifact-a1"))
+    assert decision["decision"] == "ALLOW"
     # TOOL-010: the gateway catches the credential inside the returned payload
     with pytest.raises(ToolError):
         gw.dispatch(tool_id="echo",
                     request_body={"echo": "sk-live-9999",
                                   "request_id": "r-33"},
-                    authorization_decision={"decision": "ALLOW",
-                                            "granted_capability_id":
-                                                "credential.resolve"},
-                    actor="ceo", credential_ref_id="cred-1", vault=Vault())
+                    authorization_decision=decision,
+                    actor="ceo", credential_ref_id="cred-1", vault=Vault(),
+                    tenant_id="tenant-a", resource_id="artifact-a1")
 
 
 def test_s34_source_content_cannot_change_tool_destination():
+    authz, principals, scope, grants = _stack()
+    _approve_all(authz, grants)
     reg = ToolRegistry()
     reg.approve_capability("tool.run")
     reg.register(dict(tool_id="http.fetch", version="1.0",
@@ -503,12 +511,16 @@ def test_s34_source_content_cannot_change_tool_destination():
                       capability_ids=["tool.run"],
                       network_destinations=["good.example.com"]),
                  reviewed=True)
-    gw = ToolGateway(reg)
+    gw = ToolGateway(reg, decisions=authz.decisions)
+    decision = authz.authorize(dict(
+        request_id="r-34", principal_id="ceo", capability_id="tool.run",
+        tenant_id="tenant-a", resource_id="artifact-a1"))
+    assert decision["decision"] == "ALLOW"
     with pytest.raises(ToolError):
         gw.dispatch(tool_id="http.fetch",
                     request_body={"destination": "evil.example.com",
                                   "request_id": "r-34"},
-                    authorization_decision={"decision": "ALLOW"},
+                    authorization_decision=decision,
                     actor="ceo")
 
 
@@ -547,6 +559,8 @@ def test_s37_authorization_service_unavailable_fails_closed():
 
 
 def test_s38_credential_vault_unavailable_fails_closed():
+    authz, principals, scope, grants = _stack()
+    _approve_all(authz, grants)
     reg = ToolRegistry()
     reg.approve_capability("credential.resolve")
     reg.register(dict(tool_id="svc.call", version="1.0",
@@ -554,12 +568,15 @@ def test_s38_credential_vault_unavailable_fails_closed():
                       side_effect_class="READ_ONLY",
                       capability_ids=["credential.resolve"]),
                  reviewed=True)
-    gw = ToolGateway(reg)
+    gw = ToolGateway(reg, decisions=authz.decisions)
+    decision = authz.authorize(dict(
+        request_id="r-38", principal_id="ceo",
+        capability_id="credential.resolve", tenant_id="tenant-a",
+        resource_id="artifact-a1"))
+    assert decision["decision"] == "ALLOW"
     with pytest.raises(ToolError):
         gw.dispatch(tool_id="svc.call", request_body={"request_id": "r-38"},
-                    authorization_decision={"decision": "ALLOW",
-                                            "granted_capability_id":
-                                                "credential.resolve"},
+                    authorization_decision=decision,
                     actor="ceo", credential_ref_id="cred-1", vault=None)
 
 
@@ -588,6 +605,8 @@ def test_s40_forged_integration_receipt_is_non_authoritative():
 
 
 def test_s41_replay_of_old_signed_request_blocked():
+    authz, principals, scope, grants = _stack()
+    _approve_all(authz, grants)
     reg = ToolRegistry()
     reg.approve_capability("egress.send_external")
     reg.register(dict(tool_id="email.send", version="1.0",
@@ -595,23 +614,26 @@ def test_s41_replay_of_old_signed_request_blocked():
                       side_effect_class="EXTERNAL_SEND",
                       capability_ids=["egress.send_external"]),
                  reviewed=True)
-    gw = ToolGateway(reg)
+    gw = ToolGateway(reg, decisions=authz.decisions)
+    decision = authz.authorize(dict(
+        request_id="req-41", principal_id="ceo",
+        capability_id="egress.send_external", tenant_id="tenant-a",
+        resource_id="artifact-a1"))
+    assert decision["decision"] == "ALLOW"
     body = {"request_id": "req-41", "to": "x@example.com"}
     ok = gw.dispatch(tool_id="email.send", request_body=dict(body),
-                     authorization_decision={"decision": "ALLOW",
-                                             "granted_capability_id":
-                                                 "egress.send_external"},
+                     authorization_decision=decision,
                      actor="ceo")
     assert ok["status"] == "OK"
-    with pytest.raises(ToolError):
+    with pytest.raises(ToolError):  # replay of the same sealed ALLOW
         gw.dispatch(tool_id="email.send", request_body=dict(body),
-                    authorization_decision={"decision": "ALLOW",
-                                            "granted_capability_id":
-                                                "egress.send_external"},
+                    authorization_decision=decision,
                     actor="ceo")
 
 
 def test_s42_duplicate_request_no_double_external_side_effect():
+    authz, principals, scope, grants = _stack()
+    _approve_all(authz, grants)
     reg = ToolRegistry()
     reg.approve_capability("egress.send_external")
     reg.register(dict(tool_id="email.send", version="1.0",
@@ -619,18 +641,19 @@ def test_s42_duplicate_request_no_double_external_side_effect():
                       side_effect_class="EXTERNAL_SEND",
                       capability_ids=["egress.send_external"]),
                  reviewed=True)
-    gw = ToolGateway(reg)
+    gw = ToolGateway(reg, decisions=authz.decisions)
+    decision = authz.authorize(dict(
+        request_id="req-42-nonce", principal_id="ceo",
+        capability_id="egress.send_external", tenant_id="tenant-a",
+        resource_id="artifact-a1"))
+    assert decision["decision"] == "ALLOW"
     body = {"nonce": "nonce-42"}
     gw.dispatch(tool_id="email.send", request_body=dict(body),
-                authorization_decision={"decision": "ALLOW",
-                                        "granted_capability_id":
-                                            "egress.send_external"},
+                authorization_decision=decision,
                 actor="ceo")
     with pytest.raises(ToolError):
         gw.dispatch(tool_id="email.send", request_body=dict(body),
-                    authorization_decision={"decision": "ALLOW",
-                                            "granted_capability_id":
-                                                "egress.send_external"},
+                    authorization_decision=decision,
                     actor="ceo")
 
 

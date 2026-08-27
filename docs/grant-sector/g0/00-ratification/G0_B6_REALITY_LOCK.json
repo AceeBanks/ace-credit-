@@ -19,6 +19,12 @@
   "break_glass_pass": true,
   "submission_disabled": true,
   "attack_surface_register_pass": true,
+  "grant_authority_enforced": true,
+  "authorization_capability_binding_pass": true,
+  "authorization_resource_binding_pass": true,
+  "project_scope_pass": true,
+  "approval_registry_integration_pass": true,
+  "authorizer_gateway_e2e_pass": true,
   "adversarial_p0_pass": true,
   "cross_tenant_p0_pass": true,
   "secret_exposure_p0_pass": true,
@@ -27,15 +33,15 @@
   "evidence": {
     "test_results": {
       "exit_code": 0,
-      "passed": 199,
+      "passed": 224,
       "failed": 0,
-      "summary": "199 passed, 3 skipped in 3.43s"
+      "summary": "224 passed, 3 skipped in 3.23s"
     },
     "adversarial_results": {
       "exit_code": 0,
       "passed": 81,
       "failed": 0,
-      "summary": "81 passed in 0.36s"
+      "summary": "81 passed in 0.24s"
     },
     "p0_threats_registered": 6,
     "p0_open_threats": 0,

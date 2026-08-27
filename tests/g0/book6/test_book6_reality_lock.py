@@ -145,6 +145,94 @@ def test_failing_test_results_flip_lock():
     assert lock["ready_for_book7"] is False
 
 
+# ------------------------------------------------------------------
+# G0-B6-REPAIR-01 — the six authorization-binding predicates are DERIVED:
+# injecting a failed seam probe flips its predicate and the status.
+# ------------------------------------------------------------------
+
+def _green_seam() -> dict:
+    from tools.g0.validate_seam_bindings import run_all as run_probes
+    probes = run_probes()
+    assert all(probes.values()), probes  # live code must be healthy here
+    return {f"{k}_pass" if k != "grant_authority_enforced" else k:
+            bool(v) for k, v in probes.items()}
+
+
+def test_seam_predicate_mapping_covers_six_repair_predicates():
+    configs = _configs()
+    seam = {"grant_authority_enforced": True,
+            "authorization_capability_binding": True,
+            "authorization_resource_binding": True,
+            "project_scope": True,
+            "approval_registry_integration": True}
+    lock = compute_lock(configs, test_results=_fresh_results(),
+                        adversarial_results=_adv_results(),
+                        seam_results=seam)
+    for pred in ("grant_authority_enforced",
+                 "authorization_capability_binding_pass",
+                 "authorization_resource_binding_pass", "project_scope_pass",
+                 "approval_registry_integration_pass",
+                 "authorizer_gateway_e2e_pass"):
+        assert lock[pred] is True, pred
+
+
+def test_injected_grant_authority_defect_flips_lock():
+    configs = _configs()
+    broken = dict.fromkeys(
+        ("grant_authority_enforced", "authorization_capability_binding",
+         "authorization_resource_binding", "project_scope",
+         "approval_registry_integration"), True)
+    broken["grant_authority_enforced"] = False
+    lock = compute_lock(configs, test_results=_fresh_results(),
+                        adversarial_results=_adv_results(),
+                        seam_results=broken)
+    assert lock["grant_authority_enforced"] is False
+    assert lock["status"] == "FAIL"
+
+
+def test_injected_capability_binding_defect_flips_lock():
+    configs = _configs()
+    broken = dict.fromkeys(
+        ("grant_authority_enforced", "authorization_capability_binding",
+         "authorization_resource_binding", "project_scope",
+         "approval_registry_integration"), True)
+    broken["authorization_capability_binding"] = False
+    lock = compute_lock(configs, test_results=_fresh_results(),
+                        adversarial_results=_adv_results(),
+                        seam_results=broken)
+    assert lock["authorization_capability_binding_pass"] is False
+    assert lock["authorizer_gateway_e2e_pass"] is False
+    assert lock["status"] == "FAIL"
+
+
+def test_injected_project_scope_defect_flips_lock():
+    configs = _configs()
+    broken = dict.fromkeys(
+        ("grant_authority_enforced", "authorization_capability_binding",
+         "authorization_resource_binding", "project_scope",
+         "approval_registry_integration"), True)
+    broken["project_scope"] = False
+    lock = compute_lock(configs, test_results=_fresh_results(),
+                        adversarial_results=_adv_results(),
+                        seam_results=broken)
+    assert lock["project_scope_pass"] is False
+    assert lock["status"] == "FAIL"
+
+
+def test_injected_approval_registry_defect_flips_lock():
+    configs = _configs()
+    broken = dict.fromkeys(
+        ("grant_authority_enforced", "authorization_capability_binding",
+         "authorization_resource_binding", "project_scope",
+         "approval_registry_integration"), True)
+    broken["approval_registry_integration"] = False
+    lock = compute_lock(configs, test_results=_fresh_results(),
+                        adversarial_results=_adv_results(),
+                        seam_results=broken)
+    assert lock["approval_registry_integration_pass"] is False
+    assert lock["status"] == "FAIL"
+
+
 def test_missing_test_results_report_null_not_false_claim():
     """When tests are not run, adversarial_p0_pass is null, never a false
     green claim."""

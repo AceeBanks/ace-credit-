@@ -17,7 +17,7 @@ if str(_ROOT) not in sys.path:
 
 from tools.g0._common import load_yaml  # noqa: E402
 
-EXPECTED_RULES = tuple(f"TOOL-{i:03d}" for i in range(1, 12))
+EXPECTED_RULES = tuple(f"TOOL-{i:03d}" for i in range(1, 14))
 
 
 def validate(errors: list[str] | None = None,
@@ -41,6 +41,13 @@ def validate(errors: list[str] | None = None,
             policy.get("gateway_responsibilities", []):
         errors.append("gateway must verify the AuthorizationDecision")
         ok = False
+    # G0-B6-REPAIR-01 binding responsibilities
+    for required in ("verify_decision_issuance_via_decision_registry",
+                     "require_decision_capability_binding",
+                     "bind_tenant_project_resource_request_context"):
+        if required not in policy.get("gateway_responsibilities", []):
+            errors.append(f"gateway must declare responsibility {required}")
+            ok = False
     if "submission.execute" not in policy.get("hidden_never_capabilities", []):
         errors.append("submission.execute must be hidden/never-discoverable")
         ok = False
