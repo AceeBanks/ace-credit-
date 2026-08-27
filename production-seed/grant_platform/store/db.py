@@ -34,7 +34,8 @@ from grant_platform.domain.records import (
     Tenant,
 )
 
-SCHEMA_FILE = Path(__file__).resolve().parents[2] / "migrations/001_initial_schema.sql"
+MIGRATIONS_DIR = Path(__file__).resolve().parents[2] / "migrations"
+MIGRATION_FILES = sorted(MIGRATIONS_DIR.glob("*.sql"))  # append-only, ordered
 
 
 class StoreError(Exception):
@@ -63,8 +64,11 @@ class Store:
         return store
 
     def migrate(self) -> None:
-        sql = SCHEMA_FILE.read_text(encoding="utf-8")
-        self.conn.executescript(sql)
+        if not MIGRATION_FILES:
+            raise StoreError("no migrations found")
+        for path in MIGRATION_FILES:
+            sql = path.read_text(encoding="utf-8")
+            self.conn.executescript(sql)
         self.conn.commit()
 
     def close(self) -> None:
@@ -394,3 +398,100 @@ class Store:
             "SELECT * FROM tasks WHERE tenant_id=? ORDER BY created_at",
             (tenant_id,))
         return [dict(r) for r in rows]
+
+    # -- G1 Wave 3: conversations / intents / plans / worker results --------
+    def create_conversation(self, c: dict) -> None:
+        self.conn.execute(
+            "INSERT OR REPLACE INTO conversations (conversation_id,"
+            " tenant_id, client_actor_id, title, project_id)"
+            " VALUES (?, ?, ?, ?, ?)",
+            (c["conversation_id"], c["tenant_id"], c["client_actor_id"],
+             c.get("title"), c.get("project_id")))
+        self.conn.commit()
+
+    def get_conversation(self, conversation_id: str,
+                         tenant_id: str) -> dict | None:
+        row = self.conn.execute(
+            "SELECT * FROM conversations WHERE conversation_id=? AND"
+            " tenant_id=?", (conversation_id, tenant_id)).fetchone()
+        return dict(row) if row else None
+
+    def create_message(self, m: dict) -> None:
+        self.conn.execute(
+            "INSERT OR REPLACE INTO messages (message_id, conversation_id,"
+            " tenant_id, role, content) VALUES (?, ?, ?, ?, ?)",
+            (m["message_id"], m["conversation_id"], m["tenant_id"],
+             m["role"], m["content"]))
+        self.conn.commit()
+
+    def messages_for(self, conversation_id: str) -> list[dict]:
+        rows = self.conn.execute(
+            "SELECT * FROM messages WHERE conversation_id=? ORDER BY"
+            " created_at", (conversation_id,))
+        return [dict(r) for r in rows]
+
+    def create_intent(self, i: dict) -> None:
+        self.conn.execute(
+            "INSERT OR REPLACE INTO intents (intent_id, tenant_id,"
+            " client_actor_id, organization_id, intent_type, objective,"
+            " authority_scope, confidence_state, version,"
+            " supersedes_intent_id, source_conversation_ref, payload)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (i["intent_id"], i["tenant_id"], i["client_actor_id"],
+             i["organization_id"], i["intent_type"], i["objective"],
+             i["authority_scope"], i["confidence_state"], i["version"],
+             i.get("supersedes_intent_id"),
+             i.get("source_conversation_ref"),
+             json.dumps(i.get("payload", {}))))
+        self.conn.commit()
+
+    def get_intent(self, intent_id: str) -> dict | None:
+        row = self.conn.execute(
+            "SELECT * FROM intents WHERE intent_id=?", (intent_id,)).fetchone()
+        return dict(row) if row else None
+
+    def intents_for(self, tenant_id: str, organization_id: str) -> list[dict]:
+        rows = self.conn.execute(
+            "SELECT * FROM intents WHERE tenant_id=? AND organization_id=?"
+            " ORDER BY created_at", (tenant_id, organization_id))
+        return [dict(r) for r in rows]
+
+    def create_plan(self, p: dict) -> None:
+        self.conn.execute(
+            "INSERT OR REPLACE INTO task_plans (plan_id, intent_id,"
+            " tenant_id, project_id, opportunity_revision_id, objective,"
+            " steps, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (p["plan_id"], p["intent_id"], p["tenant_id"],
+             p.get("project_id"), p.get("opportunity_revision_id"),
+             p["objective"], json.dumps(p.get("steps", [])),
+             p.get("state", "PLANNED")))
+        self.conn.commit()
+
+    def get_plan(self, plan_id: str) -> dict | None:
+        row = self.conn.execute(
+            "SELECT * FROM task_plans WHERE plan_id=?", (plan_id,)).fetchone()
+        return dict(row) if row else None
+
+    def create_worker_result(self, r: dict) -> None:
+        self.conn.execute(
+            "INSERT OR REPLACE INTO worker_results (result_id, task_id,"
+            " tenant_id, project_id, worker_principal, capability_id,"
+            " summary, claims, context_refs, model_ref)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (r["result_id"], r["task_id"], r["tenant_id"],
+             r.get("project_id"), r["worker_principal"], r["capability_id"],
+             r["summary"], json.dumps(r.get("claims", [])),
+             json.dumps(r.get("context_refs", [])), r.get("model_ref")))
+        self.conn.commit()
+
+    def worker_results_for(self, project_id: str) -> list[dict]:
+        rows = self.conn.execute(
+            "SELECT * FROM worker_results WHERE project_id=? ORDER BY"
+            " created_at", (project_id,))
+        return [dict(r) for r in rows]
+
+    def get_worker_result(self, task_id: str) -> dict | None:
+        row = self.conn.execute(
+            "SELECT * FROM worker_results WHERE task_id=?",
+            (task_id,)).fetchone()
+        return dict(row) if row else None
