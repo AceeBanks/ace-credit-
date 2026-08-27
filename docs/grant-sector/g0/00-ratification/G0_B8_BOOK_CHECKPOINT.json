@@ -1,0 +1,54 @@
+{
+  "checkpoint": "G0-B8-BOOK",
+  "branch": "grant-sector-r0-salvage",
+  "head_sha": "59bbb257d9275116da8a96d36096ef2be0363a88",
+  "boot_commit": {
+    "sha": "3713613b",
+    "message": "G0-B8-C1: freeze production-shaped vertical slice charter"
+  },
+  "chapter_commits": [
+    {"sha": "3713613b", "message": "G0-B8-C1: freeze production-shaped vertical slice charter"},
+    {"sha": "131a101b", "message": "G0-B8-C2-C5: establish canonical client fixture intent planning and real opportunity selection"},
+    {"sha": "666792ec", "message": "G0-B8-C6-C20: deterministic eligibility matching research project blueprint and governed drafting"},
+    {"sha": "9fb291ec", "message": "G0-B8-C21-C27: claim ledger deterministic QA human review package explanation and orchestration"},
+    {"sha": "ab22c140", "message": "G0-B8-C28-C38: amendment drills cold restart degraded mode security attacks telemetry and reconstruction"},
+    {"sha": "59bbb257", "message": "G0-B8-C37-C38: adversarial integration and property tests for the vertical slice"},
+    {"sha": "SEAL_PENDING", "message": "G0-B8-BOOK: seal Book 8 with derived Reality Lock"}
+  ],
+  "reality_lock": {
+    "path": "docs/grant-sector/g0/00-ratification/G0_B8_REALITY_LOCK.json",
+    "status": "PASS",
+    "p0_open": 0,
+    "ready_for_book9": true,
+    "submission_enabled": false
+  },
+  "test_totals": {
+    "current_at_head_59bbb257d9275116da8a96d36096ef2be0363a88": {
+      "full_suite": {"passed": 1778, "failed": 0, "skipped": 3},
+      "book0": {"passed": 51},
+      "book1": {"passed": 133},
+      "book2": {"passed": 255},
+      "book3": {"passed": 243},
+      "book4": {"passed": 276},
+      "book5": {"passed": 228, "skipped": 3},
+      "book6": {"passed": 227},
+      "book7": {"passed": 326},
+      "book8": {"passed": 39},
+      "book8_reality_lock_freshness": 13
+    }
+  },
+  "submission_disabled": true,
+  "vertical_slice": {
+    "state": "SUBMISSION_READY_MOCK",
+    "generation_modes": ["LIVE_MODEL", "DETERMINISTIC_BASELINE"],
+    "live_model_generation_pass": true,
+    "amendment_drill_pass": true,
+    "cold_restart_pass": true,
+    "degraded_mode_pass": true,
+    "security_attack_pass": true,
+    "telemetry_pass": true,
+    "reconstruction_pass": true,
+    "handoff_ready": true
+  },
+  "external_ratification": "NOT YET PERFORMED (awaiting external ratification)"
+}

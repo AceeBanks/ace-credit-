@@ -1,0 +1,71 @@
+{
+  "book": "G0-B8",
+  "status": "PASS",
+  "p0_open": 0,
+  "submission_enabled": false,
+  "ready_for_book9": true,
+  "predicates": {
+    "canonical_client_fixture_pass": true,
+    "real_opportunity_source_pass": true,
+    "intent_contract_pass": true,
+    "ceo_planning_pass": true,
+    "eligibility_determinism_pass": true,
+    "match_explanation_pass": true,
+    "winner_research_pass": true,
+    "organization_verification_pass": true,
+    "community_evidence_pass": true,
+    "application_blueprint_pass": true,
+    "bounded_worker_pass": true,
+    "proposal_draft_pass": true,
+    "supporting_artifact_pass": true,
+    "budget_reconciliation_pass": true,
+    "claim_ledger_pass": true,
+    "qa_eval_hard_gates_pass": true,
+    "human_review_pass": true,
+    "submission_ready_mock_pass": true,
+    "submission_enabled": false,
+    "explanation_packet_pass": true,
+    "source_amendment_drill_pass": true,
+    "cold_restart_pass": true,
+    "optional_component_degradation_pass": true,
+    "security_attack_drill_pass": true,
+    "runtime_measurement_packet_pass": true,
+    "full_reconstruction_pass": true,
+    "client_experience_review_complete": true,
+    "adversarial_p0_pass": true,
+    "live_model_generation_pass": true
+  },
+  "evidence": {
+    "test_suite": {
+      "exit_code": 0,
+      "passed": 26,
+      "failed": 0,
+      "summary": "26 passed in 0.34s"
+    },
+    "vertical_slice_probe": {
+      "all_stages": true,
+      "eligibility_eligible": true,
+      "hard_gate_pass": true,
+      "claim_support_full": true,
+      "budget_within_ceiling": true,
+      "revision_pinned": true,
+      "submission_ready_mock": true,
+      "submission_enabled": false,
+      "explanation_packet": true
+    },
+    "drill_probes": {
+      "amendment_material_invalidates": true,
+      "amendment_non_material_keeps": true,
+      "cold_restart": true,
+      "degraded_fail_closed": true,
+      "security_all_denied": true,
+      "telemetry_complete": true,
+      "reconstruction_complete": true,
+      "handoff_ready": true
+    },
+    "live_d2_evidence": {
+      "live_model_run_complete": true
+    },
+    "failed_predicates": []
+  }
+}
