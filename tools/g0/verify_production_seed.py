@@ -52,6 +52,25 @@ def _verify() -> tuple[bool, list[str]]:
         else:
             problems.append(f"seed tests: {test_summary} (PASS)")
 
+        # 2b. G1 client API tests pass from a fresh repo-shaped copy (no
+        # network needed): mirror the relative layout so apps/api resolves
+        # grant_platform from production-seed exactly as in the repo.
+        apps = _ROOT / "apps"
+        if apps.exists():
+            fresh = Path(tmp) / "fresh"
+            shutil.copytree(SEED, fresh / "production-seed")
+            shutil.copytree(apps, fresh / "apps")
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest",
+                 str(fresh / "apps" / "api" / "tests"), "-q", "--tb=short"],
+                capture_output=True, text=True)
+            tail = (proc.stdout or "").strip().splitlines()[-1:]
+            api_summary = tail[0] if tail else "no summary"
+            if proc.returncode != 0:
+                problems.append(f"api tests failed: {api_summary}")
+            else:
+                problems.append(f"api tests: {api_summary} (PASS)")
+
         # 3. representative mock workflow: migrate + seed rows + read back
         conn = sqlite3.connect(db)
         conn.execute(
