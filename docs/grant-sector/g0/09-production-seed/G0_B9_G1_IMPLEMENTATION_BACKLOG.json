@@ -1,0 +1,74 @@
+{
+  "chapter": "B9.C26",
+  "status": "COMPLETE",
+  "epics": [
+    {"epic": "G1.1", "name": "Platform kernel", "items": [
+      {"item": "tenants-principals-roles", "classification": "PROMOTE_FROM_G0"},
+      {"item": "deny-by-default-authorizer", "classification": "PROMOTE_FROM_G0"},
+      {"item": "capability-registry-grants", "classification": "PROMOTE_FROM_G0"},
+      {"item": "approval-registry", "classification": "PROMOTE_FROM_G0"},
+      {"item": "decision-registry", "classification": "PROMOTE_FROM_G0"},
+      {"item": "tool-gateway", "classification": "PROMOTE_FROM_G0"},
+      {"item": "production-task-table", "classification": "REIMPLEMENT_PRODUCTION"},
+      {"item": "queue-scheduler", "classification": "NEW"}
+    ]},
+    {"epic": "G1.2", "name": "Grant domain persistence", "items": [
+      {"item": "organization-model", "classification": "PROMOTE_FROM_G0"},
+      {"item": "opportunity-revisions", "classification": "PROMOTE_FROM_G0"},
+      {"item": "application-project", "classification": "PROMOTE_FROM_G0"},
+      {"item": "postgres-repository-layer", "classification": "NEW"},
+      {"item": "object-storage-artifact-refs", "classification": "NEW"}
+    ]},
+    {"epic": "G1.3", "name": "Source ingestion", "items": [
+      {"item": "source-snapshot-identity", "classification": "PROMOTE_FROM_G0"},
+      {"item": "georgia-fixture-adapter", "classification": "PROMOTE_FROM_G0"},
+      {"item": "grants-gov-adapter", "classification": "NEW"},
+      {"item": "revision-watcher", "classification": "HARDEN_FROM_G0"},
+      {"item": "parser-stack", "classification": "HARDEN_FROM_G0"}
+    ]},
+    {"epic": "G1.4", "name": "Eligibility and matching", "items": [
+      {"item": "deterministic-eligibility-engine", "classification": "PROMOTE_FROM_G0"},
+      {"item": "rule-extraction", "classification": "HARDEN_FROM_G0"},
+      {"item": "match-dimensions", "classification": "PROMOTE_FROM_G0"}
+    ]},
+    {"epic": "G1.5", "name": "Research and evidence", "items": [
+      {"item": "decision-record-lineage", "classification": "PROMOTE_FROM_G0"},
+      {"item": "evidence-refs", "classification": "PROMOTE_FROM_G0"},
+      {"item": "funder-winner-community-adapters", "classification": "NEW"},
+      {"item": "graph-vector-projections", "classification": "NEW"}
+    ]},
+    {"epic": "G1.6", "name": "Personal and CEO Hermes", "items": [
+      {"item": "personal-hermes-intent", "classification": "PROMOTE_FROM_G0"},
+      {"item": "ceo-hermes-planning", "classification": "PROMOTE_FROM_G0"},
+      {"item": "bounded-workers", "classification": "PROMOTE_FROM_G0"},
+      {"item": "hermes-execution-adapter", "classification": "REIMPLEMENT_PRODUCTION"},
+      {"item": "context-assembly", "classification": "PROMOTE_FROM_G0"}
+    ]},
+    {"epic": "G1.7", "name": "Application drafting", "items": [
+      {"item": "blueprint-requirements", "classification": "PROMOTE_FROM_G0"},
+      {"item": "governed-model-gateway", "classification": "HARDEN_FROM_G0"},
+      {"item": "section-drafting", "classification": "PROMOTE_FROM_G0"},
+      {"item": "budget-reconciliation", "classification": "PROMOTE_FROM_G0"},
+      {"item": "artifact-versioning", "classification": "HARDEN_FROM_G0"}
+    ]},
+    {"epic": "G1.8", "name": "QA and evaluation", "items": [
+      {"item": "claim-ledger", "classification": "PROMOTE_FROM_G0"},
+      {"item": "deterministic-qa-gates", "classification": "PROMOTE_FROM_G0"},
+      {"item": "book7-evaluation-promotion", "classification": "PROMOTE_FROM_G0"},
+      {"item": "humanizer-lane", "classification": "HARDEN_FROM_G0"}
+    ]},
+    {"epic": "G1.9", "name": "Client-facing product", "items": [
+      {"item": "api-endpoints", "classification": "NEW"},
+      {"item": "web-client", "classification": "NEW"},
+      {"item": "explanation-packet", "classification": "PROMOTE_FROM_G0"}
+    ]},
+    {"epic": "G1.10", "name": "Operations hardening", "items": [
+      {"item": "observability-collector", "classification": "NEW"},
+      {"item": "production-secret-resolver", "classification": "REIMPLEMENT_PRODUCTION"},
+      {"item": "backup-recovery-drills", "classification": "NEW"},
+      {"item": "security-re-verification", "classification": "NEW"},
+      {"item": "cost-telemetry", "classification": "NEW"}
+    ]}
+  ],
+  "priority_order": ["correctness foundations", "client-visible vertical slice", "reliability and security", "throughput and cost", "secondary integrations", "later automation"]
+}
