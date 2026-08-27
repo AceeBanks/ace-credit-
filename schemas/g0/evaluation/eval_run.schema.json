@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evaluation/eval_run.schema.json",
+  "title": "EvalRun",
+  "description": "G0-B7 — one execution of an eval suite against a subject (baseline or candidate). Replayable from Book 5 lineage.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eval_run_id",
+    "suite_id",
+    "suite_version",
+    "corpus_version_id",
+    "subject_ref",
+    "subject_version",
+    "subject_role",
+    "metric_bundle_id",
+    "started_at",
+    "status"
+  ],
+  "properties": {
+    "eval_run_id": {"type": "string", "minLength": 1},
+    "suite_id": {"type": "string", "minLength": 1},
+    "suite_version": {"type": "integer", "minimum": 1},
+    "corpus_version_id": {"type": "string", "minLength": 1},
+    "subject_ref": {"type": "string", "minLength": 1},
+    "subject_version": {"type": "string", "minLength": 1},
+    "subject_role": {
+      "type": "string",
+      "enum": ["BASELINE", "CANDIDATE", "REGRESSION_SUBJECT", "CONTROL"]
+    },
+    "metric_bundle_id": {"type": "string", "minLength": 1},
+    "per_case_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["eval_case_id", "result", "reason_code"],
+        "properties": {
+          "eval_case_id": {"type": "string"},
+          "result": {"type": "string", "enum": ["PASS", "FAIL", "SKIP"]},
+          "reason_code": {"type": "string"},
+          "evidence_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": ["string", "null"], "format": "date-time"},
+    "status": {"type": "string", "enum": ["RUNNING", "COMPLETED", "FAILED", "ABORTED"]},
+    "content_hash": {"type": "string"}
+  }
+}

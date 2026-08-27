@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evaluation/eval_case.schema.json",
+  "title": "EvalCase",
+  "description": "G0-B7-C3 — a single evaluation case. No case without lineage/fixture identity (EVAL-LAW-007).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eval_case_id",
+    "case_type",
+    "corpus_version_id",
+    "source_lineage_refs",
+    "input_fixture_refs",
+    "expected_assertions",
+    "privacy_class",
+    "tenant_scope",
+    "label_origin",
+    "created_at"
+  ],
+  "properties": {
+    "eval_case_id": {"type": "string", "minLength": 1},
+    "case_type": {
+      "type": "string",
+      "enum": [
+        "deterministic_rule", "structured_extraction", "grant_opportunity",
+        "organization_profile", "eligibility", "matching", "research",
+        "drafting", "budget", "qa", "personal_hermes_interaction",
+        "ceo_orchestration", "worker_execution", "security_adversarial",
+        "memory_reconstruction", "tool_execution"
+      ]
+    },
+    "corpus_version_id": {"type": "string", "minLength": 1},
+    "source_lineage_refs": {"type": "array", "items": {"type": "string"}},
+    "domain_fixture_refs": {"type": "array", "items": {"type": "string"}},
+    "decision_artifact_refs": {"type": "array", "items": {"type": "string"}},
+    "input_fixture_refs": {"type": "array", "items": {"type": "string"}},
+    "expected_assertions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assertion_id", "kind", "expected"],
+        "properties": {
+          "assertion_id": {"type": "string"},
+          "kind": {"type": "string"},
+          "expected": {}
+        }
+      }
+    },
+    "rubric_refs": {"type": "array", "items": {"type": "string"}},
+    "privacy_class": {
+      "type": "string",
+      "enum": [
+        "PUBLIC_SOURCE", "GOLDEN_SYNTHETIC", "GOLDEN_HUMAN_REVIEWED",
+        "TENANT_PRIVATE_APPROVED", "ADVERSARIAL", "REGRESSION",
+        "SHADOW_PRODUCTION", "HOLDOUT"
+      ]
+    },
+    "tenant_scope": {"type": ["string", "null"]},
+    "label_origin": {
+      "type": "string",
+      "enum": [
+        "HUMAN_REVIEWER", "HUMAN_ATTESTED", "MODEL_GENERATED", "SYNTHETIC",
+        "DERIVED_FROM_EVIDENCE"
+      ]
+    },
+    "label_reviewer": {"type": ["string", "null"]},
+    "reviewer_refs": {"type": "array", "items": {"type": "string"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "valid_for_versions": {"type": "array", "items": {"type": "string"}},
+    "content_hash": {"type": "string"}
+  }
+}

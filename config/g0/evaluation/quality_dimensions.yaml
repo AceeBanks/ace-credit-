@@ -1,0 +1,260 @@
+# G0-B7-C2 — Quality taxonomy (machine-readable).
+# Defines what "good" means before measuring it. Each dimension declares
+# direction, units, collection method and whether it is a hard gate or an
+# optimization target. Hard security/factuality failures are NON-COMPENSATORY.
+
+quality_taxonomy_version: "1.0"
+
+dimensions:
+  # ---------------- CORRECTNESS ----------------
+  - id: correctness_eligibility
+    family: correctness
+    name: eligibility correctness
+    direction: higher_is_better
+    units: rate
+    collection: deterministic_assertion
+    gate: HARD
+  - id: correctness_requirement_coverage
+    family: correctness
+    name: requirement coverage
+    direction: higher_is_better
+    units: rate
+    collection: deterministic_assertion
+    gate: HARD
+  - id: correctness_numerical
+    family: correctness
+    name: numerical correctness
+    direction: higher_is_better
+    units: rate
+    collection: deterministic_assertion
+    gate: HARD
+  - id: correctness_budget_consistency
+    family: correctness
+    name: budget consistency
+    direction: higher_is_better
+    units: rate
+    collection: deterministic_assertion
+    gate: HARD
+
+  # ---------------- FACTUALITY ----------------
+  - id: factuality_material_claim_support
+    family: factuality
+    name: material claim support rate
+    direction: higher_is_better
+    units: rate
+    collection: claim_ledger
+    gate: HARD
+  - id: factuality_citation_precision
+    family: factuality
+    name: citation precision
+    direction: higher_is_better
+    units: rate
+    collection: evidence_assertion
+    gate: HARD
+  - id: factuality_unsupported_claims
+    family: factuality
+    name: unsupported material claims
+    direction: lower_is_better
+    units: count
+    collection: claim_ledger
+    gate: HARD
+  - id: factuality_contradictions
+    family: factuality
+    name: contradicted claims
+    direction: lower_is_better
+    units: count
+    collection: claim_ledger
+    gate: HARD
+  - id: factuality_stale_evidence
+    family: factuality
+    name: stale-evidence usage
+    direction: lower_is_better
+    units: count
+    collection: evidence_assertion
+    gate: HARD
+
+  # ---------------- GRANT QUALITY ----------------
+  - id: grant_funder_alignment
+    family: grant_quality
+    name: funder/program alignment
+    direction: higher_is_better
+    units: rubric_score
+    collection: rubric_or_llm_judge
+    gate: OPTIMIZE
+  - id: grant_organization_specificity
+    family: grant_quality
+    name: organization-specific grounding
+    direction: higher_is_better
+    units: rubric_score
+    collection: rubric_or_llm_judge
+    gate: OPTIMIZE
+  - id: grant_need_statement
+    family: grant_quality
+    name: problem/need clarity
+    direction: higher_is_better
+    units: rubric_score
+    collection: rubric_or_llm_judge
+    gate: OPTIMIZE
+  - id: grant_program_coherence
+    family: grant_quality
+    name: proposed approach coherence
+    direction: higher_is_better
+    units: rubric_score
+    collection: rubric_or_llm_judge
+    gate: OPTIMIZE
+  - id: grant_outcomes_measures
+    family: grant_quality
+    name: outcomes/measures quality
+    direction: higher_is_better
+    units: rubric_score
+    collection: rubric_or_llm_judge
+    gate: OPTIMIZE
+  - id: grant_implementation_realism
+    family: grant_quality
+    name: implementation realism
+    direction: higher_is_better
+    units: rubric_score
+    collection: rubric_or_llm_judge
+    gate: OPTIMIZE
+  - id: grant_budget_narrative_alignment
+    family: grant_quality
+    name: budget/narrative consistency
+    direction: higher_is_better
+    units: rate
+    collection: deterministic_assertion
+    gate: HARD
+  - id: grant_completeness
+    family: grant_quality
+    name: completeness
+    direction: higher_is_better
+    units: rate
+    collection: deterministic_assertion
+    gate: OPTIMIZE
+  - id: grant_readability
+    family: grant_quality
+    name: readability/structure
+    direction: higher_is_better
+    units: rubric_score
+    collection: rubric_or_llm_judge
+    gate: OPTIMIZE
+
+  # ---------------- AGENT QUALITY ----------------
+  - id: agent_role_adherence
+    family: agent_quality
+    name: role adherence
+    direction: higher_is_better
+    units: rate
+    collection: deterministic_assertion
+    gate: HARD
+  - id: agent_delegation_quality
+    family: agent_quality
+    name: correct delegation
+    direction: higher_is_better
+    units: rubric_score
+    collection: rubric_or_llm_judge
+    gate: OPTIMIZE
+  - id: agent_bounded_context
+    family: agent_quality
+    name: bounded context use
+    direction: higher_is_better
+    units: rate
+    collection: deterministic_assertion
+    gate: HARD
+  - id: agent_semantic_preservation
+    family: agent_quality
+    name: semantic preservation
+    direction: higher_is_better
+    units: rate
+    collection: semantic_comparison
+    gate: HARD
+  - id: agent_no_cross_project_contamination
+    family: agent_quality
+    name: no cross-project contamination
+    direction: higher_is_better
+    units: binary
+    collection: deterministic_assertion
+    gate: HARD
+
+  # ---------------- SECURITY ----------------
+  - id: security_capability_compliance
+    family: security
+    name: capability compliance
+    direction: higher_is_better
+    units: rate
+    collection: security_regression
+    gate: HARD
+  - id: security_tenant_isolation
+    family: security
+    name: tenant isolation
+    direction: higher_is_better
+    units: binary
+    collection: security_regression
+    gate: HARD
+  - id: security_project_isolation
+    family: security
+    name: project isolation
+    direction: higher_is_better
+    units: binary
+    collection: security_regression
+    gate: HARD
+  - id: security_secret_boundary
+    family: security
+    name: secret non-exposure
+    direction: higher_is_better
+    units: binary
+    collection: security_regression
+    gate: HARD
+  - id: security_tool_authority
+    family: security
+    name: tool authority compliance
+    direction: higher_is_better
+    units: rate
+    collection: security_regression
+    gate: HARD
+  - id: security_prompt_injection_resistance
+    family: security
+    name: prompt-injection resistance
+    direction: higher_is_better
+    units: rate
+    collection: security_regression
+    gate: HARD
+
+  # ---------------- OPERATIONS ----------------
+  - id: ops_latency
+    family: operations
+    name: latency
+    direction: lower_is_better
+    units: milliseconds
+    collection: telemetry
+    gate: OPTIMIZE
+  - id: ops_cost
+    family: operations
+    name: cost
+    direction: lower_is_better
+    units: usd
+    collection: telemetry
+    gate: OPTIMIZE
+  - id: ops_reliability
+    family: operations
+    name: reliability
+    direction: higher_is_better
+    units: rate
+    collection: telemetry
+    gate: OPTIMIZE
+  - id: ops_context_size
+    family: operations
+    name: context/token footprint
+    direction: lower_is_better
+    units: tokens
+    collection: telemetry
+    gate: OPTIMIZE
+
+non_compensatory_families:
+  - correctness
+  - factuality
+  - agent_quality
+  - security
+
+hard_gate_rule: "Any HARD dimension failure (especially security/tenant/
+  project/secrets and material factuality) vetoes aggregate improvement
+  (EVAL-LAW-003/010/011)."

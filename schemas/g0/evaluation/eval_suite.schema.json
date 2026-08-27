@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evaluation/eval_suite.schema.json",
+  "title": "EvalSuite",
+  "description": "G0-B7 — a versioned evaluation suite selecting cases and evaluators for a capability or candidate class.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "suite_id",
+    "suite_version",
+    "name",
+    "target_capability_or_class",
+    "corpus_version_id",
+    "case_ids",
+    "evaluator_ids",
+    "hard_gate_dimensions",
+    "created_at"
+  ],
+  "properties": {
+    "suite_id": {"type": "string", "minLength": 1},
+    "suite_version": {"type": "integer", "minimum": 1},
+    "name": {"type": "string", "minLength": 1},
+    "target_capability_or_class": {"type": "string", "minLength": 1},
+    "corpus_version_id": {"type": "string", "minLength": 1},
+    "case_ids": {"type": "array", "items": {"type": "string"}},
+    "evaluator_ids": {"type": "array", "items": {"type": "string"}},
+    "hard_gate_dimensions": {"type": "array", "items": {"type": "string"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "content_hash": {"type": "string"}
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/g0/evaluation/eval_corpus_version.schema.json",
+  "title": "EvalCorpusVersion",
+  "description": "G0-B7-C4 — an immutable versioned evaluation corpus. Versions are append-only; additions create a new version.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "corpus_version_id",
+    "corpus_class",
+    "version",
+    "case_ids",
+    "created_at",
+    "content_hash"
+  ],
+  "properties": {
+    "corpus_version_id": {"type": "string", "minLength": 1},
+    "corpus_class": {
+      "type": "string",
+      "enum": [
+        "GOLDEN_PUBLIC", "GOLDEN_SYNTHETIC", "GOLDEN_HUMAN_REVIEWED",
+        "TENANT_PRIVATE_APPROVED", "ADVERSARIAL", "REGRESSION",
+        "SHADOW_PRODUCTION", "HOLDOUT"
+      ]
+    },
+    "version": {"type": "integer", "minimum": 1},
+    "parent_version_id": {"type": ["string", "null"]},
+    "case_ids": {"type": "array", "items": {"type": "string"}},
+    "split_membership": {
+      "type": "string",
+      "enum": ["TRAIN", "VALIDATION", "TEST", "UNASSIGNED"]
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "content_hash": {"type": "string", "minLength": 1},
+    "composition_report_ref": {"type": ["string", "null"]},
+    "holdout_linked": {"type": "array", "items": {"type": "string"}}
+  }
+}
