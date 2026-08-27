@@ -92,3 +92,26 @@ initial gates; no claim is made that they are empirically optimal.
 - **Live D2 model test: still outstanding** (no authorized model runtime
   configured; recorded as `BLOCKED_MODEL_RUNTIME` without fabricated results).
 - **Humanizer live bake-off: still outstanding** (same runtime block).
+
+## Post-repair resolution (after `G0-B7-REPAIR-01` + `G0-B7-D2-LIVE-BLOCKED`)
+
+| Finding | Status |
+|---|---|
+| P1-01 Humanizer disposition inconsistency | **RESOLVED** — ledger Batch 07 corrected to `CANDIDATE / DEFER_PENDING_LIVE_BAKEOFF`; Amendment 003 unchanged |
+| P1-02 Reality Lock conflates harness readiness with live bake-off | **RESOLVED** — lock splits `humanizer_bakeoff_harness_complete` vs `humanizer_live_bakeoff_complete`, `d2_harness_complete` vs `d2_live_model_run_complete` / `d2_live_humanizer_run_complete`, `ready_for_book8_architecture` vs `ready_for_book8_execution` |
+| P2-01 provisional thresholds | **RESOLVED / PROVISIONAL ACCEPTED** — labeled `PROVISIONAL_G0_DEFAULT`, recalibrate from `BOOK8_MEASURED_EVIDENCE`; retained as initial gates |
+
+### Live lanes
+
+| Lane | Result |
+|---|---|
+| D2 live model | **BLOCKED** (`BLOCKED_MODEL_RUNTIME`) — no authorized provider path in the governed G0 pipeline; no fabricated draft |
+| Humanizer live | **BLOCKED** (`BLOCKED_COMPONENT_RUNTIME`) — no transform runtime; no fabricated draft |
+| Humanizer disposition | **DEFER / CANDIDATE** (pending live baseline-vs-humanized comparison) |
+| Submission | `submission_enabled = false` (unchanged) |
+
+**External review status:** `EXTERNAL_REVIEW_REPAIR_COMPLETE` —
+`AWAITING_EXTERNAL_RATIFICATION`. External ratification is NOT claimed by
+this record; a human external reviewer must ratify before Book 8 execution
+is authorized. Note also that `ready_for_book8_execution = false` regardless
+(mission §20 condition 3 — live D2 model run — is not met).
