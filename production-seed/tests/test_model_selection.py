@@ -136,6 +136,18 @@ def test_no_fallback_without_opt_in():
     assert not result.ok
 
 
+def test_unknown_model_denied_not_treated_as_no_preference():
+    """Appendix A §9: an unregistered/misspelled model is DENIED — it
+    must never silently degrade into auto-selection."""
+    ctx = SelectionContext(task="grant_drafting",
+                           estimated_input_tokens=6000,
+                           expected_output_tokens=1500,
+                           long_form=True, user_model="not-a-model")
+    result = select_model(ctx, [_profile()])
+    assert result.selected is None
+    assert any("unknown model" in r for r in result.rejected_reasons)
+
+
 def test_auto_prefers_quality_then_cost():
     ctx = SelectionContext(task="grant_drafting",
                            estimated_input_tokens=1000,
