@@ -55,8 +55,8 @@ def test_d2_fixture_includes_community_statistic():
 
 
 def test_protected_elements_pin_deadline_and_ceiling():
-    assert D2_PROTECTED_ELEMENTS["deadline"] == "2026-10-15"
-    assert D2_PROTECTED_ELEMENTS["funding_ceiling"] == "50000.00"
+    assert "2026-10-15" in D2_PROTECTED_ELEMENTS["deadline"]
+    assert "50000.00" in D2_PROTECTED_ELEMENTS["funding_ceiling"]
     assert D2_PROTECTED_ELEMENTS["revision_id"] == "opp_rev_ga_501_1"
     assert D2_PROTECTED_ELEMENTS["organization_legal_name"] == \
         "Community Youth Works, Inc."

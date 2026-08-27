@@ -136,8 +136,8 @@ def calibration_report(agreements: list[dict]) -> dict:
     return {
         "sample_size": total,
         "agreement_rate": round(agree / total, 3),
-        "positional_bias": sum(1 for a in agreements
-                               if a.get("position_bias")) / total,
-        "verbosity_bias": sum(1 for a in agreements
-                              if a.get("verbosity_bias")) / total,
+        "positional_bias": round(sum(1 for a in agreements
+                                     if a.get("position_bias")) / total, 3),
+        "verbosity_bias": round(sum(1 for a in agreements
+                                    if a.get("verbosity_bias")) / total, 3),
     }
