@@ -1,9 +1,10 @@
-"""G1 Wave 1 — durable store.
+"""G1 Wave 1 — durable store (SQLite DEV_FAST_PATH).
 
-SQLite-backed implementation of the canonical tables from the migration
-seed (`migrations/001_initial_schema.sql`), used for dev/CI. The schema is
-portable; the Postgres adapter (G1.2 production) uses the same table
-layout and the same repository interface.
+TEST_ONLY / DEV_FAST_PATH implementation over the SQLite migration files
+(`migrations/*.sql`). Per G0-FINAL-REPAIR-01 this is explicitly NOT
+evidence of Postgres correctness: the canonical production migration path
+is `migrations/postgres/` (TIMESTAMPTZ/now()/jsonb), exercised by
+`tests/test_postgres_migration.py` against a real server.
 
 Repositories are thin: they persist the domain records and enforce
 tenant/project scope keys. They do NOT decide policy — authorization stays

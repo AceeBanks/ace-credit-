@@ -1,7 +1,6 @@
--- G1 Wave 3 — Hermes runtime tables, SQLite DEV_FAST_PATH (TEST_ONLY).
--- Dev/CI mirror of the canonical Postgres migration
--- migrations/postgres/002_hermes_runtime.sql. Not a production migration.
--- Append-only migration (never edit an applied migration).
+-- G0-FINAL-REPAIR-01 — Postgres Hermes runtime tables (production).
+-- Mirror of migrations/002_hermes_runtime.sql with Postgres primitives.
+-- Append-only; never edit an applied migration.
 
 CREATE TABLE IF NOT EXISTS conversations (
     conversation_id      TEXT PRIMARY KEY,
@@ -9,16 +8,16 @@ CREATE TABLE IF NOT EXISTS conversations (
     client_actor_id      TEXT NOT NULL,
     title                TEXT,
     project_id           TEXT REFERENCES application_projects(project_id),
-    created_at           TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS messages (
     message_id           TEXT PRIMARY KEY,
     conversation_id      TEXT NOT NULL REFERENCES conversations(conversation_id),
     tenant_id            TEXT NOT NULL REFERENCES tenants(tenant_id),
-    role                 TEXT NOT NULL,   -- user | personal_hermes
+    role                 TEXT NOT NULL,
     content              TEXT NOT NULL,
-    created_at           TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS intents (
@@ -33,8 +32,8 @@ CREATE TABLE IF NOT EXISTS intents (
     version              INTEGER NOT NULL DEFAULT 1,
     supersedes_intent_id TEXT,
     source_conversation_ref TEXT,
-    payload              TEXT,           -- JSON: full IntentContract payload
-    created_at           TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    payload              JSONB,
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS task_plans (
@@ -44,9 +43,9 @@ CREATE TABLE IF NOT EXISTS task_plans (
     project_id           TEXT REFERENCES application_projects(project_id),
     opportunity_revision_id TEXT REFERENCES opportunity_revisions(revision_id),
     objective            TEXT NOT NULL,
-    steps                TEXT,           -- JSON array of {step_id, capability}
+    steps                JSONB,
     state                TEXT NOT NULL DEFAULT 'PLANNED',
-    created_at           TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS worker_results (
@@ -57,10 +56,10 @@ CREATE TABLE IF NOT EXISTS worker_results (
     worker_principal     TEXT NOT NULL,
     capability_id        TEXT NOT NULL,
     summary              TEXT NOT NULL,
-    claims               TEXT,           -- JSON array of material claim entries
-    context_refs         TEXT,           -- JSON array of bounded context refs
-    model_ref            TEXT,           -- model run ref when model-backed (else NULL)
-    created_at           TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    claims               JSONB,
+    context_refs         JSONB,
+    model_ref            TEXT,
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
