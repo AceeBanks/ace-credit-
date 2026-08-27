@@ -70,3 +70,22 @@ no candidate becomes canonical truth without a ratified ADR + bake-off
 canonical + relational evidence/dependency tables**. Graph/vector systems
 remain projections, rebuildable from canonical evidence, never the system of
 record. Bake-off evidence: `G0_B5_SEMANTICA_BAKEOFF_RESULTS.json`.
+
+## Batch 07 — Book 7 (Humanizer amendment) decisions
+
+**Date:** 2026-08-26  **Book:** 7 (Evaluation, promotion & quality doctrine)
+
+| Component | Decision | Target Book(s) | Reason |
+|---|---|---|---|
+| blader/humanizer | ADOPT_BOUNDED (style-transform only) | 7,8 | Ratified by `G0_AMENDMENT_003_HUMANIZER_BOUNDED_STYLE_TRANSFORM_v1.0.md` as BOUNDED STYLE_TRANSFORM CANDIDATE under HZR-001..015. Prose transform only; never canonical facts/evidence; every output is a new ArtifactVersion; semantic comparison + protected-claim diff + factuality revalidation mandatory; evaluated baseline-vs-humanized; disposition via Book 7 promotion rules (REJECT/DEFER if no measurable improvement). |
+| Promptfoo | EVALUATE as adapter | 7 | Potential test/eval orchestration, red-team and model/prompt comparison helper; subordinate adapter behind project-owned EvalCase/EvalSuite contracts (EVAL-LAW-014). |
+| Guardrails | EVALUATE as adapter | 7 | Potential structured validation helper where its contracts fit; subordinate adapter only. |
+| Hermes archived Skill Eval Lab / SkillClaw / Hermes Dojo / Hermes Skill Factory / 42-evey plugins | Candidate generators/evaluators only | 7 | May generate candidates or detect weaknesses; may NOT self-promote or write directly into production skill paths (Amendment 002 §6, single promotion path). |
+| Compozy skill lifecycle | Conditional reference | 7 | Only if Compozy remains a runtime candidate; no wholesale self-evolution stack. |
+
+**Rule reaffirmed:** no external tool may bypass the single Book 7 promotion
+path (OBSERVED NEED → candidate → versioned eval corpus → baseline vs
+candidate → deterministic + security + cost checks → PROMOTE/REVISE/REJECT →
+monitored rollout → rollback). The project owns EvalCase, EvalCorpusVersion,
+EvalSuite, EvalRun, MetricBundle, CandidateChange, PromotionDecision,
+ReleaseCandidate and RollbackEvent.

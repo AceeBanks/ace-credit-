@@ -11,6 +11,7 @@ This register lists planning amendments that modify implementation priorities or
 |---|---|---|---|
 | `G0_BLUEPRINT_AMENDMENT_001_GEORGIA_FIRST_EARLY_DRAFTING.md` | ACTIVE | Books 1–4, 8 | Georgia-first state proof; D0/D1 early drafting milestones |
 | `G0_AMENDMENT_002_RUNTIME_AND_COMPONENT_BAKEOFF_DISCIPLINE_v1.0.md` | ACTIVE | Books 3,4,6,7,8,9 | Adds only bounded external component bake-offs; freezes anti-pollution/runtime-selection rules |
+| `G0_AMENDMENT_003_HUMANIZER_BOUNDED_STYLE_TRANSFORM_v1.0.md` | ACTIVE | Books 7,8 | Approves blader/humanizer as BOUNDED STYLE_TRANSFORM CANDIDATE only; freezes HZR-001..015 bounded-scope rules and the eval/promotion integration path |
 
 ## Amendment precedence
 
