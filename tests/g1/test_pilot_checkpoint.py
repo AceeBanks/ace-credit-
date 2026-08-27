@@ -59,6 +59,7 @@ def test_pilot_reports_open_issues_not_fake_green():
 def test_pilot_checkpoint_doc_records_stop():
     doc = (_ROOT / "docs" / "grant-sector" / "g1" /
            "G1_PILOT_CHECKPOINT.md").read_text(encoding="utf-8")
-    assert "stop boundary" in doc.lower()
-    assert "structurally disabled" in doc
-    assert "does not self-claim" in doc
+    flat = " ".join(doc.split())
+    assert "stop boundary" in flat.lower()
+    assert "structurally disabled" in flat
+    assert "does not self-claim" in flat
