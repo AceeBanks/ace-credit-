@@ -124,7 +124,7 @@ def _run(tag: str, answers, status, out_tag: str) -> dict:
     model_invoke, _gateway, counter = build_quality_model_invoke(MODEL_ID)
     print(f"[{tag}] LIVE run: {len(bp.sections)} sections, "
           f"budget {bp.word_limit_total()}w, answers="
-          f"{len(answers)}, model={MODEL_ID}")
+          f"{len(answers)}, model={MODEL_ID}", flush=True)
 
     factory = run_factory(
         project_id="proj-g1q",
@@ -352,16 +352,30 @@ def main() -> int:
               "(NOFO C.1/B.1)")
     answers = _client_answers()
 
-    # RUN 1 — no client answers: critical facts unresolved -> fail-closed
-    print("=" * 70)
-    run1 = _run("LIVE-01", (), status_new, "run1_blocked")
+    def _load_prior(out_tag: str) -> dict:
+        """Reuse the committed RUN1/RUN2 artifacts by default. Re-running
+        them needlessly would create duplicate live calls and rate-limit
+        pressure; --rerun-all remains available for a full reproduction."""
+        path = OUT_DIR / out_tag / "RUN_REPORT.json"
+        if not path.exists():
+            raise RuntimeError(f"missing prior benchmark artifact: {path}")
+        return json.loads(path.read_text(encoding="utf-8"))
 
-    # RUN 2 — controlled MOCK client answers resolve critical facts
-    print("=" * 70)
-    run2 = _run("LIVE-02", answers, status_new, "run2_resolved")
+    if "--rerun-all" in sys.argv:
+        # RUN 1 — no client answers: critical facts unresolved -> fail-closed
+        print("=" * 70, flush=True)
+        run1 = _run("LIVE-01", (), status_new, "run1_blocked")
+        # RUN 2 — controlled MOCK client answers resolve critical facts
+        print("=" * 70, flush=True)
+        run2 = _run("LIVE-02", answers, status_new, "run2_resolved")
+    else:
+        run1 = _load_prior("run1_blocked")
+        run2 = _load_prior("run2_resolved")
+        print("[LIVE-03] Reusing committed RUN1/RUN2 artifacts; use "
+              "--rerun-all for a full reproduction.", flush=True)
 
     # RUN 3 — integrity-hardened resolved run on the SAME benchmark
-    print("=" * 70)
+    print("=" * 70, flush=True)
     run3 = _run("LIVE-03", answers, status_new, "run3_integrity")
 
     comparison = {
