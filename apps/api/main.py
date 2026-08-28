@@ -165,49 +165,11 @@ def chat(body: ChatIn, store: Store = Depends(get_store),
         ("proj-1", conv, principal["tenant_id"]))
     store.conn.commit()
 
-    # --- Inline task execution (DEV/PILOT path) ---
-    # In production, workers would claim tasks via the durable kernel.
-    # For the local pilot, we execute the factory immediately and mark
-    # each task as SUCCEEDED so the frontend poll→produce flow triggers.
+    # Chat is FAST: intent -> plan -> durable tasks (READY). The factory
+    # runs in /produce (live, fail-closed); the client calls it next.
     ms = body.model_selection
     mode = ms.mode if ms else "AUTO"
     resolved = ms.model_id if ms and ms.mode == "MANUAL" else None
-    try:
-        # Resolve model invoke for live model path
-        model_invoke, resolved_id = _resolve_model_invoke(
-            ms, mode == "MANUAL")
-        if resolved_id:
-            resolved = resolved_id
-        # Run the full factory pipeline
-        tenant_id = principal["tenant_id"]
-        for task_id in exec_.task_ids:
-            store.claim_task(task_id, tenant_id, "WORKER")
-        factory = run_factory(
-            project_id="proj-1", model_invoke=model_invoke,
-            model_id=resolved)
-        # Persist artifacts
-        for kind, render in (("proposal_docx", factory.docx),
-                             ("proposal_pdf", factory.pdf)):
-            store.create_artifact(Artifact(
-                artifact_id=f"proj-1-{kind}",
-                artifact_version_id=render.artifact_version_id,
-                tenant_id=tenant_id, project_id="proj-1",
-                kind=kind, payload_ref=f"obj:proj-1/{kind}",
-                content_hash=render.content_hash, version_number=1))
-        # Mark all tasks as SUCCEEDED with result refs
-        for task_id in exec_.task_ids:
-            store.complete_task(
-                task_id, tenant_id, "WORKER",
-                f"ref:result:{task_id}")
-        # Store factory summary for produce endpoint
-        _FACTORY_CACHE["proj-1"] = factory
-    except Exception as exc:
-        # Mark tasks as FAILED so the frontend shows the error
-        for task_id in exec_.task_ids:
-            store.set_task_state(task_id, "FAILED",
-                                 worker="WORKER")
-        # Still return the reply so the user sees context
-        pass
 
     return ChatOut(conversation_id=conv, intent_id=reply.intent.intent_id,
                    reply=reply.text, plan_id=exec_.plan.plan_id,
@@ -245,35 +207,38 @@ class ProduceIn(BaseModel):
 
 
 def _resolve_model_invoke(body_model: ModelSelectionPayload | None,
-                          live_model_flag: bool
-                          ) -> tuple[Callable | None, str | None]:
+                          live_model_flag: bool = True
+                          ) -> tuple[Callable, str | None]:
     """Resolve the model invocation path from the client request.
-    Returns (model_invoke or None, resolved_model_id or None).
-    
-    Route logic:
-    - If live_model flag is True, route through the governed model gateway
-    - If model_selection.mode == 'MANUAL' and a model_id is given, route
-      through governed gateway with that specific model
-    - If model_selection.mode == 'AUTO' and live_model is True, use AUTO
-    - Otherwise: deterministic baseline (None)
+    Returns (model_invoke, resolved_model_id or None).
+
+    G1-QUALITY-01 routing (fail-closed):
+    - AUTO (default): governed auto-selection -> live model invoke.
+      NEVER silently falls back to the deterministic skeleton.
+    - MANUAL: validate model_id against the governed ModelRegistry
+      (deny-by-default), then live invoke.
+    - DETERMINISTIC: explicit DEV/TEST diagnostic lane only — returns a
+      None invoke. Never presented as a client deliverable.
+
+    If the governed runtime is unavailable for AUTO/MANUAL, raises 503
+    MODEL_CONFIGURATION_REQUIRED (fail closed, no fake output).
     """
     from grant_platform.model.registry import ModelRegistry
-    from grant_platform.model.selection import SelectionContext, select_model
 
-    use_live = live_model_flag
+    mode = (body_model.mode if body_model else "AUTO").upper()
     resolved_model_id: str | None = None
 
-    if body_model is not None and body_model.mode == "MANUAL" and body_model.model_id:
-        use_live = True
-        resolved_model_id = body_model.model_id
-    elif body_model is not None and body_model.mode == "AUTO" and live_model_flag:
-        use_live = True
-
-    if not use_live:
+    if mode == "DETERMINISTIC":
+        # Explicit dev/TEST diagnostic lane — clearly not a client deliverable.
         return None, None
 
-    # Validate MANUAL selection against governed registry
-    if resolved_model_id:
+    if mode == "MANUAL":
+        if not body_model or not body_model.model_id:
+            raise HTTPException(
+                status_code=422,
+                detail={"error": "manual_selection_incomplete",
+                        "message": "MANUAL mode requires model_id"})
+        resolved_model_id = body_model.model_id
         reg = ModelRegistry.load_default()
         try:
             profile = reg.get(resolved_model_id)
@@ -291,45 +256,84 @@ def _resolve_model_invoke(body_model: ModelSelectionPayload | None,
                         "model_id": resolved_model_id,
                         "message": f"Model '{resolved_model_id}' is "
                                    "disabled in the governed registry"})
+    elif mode == "AUTO":
+        # Governed auto-selection over eligible models (task: full proposal).
+        from grant_platform.model.selection import SelectionContext, select_model
+        reg = ModelRegistry.load_default()
+        ctx = SelectionContext(
+            task="grant_drafting", estimated_input_tokens=8000,
+            expected_output_tokens=2500, system_overhead_tokens=800,
+            long_form=True, user_model=None,
+            allow_fallback=bool(body_model.allow_fallback) if body_model else True)
+        result = select_model(ctx, reg.all())
+        if result.ok and result.selected is not None:
+            resolved_model_id = result.selected.model_id
+        # AUTO with no eligible model still proceeds through the governed
+        # gateway default profile — the gateway is authoritative.
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "unknown_selection_mode", "mode": mode,
+                    "allowed": ["AUTO", "MANUAL", "DETERMINISTIC"]})
 
-    # Attempt governed model invoke via the runtime tool
-    try:
-        from tools.g1.run_w4_live import build_governed_model_invoke
-        model_invoke, _gw, _c = build_governed_model_invoke()
-        return model_invoke, resolved_model_id
-    except Exception:
+    # Governed live model invoke — required for AUTO and MANUAL.
+    import os
+    if not os.environ.get("OPENROUTER_API_KEY"):
         raise HTTPException(
             status_code=503,
-            detail="governed model runtime unavailable; use live_model=false")
+            detail={"error": "MODEL_CONFIGURATION_REQUIRED",
+                    "message": "No governed model credential configured; "
+                               "live generation is required for client "
+                               "output. The deterministic skeleton is not a "
+                               "client deliverable."})
+    try:
+        from tools.g1.run_w4_live import build_governed_model_invoke
+        if resolved_model_id:
+            model_invoke, _gw, _c = build_governed_model_invoke(
+                model_id=resolved_model_id)
+        else:
+            model_invoke, _gw, _c = build_governed_model_invoke()
+        return model_invoke, resolved_model_id
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"error": "GENERATION_UNAVAILABLE",
+                    "message": f"Governed model runtime unavailable: {exc}"})
 
 
 @app.post("/projects/{project_id}/produce")
 def produce(project_id: str, body: ProduceIn,
             store: Store = Depends(get_store),
             principal: dict = Depends(require_principal)):
-    """Run the full Grant factory. Routes through governed model gateway
-    when live_model=True or a MANUAL model selection is provided.
-    Otherwise uses the honest deterministic lane (never faked as model
-    output). Uses cached factory from chat when available (no re-run)."""
-    # Always validate model selection (even with cached factory)
+    """Run the full Grant factory. AUTO/MANUAL route through the governed
+    live model (fail-closed). The deterministic skeleton runs ONLY when
+    explicitly requested (mode=DETERMINISTIC) as a dev/TEST diagnostic —
+    it is never presented as a client deliverable."""
     model_invoke, resolved_model_id = _resolve_model_invoke(
-        body.model_selection, body.live_model)
-    # Use cached factory from the chat flow if available (avoids re-running)
-    if project_id in _FACTORY_CACHE:
-        factory = _FACTORY_CACHE[project_id]
-    else:
-        factory = run_factory(project_id=project_id,
-                              model_invoke=model_invoke,
-                              model_id=resolved_model_id)
+        body.model_selection)
+    factory = run_factory(project_id=project_id,
+                          model_invoke=model_invoke,
+                          model_id=resolved_model_id)
+    tenant_id = principal["tenant_id"]
+    # Mark this run's durable tasks complete (claim -> succeed) so client
+    # progress derives from real backend work, never synthetic timers.
+    for t in store.tasks_for(tenant_id):
+        if t.get("project_id") == project_id and t["state"] in ("READY", "RUNNING"):
+            store.claim_task(t["task_id"], tenant_id, "WORKER")
+            store.complete_task(t["task_id"], tenant_id, "WORKER",
+                                f"ref:result:{t['task_id']}")
     # Always persist artifact metadata (idempotent INSERT OR REPLACE)
     for kind, render in (("proposal_docx", factory.docx),
                          ("proposal_pdf", factory.pdf)):
         store.create_artifact(Artifact(
             artifact_id=f"{project_id}-{kind}",
             artifact_version_id=render.artifact_version_id,
-            tenant_id=principal["tenant_id"], project_id=project_id,
+            tenant_id=tenant_id, project_id=project_id,
             kind=kind, payload_ref=f"obj:{project_id}/{kind}",
             content_hash=render.content_hash, version_number=1))
+    _FACTORY_CACHE[project_id] = factory
     return factory.summary()
 
 

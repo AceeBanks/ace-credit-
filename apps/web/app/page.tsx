@@ -82,30 +82,33 @@ export default function Home() {
     };
   }, [modelChoice]);
 
-  const poll = useCallback(async (project: string, convId: string) => {
-    try {
-      const p = await getProgress(project);
-      setProgress(p);
-      if (p.by_state.SUCCEEDED === p.task_count && p.task_count > 0) {
-        const ms = buildModelSelection();
+  // Live generation runs in /produce (governed live model, fail-closed).
+  // The client triggers it right after chat and polls progress while it runs.
+  const runGeneration = useCallback(
+    async (project: string, convId: string, ms: ModelSelection) => {
+      try {
         const s = await produce(project, ms.mode === "MANUAL", ms);
         setSummary(s);
-        const arts = await getDeliverables(project);
+        const [arts, p, msgs] = await Promise.all([
+          getDeliverables(project),
+          getProgress(project),
+          getMessages(convId),
+        ]);
         setDeliverables(arts);
-        const msgs = await getMessages(convId);
+        setProgress(p);
         setMessages(msgs);
+      } catch (e) {
+        setMessages((m) => [
+          ...m,
+          { message_id: `err-${Date.now()}`, role: "assistant",
+            content: `Generation failed: ${(e as Error).message}` },
+        ]);
+      } finally {
         setBusy(false);
-        return;
       }
-      if (busy) {
-        setTimeout(() => poll(project, convId), 1500);
-      }
-    } catch {
-      if (busy) {
-        setTimeout(() => poll(project, convId), 2000);
-      }
-    }
-  }, [busy, buildModelSelection]);
+    },
+    [],
+  );
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
@@ -150,7 +153,8 @@ export default function Home() {
       setModelSelectionMode(r.model_selection_mode);
       setMessages(await getMessages(r.conversation_id));
       getConversations().then(setConversations).catch(() => {});
-      setTimeout(() => poll(r.project_id, r.conversation_id), 800);
+      // Standard client flow: chat plans -> produce runs LIVE generation.
+      await runGeneration(r.project_id, r.conversation_id, ms);
     } catch (e) {
       setMessages((m) => [
         ...m,

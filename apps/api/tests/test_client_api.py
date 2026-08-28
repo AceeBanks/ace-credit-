@@ -75,10 +75,11 @@ def test_progress_from_durable_task_state(client):
 
 
 def test_produce_full_factory_package(client):
-    """Deterministic lane has UNKNOWN material claims (honest gaps),
-    so status is BLOCKED — never fake-ready."""
+    """Deterministic lane (explicit dev diagnostic) has UNKNOWN material
+    claims (honest gaps), so status is BLOCKED — never fake-ready."""
     r = client.post("/projects/proj-1/produce",
-                    json={"live_model": False}, headers=AUTH)
+                    json={"model_selection": {"mode": "DETERMINISTIC"}},
+                    headers=AUTH)
     assert r.status_code == 200
     data = r.json()
     # P0-02 fix: UNKNOWN material claims block READY status
@@ -93,7 +94,8 @@ def test_produce_full_factory_package(client):
 
 def test_deliverables_and_download(client):
     client.post("/projects/proj-1/produce",
-                json={"live_model": False}, headers=AUTH)
+                json={"model_selection": {"mode": "DETERMINISTIC"}},
+                headers=AUTH)
     r = client.get("/projects/proj-1/deliverables", headers=AUTH)
     assert r.status_code == 200
     kinds = {a["kind"] for a in r.json()["artifacts"]}
@@ -213,15 +215,31 @@ def test_manual_model_denied_when_disabled(client):
 
 
 def test_produce_with_model_selection(client):
-    """Produce endpoint accepts model_selection payload."""
+    """REGRESSION GATE (G1-QUALITY-01): standard AUTO flow MUST use the
+    governed live model. DETERMINISTIC_BASELINE is never acceptable as
+    successful client output for AUTO."""
     r = client.post("/projects/proj-1/produce",
-        json={"live_model": False,
-              "model_selection": {"mode": "AUTO", "allow_fallback": True}},
+        json={"model_selection": {"mode": "AUTO", "allow_fallback": True}},
         headers=AUTH)
     assert r.status_code == 200
     data = r.json()
+    assert data["generation_mode"] == "LIVE_MODEL"
+    assert data["generation_mode"] != "DETERMINISTIC_BASELINE"
     assert "readiness_state" in data
     assert "claim_counts" in data
+
+
+def test_auto_without_credential_fails_closed(client, monkeypatch):
+    """AUTO without a governed credential returns 503 MODEL_CONFIGURATION_
+    REQUIRED — never a silent deterministic skeleton."""
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    r = client.post("/projects/proj-1/produce",
+                    json={"model_selection": {"mode": "AUTO"}},
+                    headers=AUTH)
+    assert r.status_code == 503
+    detail = r.json()["detail"]
+    err = detail["error"] if isinstance(detail, dict) else str(detail)
+    assert err == "MODEL_CONFIGURATION_REQUIRED"
 
 
 # --- Conversations persistence -------------------------------------------
@@ -252,7 +270,8 @@ def test_conversations_tenant_scoped(client):
 def test_readiness_state_with_unknown_claims(client):
     """Deterministic lane with UNKNOWN claims must not be READY."""
     r = client.post("/projects/proj-1/produce",
-                    json={"live_model": False}, headers=AUTH)
+                    json={"model_selection": {"mode": "DETERMINISTIC"}},
+                    headers=AUTH)
     data = r.json()
     # NEVER READY when UNKNOWN material claims exist
     assert data["readiness_state"] != "READY_FOR_REVIEW"
