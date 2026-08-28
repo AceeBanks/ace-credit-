@@ -1,0 +1,151 @@
+{
+  "version": "G1-APP-READY-01",
+  "created_at": "2026-08-27T00:00:00Z",
+  "review_head": "bebdb80ddedb1fb650df4a0c1b31b3af64facdd8",
+  "branch": "grant-sector-g1-production",
+
+  "predicates": {
+    "frontend_build_pass": {
+      "status": "PASS",
+      "detail": "TypeScript compiles clean, Next.js production build succeeds",
+      "evidence": "npx tsc --noEmit exit 0; npx next build exit 0"
+    },
+    "api_tests_pass": {
+      "status": "PASS",
+      "detail": "21/21 API tests pass (model selection, attachments, security, chat)",
+      "count": 21
+    },
+    "g0_regression_pass": {
+      "status": "BLOCKED_NOT_RUN",
+      "detail": "1824 G0 tests — full run timed out in CI; spot-checked via production-seed",
+      "note": "production-seed 66/66 pass, 8 Postgres skipped"
+    },
+    "g1_regression_pass": {
+      "status": "PASS",
+      "detail": "6/6 G1 pilot checkpoint tests pass",
+      "count": 6
+    },
+    "model_selector_real": {
+      "status": "PASS",
+      "detail": "Frontend modelChoice transmitted to API via model_selection payload; backend validates against governed ModelRegistry; disabled/unknown models rejected with 422",
+      "tests": [
+        "test_model_selection_transmitted_via_chat",
+        "test_manual_model_denied_when_not_governed",
+        "test_manual_model_denied_when_disabled",
+        "test_produce_with_model_selection"
+      ]
+    },
+    "live_model_frontend_path_pass": {
+      "status": "PASS",
+      "detail": "Manual model selection routes through governed gateway; AUTO selection picks eligible model; both paths tested",
+      "note": "Runtime model gateway (tools.g1.run_w4_live) is environment-dependent; path validated at selection level"
+    },
+    "chat_history_persistent": {
+      "status": "PASS",
+      "detail": "GET /conversations returns persisted conversation list; click loads messages, project, progress, artifacts",
+      "tests": ["test_conversations_persist", "test_conversations_tenant_scoped"]
+    },
+    "attachments_pass": {
+      "status": "PASS",
+      "detail": "PDF/DOCX/TXT upload with MIME validation, size limit (10MB), tenant scoping, content parsing, object store",
+      "tests": [
+        "test_attachment_upload_txt",
+        "test_attachment_rejects_unsupported_mime",
+        "test_attachment_rejects_oversize",
+        "test_attachment_list_scoped_to_tenant"
+      ]
+    },
+    "task_progress_real": {
+      "status": "PASS",
+      "detail": "Browser progress derives from durable task state via GET /projects/{id}/progress; no synthetic timers",
+      "tests": ["test_progress_from_durable_task_state"]
+    },
+    "artifact_ids_dynamic": {
+      "status": "PASS",
+      "detail": "Frontend delivers list rendered from GET /projects/{id}/deliverables; no hardcoded proj-1 IDs in download links"
+    },
+    "claim_readiness_semantics_pass": {
+      "status": "PASS",
+      "detail": "UNKNOWN/QUESTION/ASSUMPTION material claims block READY_FOR_REVIEW status; QA_BLOCKED or NEEDS_CLIENT_INPUT returned",
+      "tests": [
+        "test_produce_full_factory_package",
+        "test_readiness_state_with_unknown_claims"
+      ]
+    },
+    "section_limit_enforcement_pass": {
+      "status": "PASS",
+      "detail": "Per-section word_limit compared against each section's own limit (not aggregate); aggregate checked separately"
+    },
+    "contract_derived_qa_pass": {
+      "status": "PASS",
+      "detail": "QA derives deadline, revision_id, terminology from OpportunityRevision/ApplicationBlueprint; no hardcoded fixture values in production path"
+    },
+    "longform_live_proposal_pass": {
+      "status": "NOT_DEMONSTRATED",
+      "detail": "Long-form live-model proposal not yet generated; current pilot uses deterministic baseline with honest UNKNOWN gaps"
+    },
+    "docx_pass": {
+      "status": "PASS",
+      "detail": "Real OOXML .docx output; valid ZIP with document.xml, styles.xml, footer1.xml",
+      "tests": ["test_docx_is_valid_ooxml_zip"]
+    },
+    "pdf_pass": {
+      "status": "PASS",
+      "detail": "Real PDF via reportlab; valid %PDF- header",
+      "tests": ["test_pdf_is_valid_pdf"]
+    },
+    "artifact_download_pass": {
+      "status": "PASS",
+      "detail": "GET /artifacts/{id}/download returns correct content-type and payload",
+      "tests": ["test_deliverables_and_download"]
+    },
+    "cross_tenant_denials_pass": {
+      "status": "PASS",
+      "detail": "Unknown principal returns 401; forged project_id returns empty tenant state (no data leak)",
+      "tests": [
+        "test_auth_required",
+        "test_unknown_principal_denied",
+        "test_forged_project_id_returns_empty_tenant_state"
+      ]
+    },
+    "submission_enabled": {
+      "status": false,
+      "detail": "Submission is structurally absent from all routes",
+      "tests": ["test_no_submission_route_exists"]
+    }
+  },
+
+  "test_totals": {
+    "api_tests": 21,
+    "production_seed_tests": 66,
+    "production_seed_skipped": 8,
+    "g1_pilot_tests": 6,
+    "total_passed": 93,
+    "total_skipped": 8,
+    "total_failed": 0
+  },
+
+  "status": "APP_READY_LOCAL_PILOT",
+  "production_ready": false,
+  "production_ready_reason": [
+    "Postgres integration BLOCKED_ENVIRONMENT (8 Postgres tests skipped)",
+    "Long-form live-model proposal not demonstrated",
+    "Auth is DEV_PRINCIPAL (X-Principal header), not session/JWT",
+    "Object store is local filesystem (S3 adapter not implemented)",
+    "Wave 6 production hardening not started"
+  ],
+
+  "open_defects": {
+    "P0": [],
+    "P1": [
+      "P1-02: Long-form 20-40 page capability not yet demonstrated",
+      "P1-05: Frontend-driven live-model path validated at selection level; full runtime invocation depends on environment",
+      "P1-06: Live Postgres integration remains BLOCKED_ENVIRONMENT"
+    ],
+    "P2": [
+      "Auth should be session/JWT (current X-Principal is DEV only)",
+      "Object store should be S3-compatible (currently local filesystem)",
+      "on_event lifecycle deprecated (FastAPI lifespan migration)"
+    ]
+  }
+}
