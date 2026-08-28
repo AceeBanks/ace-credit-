@@ -44,7 +44,8 @@ def _model_runtime_available() -> bool:
         return False
 
 
-def build_governed_model_invoke(model_id: str = "minimax/minimax-m3:free"):
+def build_governed_model_invoke(model_id: str =
+                                "nvidia/nemotron-3.5-lightning:free"):
     """Return model_invoke(bundle) -> str wired through the governed Model
     Gateway. Never exposes credentials; the gateway resolves them
     server-side (DEV_RUNTIME_ONLY)."""

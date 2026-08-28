@@ -90,7 +90,7 @@ def main() -> int:
     bp = build_blueprint_from_solicitation(profile)
     plans = build_section_plans(bp, fact_pack, profile)
 
-    model_id = "minimax/minimax-m3:free"
+    model_id = "nvidia/nemotron-3.5-lightning:free"
     model_invoke, gateway, counter = build_quality_model_invoke(model_id)
 
     print(f"Running LIVE quality benchmark: {len(bp.sections)} sections, "

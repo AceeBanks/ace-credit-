@@ -333,7 +333,7 @@ def _bundle(sec, plan, prompt: str) -> dict:
 
 
 def build_quality_model_invoke(model_id: str =
-                               "minimax/minimax-m3:free",
+                               "nvidia/nemotron-3.5-lightning:free",
                                *,
                                max_output_tokens: int = 4096,
                                tenant_id: str = "tenant-a",
