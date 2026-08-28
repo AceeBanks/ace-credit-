@@ -14,6 +14,26 @@ from grant_platform.model.selection import ModelProfile
 # OpenRouter remains the primary aggregation path; direct providers may be
 # added later. Free-tier pricing is NOT a production cost assumption.
 DEFAULT_PROFILES = [
+    ModelProfile(
+        model_id="z-ai/glm-5.2:free", provider_id="openrouter",
+        free_pool_approved=True, context_verified=True,
+        context_window_tokens=0, max_output_tokens=4096,
+        enabled=True, availability="BETA", supports_long_form=True,
+        supports_structured_output=True, supports_reasoning=True,
+        full_proposal_eligible=True, research_eligible=True, qa_eligible=True,
+        extraction_eligible=True, allowed_tasks=["grant_drafting", "full_proposal", "research", "qa", "extraction"],
+        minimum_context_headroom=2000, fallback_compatible=["thinkingmachines/inkling-small:free", "minimax/minimax-m3:free"],
+        cost_tier="LOW", latency_tier="UNRATED", quality_tier="UNRATED"),
+    ModelProfile(
+        model_id="thinkingmachines/inkling-small:free", provider_id="openrouter",
+        free_pool_approved=True, context_verified=True,
+        context_window_tokens=0, max_output_tokens=4096,
+        enabled=True, availability="BETA", supports_long_form=False,
+        supports_structured_output=True, supports_reasoning=True,
+        full_proposal_eligible=True, research_eligible=True, qa_eligible=True,
+        extraction_eligible=True, allowed_tasks=["grant_drafting", "full_proposal", "research", "qa", "extraction"],
+        minimum_context_headroom=2000, fallback_compatible=["minimax/minimax-m3:free"],
+        cost_tier="LOW", latency_tier="UNRATED", quality_tier="UNRATED"),
     # Default drafting model (G1-QUALITY): registered first so the AUTO
     # selection engine's stable tie-break prefers it among equal
     # quality/cost profiles. nemotron-3-super-120b replaces
@@ -29,8 +49,8 @@ DEFAULT_PROFILES = [
         allowed_tasks=["grant_drafting", "full_proposal", "research",
                        "qa", "extraction"],
         minimum_context_headroom=2_000,
-        fallback_compatible=["minimax/minimax-m3:free",
-                             "deepseek/deepseek-chat-v3-0324:free"],
+        free_pool_approved=False,
+        fallback_compatible=[],
         cost_tier="LOW", latency_tier="FAST", quality_tier="MEDIUM"),
     ModelProfile(
         model_id="nvidia/nemotron-3.5-lightning:free", provider_id="openrouter",
@@ -41,10 +61,12 @@ DEFAULT_PROFILES = [
         allowed_tasks=["grant_drafting", "full_proposal", "research",
                        "qa", "extraction"],
         minimum_context_headroom=2_000,
-        fallback_compatible=["nvidia/nemotron-3-super-120b-a12b:free"],
+        free_pool_approved=False,
+        fallback_compatible=[],
         cost_tier="LOW", latency_tier="FAST", quality_tier="MEDIUM"),
     ModelProfile(
         model_id="minimax/minimax-m3:free", provider_id="openrouter",
+        free_pool_approved=True, context_verified=True,
         context_window_tokens=245_000, max_output_tokens=4_096,
         enabled=True, availability="BETA",
         full_proposal_eligible=True, research_eligible=True,
@@ -52,7 +74,7 @@ DEFAULT_PROFILES = [
         allowed_tasks=["grant_drafting", "full_proposal", "research",
                        "extraction"],
         minimum_context_headroom=2_000,
-        fallback_compatible=["deepseek/deepseek-chat-v3-0324:free"],
+        fallback_compatible=[],
         cost_tier="LOW", latency_tier="MEDIUM", quality_tier="MEDIUM"),
     ModelProfile(
         model_id="deepseek/deepseek-chat-v3-0324:free", provider_id="openrouter",
@@ -63,7 +85,8 @@ DEFAULT_PROFILES = [
         allowed_tasks=["grant_drafting", "full_proposal", "research",
                        "qa", "extraction"],
         minimum_context_headroom=2_000,
-        fallback_compatible=["minimax/minimax-m3:free"],
+        free_pool_approved=False,
+        fallback_compatible=[],
         cost_tier="LOW", latency_tier="MEDIUM", quality_tier="MEDIUM"),
     ModelProfile(
         model_id="anthropic/claude-3.5-sonnet", provider_id="openrouter",

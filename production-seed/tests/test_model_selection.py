@@ -148,6 +148,29 @@ def test_unknown_model_denied_not_treated_as_no_preference():
     assert any("unknown model" in r for r in result.rejected_reasons)
 
 
+def test_auto_prefers_approved_glm_free_pool():
+    ctx = SelectionContext(task="grant_drafting", estimated_input_tokens=1000,
+                           expected_output_tokens=500)
+    result = select_model(ctx, [
+        _profile(model_id="minimax/minimax-m3:free", free_pool_approved=True,
+                 context_verified=True),
+        _profile(model_id="z-ai/glm-5.2:free", free_pool_approved=True,
+                 context_verified=True),
+        _profile(model_id="openrouter/free", free_pool_approved=False,
+                 context_verified=True),
+    ])
+    assert result.selected.model_id == "z-ai/glm-5.2:free"
+
+
+def test_unapproved_free_model_is_never_selected():
+    ctx = SelectionContext(task="grant_drafting", estimated_input_tokens=1000,
+                           expected_output_tokens=500)
+    result = select_model(ctx, [_profile(model_id="random/free:free",
+                                         context_verified=True)])
+    assert not result.ok
+    assert any("not in approved pool" in r for r in result.rejected_reasons)
+
+
 def test_auto_prefers_quality_then_cost():
     ctx = SelectionContext(task="grant_drafting",
                            estimated_input_tokens=1000,

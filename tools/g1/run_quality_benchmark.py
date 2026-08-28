@@ -40,7 +40,7 @@ from grant_platform.factory.solicitation import (  # noqa: E402
     coverage_matrix)
 
 OUT_DIR = _ROOT / "docs" / "grant-sector" / "g1" / "quality-live"
-MODEL_ID = "nvidia/nemotron-3-super-120b-a12b:free"
+MODEL_ID = "z-ai/glm-5.2:free"
 AS_OF = date(2026, 2, 27)   # application as-of = solicitation deadline
 
 # Research pack — normalized official provenance (mission §18-§20).

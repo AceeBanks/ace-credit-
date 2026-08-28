@@ -27,6 +27,14 @@ class ModelProfile:
     provider_id: str
     context_window_tokens: int
     max_output_tokens: int
+    free_pool_approved: bool = False
+    context_verified: bool = False
+    supports_structured_output: bool = False
+    supports_long_form: bool = False
+    supports_reasoning: bool = False
+    observed_latency_ms: int | None = None
+    observed_failure_rate: float | None = None
+    last_verified_at: str | None = None
     enabled: bool = True
     availability: str = "ENABLED"      # ENABLED | BETA | DISABLED
     full_proposal_eligible: bool = False
@@ -145,20 +153,32 @@ def _select_preferred(ctx: SelectionContext, profiles: list[ModelProfile],
 
 def _select_auto(ctx: SelectionContext,
                  profiles: list[ModelProfile]) -> SelectionResult:
-    """Auto: score ALL eligible candidates, prefer quality then cost for
-    the task."""
+    """Auto: score only the governed approved free pool when selecting
+    free models; never discover or route through a generic free router."""
     required = _required_context(ctx)
     eligible = []
     all_reasons: list[str] = []
     for p in profiles:
+        if p.model_id.endswith(":free") and not p.free_pool_approved:
+            all_reasons.append(f"free model {p.model_id} not in approved pool")
+            continue
+        if p.model_id.endswith(":free") and not p.context_verified:
+            all_reasons.append(f"model {p.model_id} context unverified")
+            continue
         reasons = _reject_reasons(p, ctx, required)
         if not reasons:
             eligible.append(p)
         else:
             all_reasons.extend(reasons)
     if eligible:
+        approved_order = {
+            "z-ai/glm-5.2:free": 3,
+            "thinkingmachines/inkling-small:free": 2,
+            "minimax/minimax-m3:free": 1,
+        }
         ordered = sorted(eligible,
-                         key=lambda p: (_TASK_QUALITY(p, ctx.task),
+                         key=lambda p: (approved_order.get(p.model_id, 0),
+                                        _TASK_QUALITY(p, ctx.task),
                                         _COST_SCORE(p)),
                          reverse=True)
         return SelectionResult(selected=ordered[0])
