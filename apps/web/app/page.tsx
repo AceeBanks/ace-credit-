@@ -240,8 +240,14 @@ export default function Home() {
           )}
           {deliverables.map((a) => (
             <a key={a.artifact_id} href={downloadUrl(a.artifact_id)}
-               className="rounded px-2 py-1 hover:bg-surface-border">
-              {a.kind.replace("proposal_", "Proposal ").replace("_", " ")}
+               target={a.kind === "proposal_pdf" ? "_blank" : undefined}
+               rel={a.kind === "proposal_pdf" ? "noopener noreferrer" : undefined}
+               className="rounded px-2 py-1 hover:bg-surface-border flex items-center gap-1.5">
+              <span>{a.kind === "proposal_pdf" ? "📄" : "📝"}</span>
+              <span>{a.kind.replace("proposal_", "Proposal ").replace("_", " ")}</span>
+              <span className="text-gray-500 text-xs ml-auto">
+                {a.kind === "proposal_pdf" ? "view" : "download"}
+              </span>
             </a>
           ))}
         </div>
@@ -331,8 +337,10 @@ export default function Home() {
                 {deliverables.map((a) => (
                   <a key={a.artifact_id}
                      href={downloadUrl(a.artifact_id)}
+                     target={a.kind === "proposal_pdf" ? "_blank" : undefined}
+                     rel={a.kind === "proposal_pdf" ? "noopener noreferrer" : undefined}
                      className="rounded bg-accent px-3 py-1.5 font-medium text-black">
-                    {a.kind === "proposal_docx" ? "DOCX" : "PDF"}
+                    {a.kind === "proposal_docx" ? "📥 DOCX" : "📄 View PDF"}
                   </a>
                 ))}
               </div>

@@ -98,14 +98,16 @@ def test_deliverables_and_download(client):
     assert r.status_code == 200
     kinds = {a["kind"] for a in r.json()["artifacts"]}
     assert {"proposal_docx", "proposal_pdf"} <= kinds
-    # DOCX download
+    # DOCX download — triggers file download
     d = client.get("/artifacts/proj-1-proposal_docx/download", headers=AUTH)
     assert d.status_code == 200
     assert d.content[:2] == b"PK"          # OOXML zip
-    # PDF download
+    assert "attachment" in d.headers.get("content-disposition", "")
+    # PDF — opens inline in browser for viewing
     p = client.get("/artifacts/proj-1-proposal_pdf/download", headers=AUTH)
     assert p.status_code == 200
     assert p.content[:5] == b"%PDF-"
+    assert "inline" in p.headers.get("content-disposition", "")
 
 
 def test_model_registry_and_governed_selection(client):

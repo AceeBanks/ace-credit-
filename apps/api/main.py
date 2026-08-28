@@ -343,24 +343,40 @@ def deliverables(project_id: str, store: Store = Depends(get_store),
 @app.get("/artifacts/{artifact_id}/download")
 def download(artifact_id: str, store: Store = Depends(get_store),
              principal: dict = Depends(require_principal)):
-    """Regenerate the requested artifact payload (DOCX/PDF) on demand.
-    Payloads are derivable from the durable draft; this is the dev/CI
-    object-store stand-in (S3 adapter is G1.10)."""
-    rows = [a for a in store.artifacts_for("proj-1")
-            if a["artifact_id"] == artifact_id]
+    """Serve artifact payload (DOCX/PDF) on demand.
+    Uses cached factory from chat when available (avoids re-running).
+    PDF opens inline in browser; DOCX triggers download."""
+    # Find artifact in any project for this tenant
+    tenant_id = principal["tenant_id"]
+    rows = []
+    for pid in ["proj-1"]:
+        rows = [a for a in store.artifacts_for(pid)
+                if a["artifact_id"] == artifact_id]
+        if rows:
+            break
     if not rows:
         raise HTTPException(status_code=404, detail="unknown artifact")
+    project_id = rows[0]["project_id"]
     kind = rows[0]["kind"]
-    factory = run_factory(project_id="proj-1")
+    # Use cached factory if available, otherwise regenerate
+    if project_id in _FACTORY_CACHE:
+        factory = _FACTORY_CACHE[project_id]
+    else:
+        factory = run_factory(project_id=project_id)
     payload = factory.docx.payload if kind == "proposal_docx" \
         else factory.pdf.payload
+    if not payload:
+        raise HTTPException(status_code=404, detail="artifact payload empty")
+    is_docx = kind == "proposal_docx"
     media = ("application/vnd.openxmlformats-officedocument."
-             "wordprocessingml.document" if kind == "proposal_docx"
+             "wordprocessingml.document" if is_docx
              else "application/pdf")
+    ext = "docx" if is_docx else "pdf"
+    # PDF: inline for browser viewing; DOCX: attachment for download
+    disposition = f'attachment; filename="{project_id}-{kind}.{ext}"' \
+        if is_docx else f'inline; filename="{project_id}-{kind}.{ext}"'
     return Response(content=payload, media_type=media,
-                    headers={"Content-Disposition":
-                             f'attachment; filename="{artifact_id}.'
-                             f'{"docx" if kind == "proposal_docx" else "pdf"}"'})
+                    headers={"Content-Disposition": disposition})
 
 
 @app.get("/conversations")
