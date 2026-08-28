@@ -1,282 +1,45 @@
 {
-  "generated_at": "2026-08-28T11:31:16.405854+00:00",
-  "solicitation": {
-    "funder": "Georgia Commission for Service and Volunteerism (Georgia Serves) / AmeriCorps",
-    "title": "Fiscal Year 2026 AmeriCorps State and National \u2014 Georgia Formula Grant",
-    "source_url": "https://dca.georgia.gov/document/document/georgia-notice-funding-opportunity-2026/download",
-    "document_path": "docs/grant-sector/g1/solicitations/ga_dca_nofp_2026.pdf",
-    "sha256": "2da45a4c24a5cc483f329e926a70bf5e54fff0bc6c23f9610f282c07d955e8cb",
-    "deadline": "February 27, 2026 3:00 PM EST",
-    "narrative_page_limit": 11
+  "generated_at": "2026-08-28T12:41:08.619097+00:00",
+  "note": "QUALITY_CANDIDATE_01 (7c668daa) remains the pre-integrity adversarial artifact; runs below are the integrity-hardened candidates (mission \u00a71, \u00a736).",
+  "candidate_01_reference": {
+    "commit": "7c668daa",
+    "words": 3023,
+    "pdf_pages": 7,
+    "claims_ledger": 4,
+    "coverage_pct": 100.0,
+    "readiness": "READY_FOR_REVIEW (invalid \u2014 see P0-01..P0-05)"
   },
-  "requirements_count": 12,
-  "scoring_criteria_count": 14,
-  "scoring_total_points": 100,
-  "organization": {
-    "label": "MOCK_EVALUATION_ORGANIZATION",
-    "legal_name": "Rural Georgia Youth Development Coalition, Inc.",
-    "fact_count": 26,
-    "missing_critical": [
+  "run1_blocked": {
+    "run_id": "g1-integrity-LIVE-01-2026-08-28T12:20:43.523998+00:00",
+    "words": 4293,
+    "pdf_pages": 10,
+    "coverage_pct": 83.3,
+    "claims_total": 57,
+    "claims_supported": 23,
+    "claims_unsupported": 34,
+    "critical_gaps": [
       "member_dosage",
       "prior_americorps"
     ],
-    "client_questions": []
+    "temporal_conflicts": 1,
+    "numeric_conflicts": 10,
+    "readiness": "NEEDS_CLIENT_INPUT",
+    "model_calls": 21,
+    "revisions": 2
   },
-  "research_sources": [
-    "2020-2024 ACS 5-year via USAFacts/Census).",
-    "USAFacts summarizing Census ACS, https://usafacts.org",
-    "Data USA, https://datausa.io/profile/geo/dade-county-ga",
-    "U.S. Census Bureau QuickFacts,",
-    "2020-2024),",
-    "U.S. Census Bureau QuickFacts; Census Reporter",
-    "context: applicant fact pack service-area records"
-  ],
-  "sections": {
-    "executive_summary": {
-      "title": "Executive Summary",
-      "words": 188,
-      "mode": "LIVE_MODEL",
-      "target_range": [
-        160,
-        200
-      ],
-      "criterion": "exec_summary",
-      "points": 0
-    },
-    "program_design": {
-      "title": "Community and Logic Model & Evidence Base (Tier and Quality) & Notice Priority & Member Experience",
-      "words": 1122,
-      "mode": "LIVE_MODEL",
-      "target_range": [
-        982,
-        1512
-      ],
-      "criterion": "program_design.community_logic_model, program_design.evidence_tier, program_design.notice_priority, program_design.member_experience",
-      "points": 50
-    },
-    "organizational_capability": {
-      "title": "Organizational Background and Staffing & Member Supervision",
-      "words": 683,
-      "mode": "LIVE_MODEL",
-      "target_range": [
-        491,
-        756
-      ],
-      "criterion": "org_capability.background_staffing, org_capability.member_supervision",
-      "points": 25
-    },
-    "cost_effectiveness": {
-      "title": "Member Recruitment & Member Retention & Data Collection & Budget Adequacy",
-      "words": 763,
-      "mode": "LIVE_MODEL",
-      "target_range": [
-        491,
-        756
-      ],
-      "criterion": "cost_effect.recruitment, cost_effect.retention, cost_effect.data_collection, cost_effect.budget_adequacy",
-      "points": 25
-    },
-    "evaluation_summary": {
-      "title": "Evaluation Summary/Plan",
-      "words": 22,
-      "mode": "LIVE_MODEL",
-      "target_range": [
-        60,
-        40
-      ],
-      "criterion": "unscored",
-      "points": 0
-    }
-  },
-  "requirement_coverage": [
-    {
-      "requirement_id": "req.exec_summary",
-      "title": "Executive Summary",
-      "section": "executive_summary",
-      "criterion": "exec_summary",
-      "points": 0,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.a, p.19"
-    },
-    {
-      "requirement_id": "req.community_logic_model",
-      "title": "Community and Logic Model",
-      "section": "program_design",
-      "criterion": "program_design.community_logic_model",
-      "points": 20,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.b.1, p.19-20"
-    },
-    {
-      "requirement_id": "req.evidence_base",
-      "title": "Evidence Base (Tier and Quality)",
-      "section": "program_design",
-      "criterion": "program_design.evidence_tier",
-      "points": 20,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.b.2, p.20-21"
-    },
-    {
-      "requirement_id": "req.notice_priority",
-      "title": "Notice Priority",
-      "section": "program_design",
-      "criterion": "program_design.notice_priority",
-      "points": 4,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.b.3, p.21"
-    },
-    {
-      "requirement_id": "req.member_experience",
-      "title": "Member Experience",
-      "section": "program_design",
-      "criterion": "program_design.member_experience",
-      "points": 6,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.b.4, p.21"
-    },
-    {
-      "requirement_id": "req.org_background_staffing",
-      "title": "Organizational Background and Staffing",
-      "section": "organizational_capability",
-      "criterion": "org_capability.background_staffing",
-      "points": 15,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.c.1, p.21"
-    },
-    {
-      "requirement_id": "req.member_supervision",
-      "title": "Member Supervision",
-      "section": "organizational_capability",
-      "criterion": "org_capability.member_supervision",
-      "points": 10,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.c.2, p.21"
-    },
-    {
-      "requirement_id": "req.member_recruitment",
-      "title": "Member Recruitment",
-      "section": "cost_effectiveness",
-      "criterion": "cost_effect.recruitment",
-      "points": 5,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.d.1, p.22"
-    },
-    {
-      "requirement_id": "req.member_retention",
-      "title": "Member Retention",
-      "section": "cost_effectiveness",
-      "criterion": "cost_effect.retention",
-      "points": 5,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.d.2, p.22"
-    },
-    {
-      "requirement_id": "req.data_collection",
-      "title": "Data Collection",
-      "section": "cost_effectiveness",
-      "criterion": "cost_effect.data_collection",
-      "points": 5,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.d.3, p.22"
-    },
-    {
-      "requirement_id": "req.budget_adequacy",
-      "title": "Budget Adequacy",
-      "section": "cost_effectiveness",
-      "criterion": "cost_effect.budget_adequacy",
-      "points": 10,
-      "covered": true,
-      "status": "COVERED",
-      "locator": "NOFO E.1.d.4, p.22"
-    },
-    {
-      "requirement_id": "req.evaluation_summary",
-      "title": "Evaluation Summary/Plan",
-      "covered": true,
-      "status": "NOT_APPLICABLE",
-      "note": "N/A per NOFO for new applicants"
-    }
-  ],
-  "depth_classification": {
-    "executive_summary": "ADEQUATE",
-    "program_design": "ADEQUATE",
-    "organizational_capability": "ADEQUATE",
-    "cost_effectiveness": "DEEP",
-    "evaluation_summary": "UNDERDEVELOPED"
-  },
-  "requirement_coverage_pct": 100.0,
-  "words_total": 2778,
-  "docx_pages_reported": 5,
-  "pdf_pages_actual": 6,
-  "model": {
-    "provider": "openrouter",
-    "model_id": "minimax/minimax-m3:free",
-    "calls": 10
-  },
-  "draft_passes": 11,
-  "revision_count": 1,
-  "material_claims": 4,
-  "claim_counts": {
-    "CANONICAL_FACT": 4
-  },
-  "unsupported": 0,
-  "readiness_state": "READY_FOR_REVIEW",
-  "status": "SUBMISSION_READY_MOCK",
-  "qa_gates": [
-    {
-      "gate": "all_sections_drafted",
-      "status": "PASS",
-      "detail": "all 5 sections drafted"
-    },
-    {
-      "gate": "word_limits_satisfied",
-      "status": "PASS",
-      "detail": "all 5 sections within per-section limits"
-    },
-    {
-      "gate": "budget_within_ceiling",
-      "status": "PASS",
-      "detail": "total 180145.00 vs ceiling 182400.00"
-    },
-    {
-      "gate": "deadline_correct",
-      "status": "PASS",
-      "detail": "solicitation deadline February 27, 2026 3:00 PM EST bound to blueprint"
-    },
-    {
-      "gate": "revision_correct",
-      "status": "PASS",
-      "detail": "revision ga_dca_nofp_2026 tracked in provenance, not prose"
-    },
-    {
-      "gate": "required_terminology",
-      "status": "PASS",
-      "detail": "all required terminology present"
-    },
-    {
-      "gate": "no_unsupported_material_claims",
-      "status": "PASS",
-      "detail": "0 unresolved material claim(s) remain"
-    },
-    {
-      "gate": "no_fabricated_partnerships",
-      "status": "PASS",
-      "detail": "no partnership assertions without evidence"
-    },
-    {
-      "gate": "submission_disabled",
-      "status": "PASS",
-      "detail": "submission structurally disabled"
-    }
-  ]
+  "run2_resolved": {
+    "run_id": "g1-integrity-LIVE-02-2026-08-28T12:32:13.667001+00:00",
+    "words": 2858,
+    "pdf_pages": 7,
+    "coverage_pct": 91.7,
+    "claims_total": 51,
+    "claims_supported": 20,
+    "claims_unsupported": 31,
+    "critical_gaps": [],
+    "temporal_conflicts": 0,
+    "numeric_conflicts": 23,
+    "readiness": "QA_BLOCKED",
+    "model_calls": 13,
+    "revisions": 1
+  }
 }

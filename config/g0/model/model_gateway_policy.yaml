@@ -58,6 +58,8 @@ provider_profiles:
       - "openrouter/free"  # free-tier router; zero-credit smoke/D2 lane
       - "z-ai/glm-5.2:free"  # pinned free model: attributable, reproducible
       - "minimax/minimax-m3:free"  # pinned free model; verified responsive
+      - "nvidia/nemotron-3.5-lightning:free"  # approved; upstream free lane 404ing 2026-08-28
+      - "nvidia/nemotron-3-super-120b-a12b:free"  # pinned free model; AUTO default (verified live)
     allowed_capabilities:
       - model.invoke
     allowed_purposes:

@@ -164,7 +164,7 @@ def build_mock_fact_pack() -> OrganizationFactPack:
     pack.add(A("match_ability", "financial", "match_capacity",
                "Board-committed cash match of $39,600/yr plus in-kind space "
                "valued at $18,000/yr — covers 24% match requirement",
-               "Mock board resolution 2026-03", "VERIFIED",
+               "Mock board resolution 2025-11-18", "VERIFIED",
                "CLIENT_ASSERTION"))
     pack.add(A("funding_history", "financial", "funding_history",
                ("21st CCLC (2019-2024)", "Schafer Family Foundation "

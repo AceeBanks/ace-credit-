@@ -16,9 +16,12 @@ from grant_platform.model.selection import ModelProfile
 DEFAULT_PROFILES = [
     # Default drafting model (G1-QUALITY): registered first so the AUTO
     # selection engine's stable tie-break prefers it among equal
-    # quality/cost profiles.
+    # quality/cost profiles. nemotron-3-super-120b replaces
+    # nemotron-3.5-lightning as default: lightning's upstream free lane
+    # currently 404s at the provider (verified 2026-08-28); it stays
+    # registered below for manual selection once Nvidia restores it.
     ModelProfile(
-        model_id="nvidia/nemotron-3.5-lightning:free", provider_id="openrouter",
+        model_id="nvidia/nemotron-3-super-120b-a12b:free", provider_id="openrouter",
         context_window_tokens=128_000, max_output_tokens=4_096,
         enabled=True, availability="BETA",
         full_proposal_eligible=True, research_eligible=True,
@@ -28,6 +31,17 @@ DEFAULT_PROFILES = [
         minimum_context_headroom=2_000,
         fallback_compatible=["minimax/minimax-m3:free",
                              "deepseek/deepseek-chat-v3-0324:free"],
+        cost_tier="LOW", latency_tier="FAST", quality_tier="MEDIUM"),
+    ModelProfile(
+        model_id="nvidia/nemotron-3.5-lightning:free", provider_id="openrouter",
+        context_window_tokens=128_000, max_output_tokens=4_096,
+        enabled=True, availability="BETA",
+        full_proposal_eligible=True, research_eligible=True,
+        qa_eligible=True, humanizer_eligible=False, extraction_eligible=True,
+        allowed_tasks=["grant_drafting", "full_proposal", "research",
+                       "qa", "extraction"],
+        minimum_context_headroom=2_000,
+        fallback_compatible=["nvidia/nemotron-3-super-120b-a12b:free"],
         cost_tier="LOW", latency_tier="FAST", quality_tier="MEDIUM"),
     ModelProfile(
         model_id="minimax/minimax-m3:free", provider_id="openrouter",

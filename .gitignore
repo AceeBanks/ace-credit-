@@ -114,3 +114,6 @@ argo-ref/
 
 # scoped bake-off dependencies (B5.C13); never committed
 .bakeoff/
+
+# grant-platform runtime scratch: integrity-bench logs + solicitation attachment blobs
+var/

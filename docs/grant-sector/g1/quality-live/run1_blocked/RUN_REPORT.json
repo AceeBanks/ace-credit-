@@ -1,0 +1,639 @@
+{
+  "run_identity": {
+    "run_id": "g1-integrity-LIVE-01-2026-08-28T12:20:43.523998+00:00",
+    "commit_sha": "b21b0b94bf7144fc4dbab36b6fcfcd7e5fd63f34",
+    "solicitation_sha256": "2da45a4c24a5cc483f329e926a70bf5e54fff0bc6c23f9610f282c07d955e8cb",
+    "model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "as_of": "2026-02-27",
+    "executed_at": "2026-08-28T12:20:43.556660+00:00"
+  },
+  "artifact_hashes": {
+    "docx": "0bbf8789dc8de4f6",
+    "pdf": "52329a05ce9bd071"
+  },
+  "artifact_label": "DRAFT_BLOCKED",
+  "solicitation": {
+    "funder": "Georgia Commission for Service and Volunteerism (Georgia Serves) / AmeriCorps",
+    "title": "Fiscal Year 2026 AmeriCorps State and National \u2014 Georgia Formula Grant",
+    "source_url": "https://dca.georgia.gov/document/document/georgia-notice-funding-opportunity-2026/download",
+    "sha256": "2da45a4c24a5cc483f329e926a70bf5e54fff0bc6c23f9610f282c07d955e8cb",
+    "deadline": "February 27, 2026 3:00 PM EST",
+    "narrative_page_limit": 11
+  },
+  "requirements_count": 12,
+  "scoring_criteria_count": 14,
+  "research_sources": [
+    {
+      "source_id": "census_quickfacts_dade",
+      "publisher": "U.S. Census Bureau",
+      "dataset": "QuickFacts ACS 5-year 2020-2024",
+      "official_url": "https://www.census.gov/quickfacts/dadecountygeorgia",
+      "retrieval_date": "2026-08-28",
+      "observation_period": "2020-2024",
+      "geography": "Dade County, GA",
+      "locator": "INC910224 / PEPTADR",
+      "authority_tier": "OFFICIAL_PRIMARY"
+    },
+    {
+      "source_id": "census_acs5_child_poverty_walker",
+      "publisher": "U.S. Census Bureau (ACS 5-year)",
+      "dataset": "Child poverty rate, under 18",
+      "official_url": "https://www.census.gov/programs-surveys/acs",
+      "retrieval_date": "2026-08-28",
+      "observation_period": "2020-2024",
+      "geography": "Walker County, GA",
+      "locator": "table S1701",
+      "authority_tier": "OFFICIAL_PRIMARY"
+    },
+    {
+      "source_id": "gadoe_grad_rates",
+      "publisher": "Georgia Department of Education",
+      "dataset": "Cohort graduation rates (district comparison baseline)",
+      "official_url": "https://www.gadoe.org",
+      "retrieval_date": "2026-08-28",
+      "observation_period": "2024-25",
+      "geography": "Walker / Dade / Catoosa counties, GA",
+      "locator": "CCRPI graduation data",
+      "authority_tier": "OFFICIAL_PRIMARY"
+    }
+  ],
+  "organization": {
+    "label": "MOCK_EVALUATION_ORGANIZATION",
+    "fact_count": 26,
+    "applicant_status": "FORMULA_NEW"
+  },
+  "sections": {
+    "executive_summary": {
+      "title": "Executive Summary",
+      "words": 2366,
+      "target_range": [
+        160,
+        200
+      ]
+    },
+    "program_design": {
+      "title": "Community and Logic Model & Evidence Base (Tier and Quality) & Notice Priority & Member Experience",
+      "words": 1123,
+      "target_range": [
+        982,
+        1512
+      ]
+    },
+    "organizational_capability": {
+      "title": "Organizational Background and Staffing & Member Supervision",
+      "words": 0,
+      "target_range": [
+        491,
+        756
+      ]
+    },
+    "cost_effectiveness": {
+      "title": "Member Recruitment & Member Retention & Data Collection & Budget Adequacy",
+      "words": 782,
+      "target_range": [
+        491,
+        756
+      ]
+    },
+    "evaluation_summary": {
+      "title": "Evaluation Summary/Plan",
+      "words": 22,
+      "target_range": [
+        32,
+        40
+      ]
+    }
+  },
+  "requirement_coverage_pct": 83.3,
+  "words_total": 4293,
+  "pdf_pages_actual": 10,
+  "model_calls": 21,
+  "revisions": 2,
+  "fact_critic": [
+    {
+      "section": "executive_summary",
+      "verdict": "UNKNOWN",
+      "violations": []
+    },
+    {
+      "section": "program_design",
+      "verdict": "CLEAN",
+      "violations": []
+    },
+    {
+      "section": "organizational_capability",
+      "verdict": null,
+      "violations": []
+    },
+    {
+      "section": "cost_effectiveness",
+      "verdict": "UNKNOWN",
+      "violations": []
+    },
+    {
+      "section": "evaluation_summary",
+      "verdict": null,
+      "violations": []
+    }
+  ],
+  "qa_gates": [
+    {
+      "gate": "all_sections_drafted",
+      "status": "PASS",
+      "detail": "all 5 sections drafted"
+    },
+    {
+      "gate": "word_limits_satisfied",
+      "status": "FAIL",
+      "detail": "sections over limits: ['executive_summary (2366/200)', 'aggregate (4293/3264)']"
+    },
+    {
+      "gate": "budget_within_ceiling",
+      "status": "PASS",
+      "detail": "total 180145.00 vs ceiling 182400.00"
+    },
+    {
+      "gate": "deadline_correct",
+      "status": "PASS",
+      "detail": "solicitation deadline February 27, 2026 3:00 PM EST bound to blueprint"
+    },
+    {
+      "gate": "revision_correct",
+      "status": "PASS",
+      "detail": "revision ga_dca_nofp_2026 tracked in provenance, not prose"
+    },
+    {
+      "gate": "required_terminology",
+      "status": "PASS",
+      "detail": "all required terminology present"
+    },
+    {
+      "gate": "no_unsupported_material_claims",
+      "status": "FAIL",
+      "detail": "5 unresolved material claim(s) remain"
+    },
+    {
+      "gate": "no_fabricated_partnerships",
+      "status": "PASS",
+      "detail": "no partnership assertions without evidence"
+    },
+    {
+      "gate": "submission_disabled",
+      "status": "PASS",
+      "detail": "submission structurally disabled"
+    },
+    {
+      "gate": "no_unresolved_critical_facts",
+      "status": "FAIL",
+      "detail": "unresolved CRITICAL facts: ['member_dosage', 'prior_americorps']"
+    },
+    {
+      "gate": "temporal_consistency",
+      "status": "FAIL",
+      "detail": "1 temporal contradiction(s) as-of 2026-02-27"
+    },
+    {
+      "gate": "numeric_consistency",
+      "status": "FAIL",
+      "detail": "10 numeric contradiction(s)"
+    }
+  ],
+  "integrity": {
+    "run_at": "2026-08-28T12:32:13.144952+00:00",
+    "as_of": "2026-02-27",
+    "claims": {
+      "total": 57,
+      "material": 57,
+      "supported": 23,
+      "unsupported": 34,
+      "by_class": {
+        "FUTURE_TARGET": 10,
+        "MODEL_INFERENCE": 29,
+        "CANONICAL_FACT": 2,
+        "QUESTION": 1,
+        "SOLICITATION_FACT": 10,
+        "UNKNOWN": 4,
+        "CLIENT_ASSERTION": 1
+      },
+      "by_resolution": {
+        "TARGET_ALLOWED": 8,
+        "UNSUPPORTED": 29,
+        "SUPPORTED": 15,
+        "UNKNOWN": 5
+      }
+    },
+    "unresolved_critical_facts": [
+      "member_dosage",
+      "prior_americorps"
+    ],
+    "client_questions": [
+      "How many hours per week will each AmeriCorps member serve, and which term (full-time 1,700 hrs vs half-time 900 hrs) are you requesting?",
+      "Has your organization previously received AmeriCorps or Georgia Serves funding?"
+    ],
+    "dosage_breaches": [],
+    "temporal_conflicts": [
+      {
+        "claim_id": "cl-int-0007",
+        "section_id": "executive_summary",
+        "claim_text": "Number = leveraged_volunteers = 60.",
+        "conflict_date": "2026",
+        "as_of": "2026-02-27",
+        "kind": "FUTURE_AS_PAST"
+      }
+    ],
+    "numeric_conflicts": [
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $39,600 in prose is not a canonical budget amount",
+        "section_a": "executive_summary",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $39,600 in prose is not a canonical budget amount",
+        "section_a": "executive_summary",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $57,600 in prose is not a canonical budget amount",
+        "section_a": "executive_summary",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $57,600 in prose is not a canonical budget amount",
+        "section_a": "executive_summary",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $57,600 in prose is not a canonical budget amount",
+        "section_a": "executive_summary",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $39,600 in prose is not a canonical budget amount",
+        "section_a": "executive_summary",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $39,600 in prose is not a canonical budget amount",
+        "section_a": "executive_summary",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $39,600 in prose is not a canonical budget amount",
+        "section_a": "executive_summary",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $39,600 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $1,150,000, in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      }
+    ],
+    "status_conflicts": [],
+    "unsupported_claims": [
+      {
+        "claim_id": "cl-int-0002",
+        "section_id": "executive_summary",
+        "locator": "p5.s1",
+        "claim_text": "[Name of the organization] = Rural Georgia Youth Development Coalition, Inc.",
+        "subject": "",
+        "predicate": "",
+        "value": "",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0003",
+        "section_id": "executive_summary",
+        "locator": "p9.s2",
+        "claim_text": "Anticipated outcome: from evidence_study: +0.4 grade equivalents in math, +0.5 in reading; also 91% of regularly attending seniors graduated on time vs 78% district comparison.",
+        "subject": "",
+        "predicate": "",
+        "value": "91.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0004",
+        "section_id": "executive_summary",
+        "locator": "p9.s6",
+        "claim_text": "But we cannot invent statistics; we can cite the evidence_study (2025 internal evaluation).",
+        "subject": "",
+        "predicate": "",
+        "value": "2025.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0005",
+        "section_id": "executive_summary",
+        "locator": "p9.s13",
+        "claim_text": "We could add a citation like \"(evidence_study, 2025)\" after the outcome.",
+        "subject": "",
+        "predicate": "",
+        "value": "2025.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0006",
+        "section_id": "executive_summary",
+        "locator": "p9.s15",
+        "claim_text": "The blank is for anticipated outcome; we could put \"achieving at least a 0.4 grade-equivalent gain in math and a 0.5 grade-equivalent gain in reading among participating youth (evidence_study, 2025)\".",
+        "subject": "",
+        "predicate": "",
+        "value": "2025.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0008",
+        "section_id": "executive_summary",
+        "locator": "p11.s2",
+        "claim_text": "They have board-committed cash match of $39,600/yr plus in-kind space valued at $18,000/yr \u2014 covers 24% match requirement.",
+        "subject": "",
+        "predicate": "",
+        "value": "39600.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0009",
+        "section_id": "executive_summary",
+        "locator": "p11.s3",
+        "claim_text": "Total match = $39,600 + $18,000 = $57,600 per year.",
+        "subject": "",
+        "predicate": "",
+        "value": "39600.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0010",
+        "section_id": "executive_summary",
+        "locator": "p11.s4",
+        "claim_text": "Must match the template: \"The AmeriCorps investment will be matched with $57,600.\" Probably need to include per year?",
+        "subject": "",
+        "predicate": "",
+        "value": "57600.0",
+        "claim_class": "QUESTION",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNKNOWN",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0018",
+        "section_id": "executive_summary",
+        "locator": "p21.s1",
+        "claim_text": "Total words = 29+13+36+24+8 = 110 words.",
+        "subject": "",
+        "predicate": "",
+        "value": "29.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0019",
+        "section_id": "executive_summary",
+        "locator": "p21.s2",
+        "claim_text": "That's below target 160-200 words.",
+        "subject": "",
+        "predicate": "",
+        "value": "160.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0020",
+        "section_id": "executive_summary",
+        "locator": "p22.s1",
+        "claim_text": "We need to reach 160-200 words total.",
+        "subject": "",
+        "predicate": "",
+        "value": "160.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0021",
+        "section_id": "executive_summary",
+        "locator": "p27.s2",
+        "claim_text": "We can say \"achieving at least a 0.4 grade-equivalent gain in math and a 0.5 grade-equivalent gain in reading among participating youth, and supporting a 91% on-time graduation rate for regularly atte",
+        "subject": "",
+        "predicate": "",
+        "value": "91.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0022",
+        "section_id": "executive_summary",
+        "locator": "p29.s1",
+        "claim_text": "Blank5: match amount: we can specify the breakdown: \"$39,600 in board-committed cash match and $18,000 in in-kind space valuation, totaling $57,600\".",
+        "subject": "",
+        "predicate": "",
+        "value": "39600.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0027",
+        "section_id": "executive_summary",
+        "locator": "p40.s2",
+        "claim_text": "The evidence_study gave +0.4 grade equivalents in math, +0.5 in reading; 91% of regularly attending seniors graduated on time vs 78% district comparison.",
+        "subject": "",
+        "predicate": "",
+        "value": "91.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0028",
+        "section_id": "executive_summary",
+        "locator": "p40.s3",
+        "claim_text": "We added \"and supporting a 91% on-time graduation rate for regularly attending seniors versus the district comparison of 78%\".",
+        "subject": "",
+        "predicate": "",
+        "value": "91.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0029",
+        "section_id": "executive_summary",
+        "locator": "p42.s1",
+        "claim_text": "- Match amount: we gave breakdown: $39,600 cash match and $18,000 in-kind space valuation, totaling $57,600.",
+        "subject": "",
+        "predicate": "",
+        "value": "39600.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-executive_summary"
+      },
+      {
+        "claim_id": "cl-int-0034",
+        "section_id": "program_design",
+        "locator": "p1.s2",
+        "claim_text": "operates in Walker, Dade, and Catoosa counties, a rural portion of Northwest Georgia where the organization has identified a persistent pattern of students in grades\u202f6\u201112 showing early signs of diseng",
+        "subject": "",
+        "predicate": "",
+        "value": "12.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0036",
+        "section_id": "program_design",
+        "locator": "p2.s4",
+        "claim_text": "The specific knowledge, skills, and abilities required of these members have not been detailed in the available organizational facts; therefore, this element is recorded as UNKNOWN: member characteris",
+        "subject": "",
+        "predicate": "",
+        "value": "",
+        "claim_class": "UNKNOWN",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNKNOWN",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0037",
+        "section_id": "program_design",
+        "locator": "p3.s3",
+        "claim_text": "The target population remains students in grades\u202f6\u201112 residing in Walker, Dade, and Catoosa counties, with a deliberate focus on youth identified as at risk of disengaging from school \u2014 a group that h",
+        "subject": "",
+        "predicate": "",
+        "value": "12.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0038",
+        "section_id": "program_design",
+        "locator": "p4.s1",
+        "claim_text": "Measurable outputs are anchored in the organization\u2019s documented reach and activity types.",
+        "subject": "",
+        "predicate": "",
+        "value": "",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      }
+    ],
+    "readiness_state": "NEEDS_CLIENT_INPUT",
+    "blockers": [
+      "2 unresolved CRITICAL missing fact(s): ['member_dosage', 'prior_americorps'] -> client input required",
+      "1 temporal contradiction(s)",
+      "10 numeric contradiction(s)",
+      "20 unsupported/unresolved material claim(s) with no governed authority"
+    ]
+  },
+  "readiness_state": "NEEDS_CLIENT_INPUT",
+  "status": "BLOCKED"
+}

@@ -43,7 +43,9 @@ class SectionPlan:
 
 
 def build_section_plans(blueprint: ApplicationBlueprint,
-                        fact_pack, profile) -> dict[str, SectionPlan]:
+                        fact_pack, profile,
+                        client_answers=(),
+                        applicant_status=None) -> dict[str, SectionPlan]:
     """One SectionPlan per material section: what it must accomplish, which
     criterion it serves, which applicant facts ground it, and how deep it
     must go (§13-§14)."""
@@ -77,8 +79,11 @@ def build_section_plans(blueprint: ApplicationBlueprint,
         reviewer = " | ".join(filter(None, (looks_by_crit.get(c, "")
                                             for c in crit_ids)))
         limit = sec.word_limit
-        target = (max(120, int(limit * 0.65)), limit) if points > 0 \
-            else (max(60, int(limit * 0.8)), limit)
+        low = int(limit * 0.65) if points > 0 else int(limit * 0.8)
+        # Never inverted; N/A and tiny sections keep sane ranges
+        # (mission P1-03: min <= max for every target range).
+        low = max(20, min(low, limit))
+        target = (low, max(low, limit))
         plans[sec.section_id] = SectionPlan(
             section_id=sec.section_id,
             objective=f"Win maximum reviewer points on: {reviewer or sec.title}",
@@ -105,30 +110,43 @@ def build_section_plans(blueprint: ApplicationBlueprint,
     return plans
 
 
-def _facts_block(fact_pack) -> str:
+def _facts_block(fact_pack, client_answers=()) -> str:
     lines = []
     for f in fact_pack.facts.values():
         lines.append(f"- {f.fact_id} [{f.category}, {f.confidence}]: {f.value} "
                      f"(source: {f.source})")
+    for a in client_answers:
+        lines.append(f"- CLIENT ANSWER {a.fact_id} [{a.label}]: {a.value} "
+                     f"(answered {a.answered_at} by {a.principal})")
     return "\n".join(lines)
 
 
 def _draft_prompt(sec, plan: SectionPlan, fact_pack, profile,
-                  research_block: str) -> str:
+                  research_block: str, client_answers=(),
+                  applicant_status=None) -> str:
     subs = "\n".join(f"  {i+1}. {s}"
                      for i, s in enumerate(plan.required_subquestions))
+    status_note = ""
+    if applicant_status is not None:
+        if applicant_status.is_new:
+            status_note = (
+                f"\nAPPLICANT STATUS: {applicant_status.status} ({applicant_status.basis}). "
+                "This organization has NEVER held an AmeriCorps or Georgia "
+                "Serves grant. NEVER reference a prior AmeriCorps three-year "
+                "grant cycle, prior evaluation report, or recompete history "
+                "as this organization's own experience.\n")
     return f"""You are a senior grant writer completing ONE section of a real federal grant application. Write polished, submission-ready prose — not an outline, not bullet points.
 
 FUNDER EXACT QUESTION(S) THIS SECTION MUST ANSWER:
 {sec.drafting_notes}
 
 SCORING: This section serves criterion '{plan.criterion}' worth {plan.points} points. Reviewer looks for: {plan.objective}
-
+{status_note}
 EVERY SUB-ELEMENT BELOW MUST BE ADDRESSED (miss any and reviewers deduct):
 {subs}
 
 APPLICANT FACTS (the ONLY facts you may assert about the applicant):
-{_facts_block(fact_pack)}
+{_facts_block(fact_pack, client_answers)}
 
 EXTERNAL RESEARCH (cite inline as (Source, Year); use ONLY these for community statistics):
 {research_block or "- (none supplied; do not invent statistics)"}
@@ -171,13 +189,47 @@ Return exactly this JSON shape:
 {{"answers_exact_question": 0, "applicant_specific": 0, "evidence_used": 0, "unsupported_claims": 0, "depth_vs_weight": 0, "repetition_or_filler": 0, "overall": 0, "weaknesses": ["..."], "verdict": "ACCEPT"|"REVISE"}}"""
 
 
+def _fact_critic_prompt(section_text: str, plan: SectionPlan,
+                        fact_pack, client_answers=(),
+                        applicant_status=None,
+                        as_of: str = "") -> str:
+    """INTEGRITY critic (mission §30): judges ONLY facts, numbers, dates,
+    sources, classification, temporal state — never writing style. Its
+    findings are combined with the deterministic checker; a writing model
+    can never overrule integrity failures."""
+    return f"""You are a FACTUAL INTEGRITY auditor (not a writing coach). Audit this grant section for factual integrity ONLY. Return ONLY valid JSON.
+
+GOVERNED FACT SOURCES (the only permitted factual assertions about the applicant):
+{_facts_block(fact_pack, client_answers)}
+
+APPLICANT STATUS: {applicant_status.status if applicant_status else 'UNKNOWN'}
+AS-OF DATE (the application's factual present): {as_of}
+
+AUDIT CHECKLIST (report violations only):
+1. unsupported_numbers: any number about the applicant not traceable to the governed facts/client answers above, and not a clearly future-tense target derived from them
+2. temporal_violations: any date AFTER {as_of} presented as current/completed (not as future plan)
+3. status_violations: references to prior AmeriCorps grant cycles, prior evaluation reports, or recompete history (applicant status is {applicant_status.status if applicant_status else 'UNKNOWN'})
+4. invented_entities: partnerships, staff, funders, or program elements not in the governed facts
+5. tense_violations: future targets written in past/present tense (e.g. 'has served' for a planned number)
+
+SECTION:
+---
+{section_text}
+---
+
+Return exactly: {{"unsupported_numbers": ["..."], "temporal_violations": ["..."], "status_violations": ["..."], "invented_entities": ["..."], "tense_violations": ["..."], "integrity_verdict": "CLEAN"|"VIOLATIONS"}}"""
+
+
 def _revise_prompt(section_text: str, plan: SectionPlan, weaknesses,
-                   fact_pack, profile, research_block: str) -> str:
-    base = _draft_prompt_text = _draft_prompt(
+                   fact_pack, profile, research_block: str,
+                   client_answers=(), applicant_status=None) -> str:
+    base = _draft_prompt(
         sec=type("S", (), {"section_id": plan.section_id,
                            "drafting_notes": _notes_for(plan, profile)})(),
         plan=plan, fact_pack=fact_pack, profile=profile,
-        research_block=research_block)
+        research_block=research_block,
+        client_answers=client_answers,
+        applicant_status=applicant_status)
     wk = "\n".join(f"- {w}" for w in weaknesses) or "- general depth"
     return base + f"""
 
@@ -219,15 +271,22 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
                            model_invoke: Callable | None = None,
                            model_id: str | None = None,
                            critic_threshold: int = 4,
-                           max_revisions: int = 1) -> DraftingReport:
-    """Quality drafting: plan -> draft -> critique -> revise per section.
+                           max_revisions: int = 1,
+                           client_answers=(),
+                           applicant_status=None,
+                           as_of: str = "") -> DraftingReport:
+    """Quality drafting: plan -> draft -> critique -> revise per section,
+    plus a FACT_CRITIC integrity audit whose findings force revision
+    regardless of the writing-critic verdict (mission §30).
     Requires a live model — fail-closed otherwise (§3, §27)."""
     if model_invoke is None:
         raise RuntimeError(
             "G1-QUALITY drafting requires a governed live model invoke; "
             "the deterministic skeleton is not a client deliverable")
 
-    plans = build_section_plans(blueprint, fact_pack, profile)
+    plans = build_section_plans(blueprint, fact_pack, profile,
+                                client_answers=client_answers,
+                                applicant_status=applicant_status)
     sections: dict[str, SectionDraft] = {}
     claims: list[ClaimLedgerEntry] = []
     model_runs: list[dict] = []
@@ -249,7 +308,9 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
                                "model_id": model_id})
             continue
 
-        prompt = _draft_prompt(sec, plan, fact_pack, profile, research_block)
+        prompt = _draft_prompt(sec, plan, fact_pack, profile,
+                               research_block, client_answers,
+                               applicant_status)
         passes = 0
         revisions = 0
         try:
@@ -266,16 +327,39 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
             if not text:
                 raise RuntimeError("model returned empty completions")
             time.sleep(1)  # gentle pacing between sections on free tiers
+
+            def _run_fact_critic(current_text: str) -> tuple[dict, list]:
+                fv = _parse_critic(str(model_invoke(_bundle(
+                    sec, plan, _fact_critic_prompt(
+                        current_text, plan, fact_pack, client_answers,
+                        applicant_status, as_of)))))
+                violations = []
+                for key in ("unsupported_numbers", "temporal_violations",
+                            "status_violations", "invented_entities",
+                            "tense_violations"):
+                    violations.extend(
+                        f"{key}: {v}" for v in (fv.get(key) or [])[:4])
+                return fv, violations
+
             verdict = _parse_critic(str(model_invoke(_bundle(
                 sec, plan, _critic_prompt(text, plan, sec)))))
             passes += 1
             overall = int(verdict.get("overall", 5) or 5)
             weaknesses = [str(w) for w in verdict.get("weaknesses", [])][:6]
-            while (overall < critic_threshold and revisions < max_revisions):
+            fact_verdict, fact_violations = _run_fact_critic(text)
+            passes += 1
+            # Deterministic integrity outranks the writing critic (§30):
+            # FACT_CRITIC violations force revision regardless of style.
+            must_revise = (overall < critic_threshold
+                           or bool(fact_violations))
+            while (must_revise and revisions < max_revisions):
+                merged = weaknesses + fact_violations
                 text = str(model_invoke(_bundle(
                     sec, plan,
-                    _revise_prompt(text, plan, weaknesses, fact_pack,
-                                   profile, research_block)))).strip()
+                    _revise_prompt(text, plan, merged, fact_pack,
+                                   profile, research_block,
+                                   client_answers,
+                                   applicant_status)))).strip()
                 revisions += 1
                 passes += 1
                 verdict = _parse_critic(str(model_invoke(_bundle(
@@ -284,12 +368,19 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
                 overall = int(verdict.get("overall", 5) or 5)
                 weaknesses = [str(w) for w in
                               verdict.get("weaknesses", [])][:6]
+                fact_verdict, fact_violations = _run_fact_critic(text)
+                passes += 1
+                must_revise = (overall < critic_threshold
+                               or bool(fact_violations))
             model_runs.append({
                 "section": sec.section_id, "status": "OK",
                 "model_id": model_id, "passes": passes,
                 "revisions": revisions,
                 "critic_overall": overall,
-                "critic_weaknesses": weaknesses})
+                "critic_weaknesses": weaknesses,
+                "fact_critic": fact_verdict.get("integrity_verdict",
+                                                "UNKNOWN"),
+                "fact_violations": fact_violations})
         except Exception as exc:  # honest failure, never fake output
             sections[sec.section_id] = SectionDraft(
                 section_id=sec.section_id, title=sec.title,
@@ -333,7 +424,7 @@ def _bundle(sec, plan, prompt: str) -> dict:
 
 
 def build_quality_model_invoke(model_id: str =
-                               "nvidia/nemotron-3.5-lightning:free",
+                               "nvidia/nemotron-3-super-120b-a12b:free",
                                *,
                                max_output_tokens: int = 4096,
                                tenant_id: str = "tenant-a",

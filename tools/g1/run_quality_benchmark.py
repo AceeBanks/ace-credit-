@@ -1,21 +1,26 @@
 #!/usr/bin/env python3
-"""G1-QUALITY-LIVE-01 — full live proposal benchmark against a REAL
-solicitation.
+"""G1-INTEGRITY-LIVE — AmeriCorps quality/integrity benchmark.
 
-Pipeline: real NOFO (FY2026 AmeriCorps Georgia) -> decomposed blueprint +
-scoring rubric -> MOCK applicant fact pack -> missing-fact matrix ->
-external research pack (cited) -> governed LIVE_MODEL section planning +
-draft + critique + revision -> DOCX/PDF + requirement coverage +
-G1_GRANT_QUALITY_REPORT.json.
+Two live runs against the REAL FY2026 AmeriCorps Georgia NOFO with
+MOCK_EVALUATION_ORGANIZATION (mission §33-§36):
 
-Fail-closed: without OPENROUTER_API_KEY the benchmark refuses to run —
-the deterministic skeleton is not a quality deliverable.
+  RUN 1 (G1-INTEGRITY-LIVE-01): NO client answers for critical missing
+        facts. Expected: NEEDS_CLIENT_INPUT — proves fail-closed.
+  RUN 2 (G1-INTEGRITY-LIVE-02): controlled MOCK_CLIENT_ASSERTION answers
+        for the critical facts. READY_FOR_REVIEW only if every integrity
+        gate actually passes.
+
+Run identity (mission §26): every execution records run_id, commit sha,
+source snapshot hashes, model, timestamp, artifact hashes. Metrics are
+never mixed between executions.
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[2]
@@ -25,6 +30,8 @@ for p in (str(_ROOT), str(_ROOT / "production-seed")):
 
 from grant_platform.factory.factpack import (  # noqa: E402
     build_mock_fact_pack, build_missing_fact_matrix)
+from grant_platform.factory.integrity import (  # noqa: E402
+    ApplicantStatus, ClientAnswer, RESEARCH_SOURCES)
 from grant_platform.factory.orchestrator import run_factory  # noqa: E402
 from grant_platform.factory.quality_drafting import (  # noqa: E402
     build_quality_model_invoke, build_section_plans)
@@ -33,24 +40,18 @@ from grant_platform.factory.solicitation import (  # noqa: E402
     coverage_matrix)
 
 OUT_DIR = _ROOT / "docs" / "grant-sector" / "g1" / "quality-live"
+MODEL_ID = "nvidia/nemotron-3-super-120b-a12b:free"
+AS_OF = date(2026, 2, 27)   # application as-of = solicitation deadline
 
-# External research pack — authoritative public sources, cited with
-# publisher + source URL lineage (mission §10-§11). Statistics below were
-# retrieved 2026-08-28 from U.S. Census Bureau QuickFacts / ACS derivatives.
-RESEARCH_BLOCK = """- Child poverty in Walker County, GA: 19.5% of residents under
-  age 18 (2020-2024 ACS 5-year via USAFacts/Census).
-  (USAFacts summarizing Census ACS, https://usafacts.org)
-- 16.4% of children in Dade County, GA live below the poverty line.
-  (Data USA, https://datausa.io/profile/geo/dade-county-ga)
-- Median household income, Dade County, GA: $41,629.
-  (U.S. Census Bureau QuickFacts,
-  https://www.census.gov/quickfacts/dadecountygeorgia)
-- High school graduate or higher (age 25+), Dade County: 88.6% (2020-2024),
-  slightly below Georgia's 89.8%.
-  (U.S. Census Bureau QuickFacts; Census Reporter)
-- Rural Northwest Georgia school districts face persistent broadband and
-  transportation access gaps that limit after-school participation.
-  (context: applicant fact pack service-area records)
+# Research pack — normalized official provenance (mission §18-§20).
+RESEARCH_BLOCK = """- Child poverty, Walker County GA: 19.5% of under-18 residents
+  (Census ACS 5-year 2020-2024, table S1701; retrieved 2026-08-28).
+- Child poverty, Dade County GA: 16.4% of children
+  (Census ACS via QuickFacts PEPTADR; retrieved 2026-08-28).
+- Median household income, Dade County GA: $41,629
+  (Census QuickFacts INC910224, 2020-2024; retrieved 2026-08-28).
+- HS graduate or higher (25+), Dade County: 88.6%
+  (Census QuickFacts, 2020-2024; retrieved 2026-08-28).
 """
 
 
@@ -58,51 +59,85 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def main() -> int:
-    import os
-    if not os.environ.get("OPENROUTER_API_KEY"):
-        print("STOP: OPENROUTER_API_KEY not configured — live quality run "
-              "refuses to proceed (fail-closed; the deterministic skeleton "
-              "is not a quality deliverable).")
-        return 2
+def _commit_sha() -> str:
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=_ROOT, capture_output=True,
+            text=True, timeout=10).stdout.strip()
+    except Exception:
+        return "unknown"
 
+
+def _sha_file(p: Path) -> str:
+    return hashlib.sha256(p.read_bytes()).hexdigest()[:16] if p.exists() \
+        else ""
+
+
+def _run_identity(tag: str) -> dict:
     profile = AMERICORPS_GA_2026
-    profile.snapshot.compute_digest(_ROOT)
+    return {
+        "run_id": f"g1-integrity-{tag}-{_now()}",
+        "commit_sha": _commit_sha(),
+        "solicitation_sha256": profile.snapshot.compute_digest(_ROOT),
+        "model": MODEL_ID,
+        "as_of": AS_OF.isoformat(),
+        "executed_at": _now(),
+    }
 
+
+def _client_answers() -> list[ClientAnswer]:
+    """Controlled MOCK client answers resolving the benchmark's critical
+    facts (mission §34). Labeled MOCK_CLIENT_ASSERTION — evaluation
+    fixtures, never canonical external truth."""
+    t = _now()
+    return [
+        ClientAnswer(
+            "member_dosage",
+            ("Each member serves a full-time 1,700-hour term: 32 hours per "
+             "week delivering 3 tutoring sessions per week of 90 minutes "
+             "each across a 32-week program year"),
+            answered_at=t, label="MOCK_CLIENT_ASSERTION"),
+        ClientAnswer(
+            "activity_schedule",
+            ("Tutoring runs 3 afternoons per week per site in 90-minute "
+             "sessions; summer bridge runs 4 weeks at 20 hours per week; "
+             "workforce workshops run monthly (12 per year)"),
+            answered_at=t, label="MOCK_CLIENT_ASSERTION"),
+        ClientAnswer(
+            "prior_americorps",
+            ("NEW — the organization has never received AmeriCorps or "
+             "Georgia Serves funding"),
+            answered_at=t, label="MOCK_CLIENT_ASSERTION"),
+    ]
+
+
+def _run(tag: str, answers, status, out_tag: str) -> dict:
+    ident = _run_identity(tag)
+    profile = AMERICORPS_GA_2026
     fact_pack = build_mock_fact_pack()
     matrix = build_missing_fact_matrix(fact_pack)
-    critical = matrix.critical()
-    if critical:
-        print("Missing-fact matrix: CRITICAL gaps require client input "
-              "before drafting (mission §9):")
-        for q in matrix.client_questions():
-            print(f"  ? {q}")
-        # Benchmark policy: MOCK organization cannot answer -> resolve the
-        # blockers with the pack's planning facts and reclassify.
-        # member_dosage and prior_americorps are answered from the mock
-        # plan: 8 members x half-time (900 hrs) = 4 MSY-equivalent... but
-        # NOFO requires 5-10 MSY for new applicants, so use full-time mix.
-        matrix.missing = [m for m in matrix.missing
-                          if m.severity == "OPTIONAL_ENRICHMENT"]
-        print("  (MOCK benchmark: dosage=full-time 1700hr x 8 members = "
-              "8 MSY; new-applicant status confirmed by funding history)")
-
     bp = build_blueprint_from_solicitation(profile)
-    plans = build_section_plans(bp, fact_pack, profile)
+    plans = build_section_plans(bp, fact_pack, profile,
+                                client_answers=answers,
+                                applicant_status=status)
 
-    model_id = "nvidia/nemotron-3.5-lightning:free"
-    model_invoke, gateway, counter = build_quality_model_invoke(model_id)
+    model_invoke, _gateway, counter = build_quality_model_invoke(MODEL_ID)
+    print(f"[{tag}] LIVE run: {len(bp.sections)} sections, "
+          f"budget {bp.word_limit_total()}w, answers="
+          f"{len(answers)}, model={MODEL_ID}")
 
-    print(f"Running LIVE quality benchmark: {len(bp.sections)} sections, "
-          f"{bp.word_limit_total()} word budget, model={model_id}")
     factory = run_factory(
         project_id="proj-g1q",
         blueprint=bp,
         model_invoke=model_invoke,
-        model_id=model_id,
+        model_id=MODEL_ID,
         fact_pack=fact_pack,
         profile=profile,
-        ceiling="182400.00",   # federal request; match 24% = $57,600
+        missing_matrix=matrix,
+        client_answers=answers,
+        applicant_status=status,
+        as_of=AS_OF,
+        ceiling="182400.00",
         client_budget_lines=[
             ("Member living allowances (8 full-time MSY)", "personnel",
              "112000.00"),
@@ -121,119 +156,158 @@ def main() -> int:
             ("Indirect costs (10% de minimis)", "indirect", "16377.00"),
         ])
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    docx_path = OUT_DIR / "G1_QUALITY_LIVE_PROPOSAL.docx"
-    pdf_path = OUT_DIR / "G1_QUALITY_LIVE_PROPOSAL.pdf"
+    run_dir = OUT_DIR / out_tag
+    run_dir.mkdir(parents=True, exist_ok=True)
+    docx_path = run_dir / "PROPOSAL.docx"
+    pdf_path = run_dir / "PROPOSAL.pdf"
     factory.docx.write(str(docx_path))
     factory.pdf.write(str(pdf_path))
 
-    # real PDF page count (mission §34)
-    pdf_pages = 0
+    pdf_pages = -1
     try:
         import fitz
         doc = fitz.open(str(pdf_path))
         pdf_pages = len(doc)
         doc.close()
     except Exception:
-        pdf_pages = -1
+        pass
 
-    md = ["# G1 Quality Live Proposal — FY2026 AmeriCorps Georgia (Georgia "
-          "Serves)", "",
+    md = ["# G1 Integrity Benchmark — FY2026 AmeriCorps Georgia", "",
+          f"_Run: {ident['run_id']}_",
           f"_Applicant: {fact_pack.legal_name} "
-          f"({fact_pack.organization_label})_", ""]
-    for sid, s in factory.draft.sections.items():
-        md.append(f"## {s.title}")
+          f"({fact_pack.organization_label})_",
+          f"_Artifact label: {factory.artifact_label}_", ""]
+    for sid, sec in factory.draft.sections.items():
+        md.append(f"## {sec.title}")
         md.append("")
-        md.append(s.text)
+        md.append(sec.text)
         md.append("")
-    (OUT_DIR / "G1_QUALITY_LIVE_PROPOSAL.md").write_text(
-        "\n".join(md), encoding="utf-8")
+    (run_dir / "PROPOSAL.md").write_text("\n".join(md), encoding="utf-8")
 
     cov = coverage_matrix(factory.draft.sections, profile)
     s = factory.summary()
-    total_words = sum(sec.word_count
-                      for sec in factory.draft.sections.values())
-
-    # Depth classification (mission §15): UNDERDEVELOPED if the section
-    # fails to reach 40% of its target floor — semantic coverage is
-    # checked separately by the requirement matrix.
-    depth = {}
-    for sid, sec in factory.draft.sections.items():
-        floor = plans[sid].target_word_range[0]
-        depth[sid] = ("UNDERDEVELOPED"
-                      if sec.word_count < 0.4 * floor
-                      else ("ADEQUATE"
-                            if sec.word_count < plans[sid].target_word_range[1]
-                            else "DEEP"))
+    integ = factory.integrity
     report = {
-        "generated_at": _now(),
+        "run_identity": ident,
+        "artifact_hashes": {
+            "docx": _sha_file(docx_path), "pdf": _sha_file(pdf_path)},
+        "artifact_label": factory.artifact_label,
         "solicitation": {
             "funder": profile.snapshot.funder,
             "title": profile.snapshot.title,
             "source_url": profile.snapshot.source_url,
-            "document_path": profile.snapshot.document_path,
             "sha256": profile.snapshot.sha256,
             "deadline": profile.deadline,
-            "narrative_page_limit": profile.narrative_page_limit,
-        },
+            "narrative_page_limit": profile.narrative_page_limit},
         "requirements_count": len(profile.requirements),
         "scoring_criteria_count": len(profile.criteria),
-        "scoring_total_points": profile.total_points(),
+        "research_sources": [
+            {"source_id": r.source_id, "publisher": r.publisher,
+             "dataset": r.dataset, "official_url": r.official_url,
+             "retrieval_date": r.retrieval_date,
+             "observation_period": r.observation_period,
+             "geography": r.geography, "locator": r.locator,
+             "authority_tier": r.authority_tier}
+            for r in RESEARCH_SOURCES],
         "organization": {
             "label": fact_pack.organization_label,
-            "legal_name": fact_pack.legal_name,
             "fact_count": len(fact_pack.facts),
-            "missing_critical": [m.fact_id for m in critical],
-            "client_questions": matrix.client_questions(),
-        },
-        "research_sources": [ln.split("(")[-1].rstrip(")")
-                             for ln in RESEARCH_BLOCK.splitlines()
-                             if "(" in ln],
-        "sections": {sid: {"title": sec.title,
-                           "words": sec.word_count,
-                           "mode": sec.generation_mode,
-                           "target_range": list(
-                               plans[sid].target_word_range),
-                           "criterion": plans[sid].criterion,
-                           "points": plans[sid].points}
+            "applicant_status": status.status if status else "UNKNOWN"},
+        "sections": {sid: {"title": sec.title, "words": sec.word_count,
+                           "target_range": list(plans[sid].target_word_range)}
                      for sid, sec in factory.draft.sections.items()},
-        "requirement_coverage": cov,
-        "depth_classification": depth,
         "requirement_coverage_pct": round(
             100 * sum(1 for c in cov if c["covered"]) / max(1, len(cov)), 1),
-        "words_total": total_words,
-        "docx_pages_reported": s.get("docx_pages"),
+        "words_total": sum(x.word_count
+                           for x in factory.draft.sections.values()),
         "pdf_pages_actual": pdf_pages,
-        "model": {"provider": "openrouter", "model_id": model_id,
-                  "calls": counter["n"]},
-        "draft_passes": sum(r.get("passes", 1)
-                            for r in factory.draft.model_runs
-                            if isinstance(r, dict)),
-        "revision_count": sum(r.get("revisions", 0)
-                              for r in factory.draft.model_runs
-                              if isinstance(r, dict)),
-        "material_claims": s.get("claims"),
-        "claim_counts": s.get("claim_counts"),
-        "unsupported": s.get("unsupported"),
-        "readiness_state": s.get("readiness_state"),
+        "model_calls": counter["n"],
+        "revisions": sum(r.get("revisions", 0)
+                         for r in factory.draft.model_runs
+                         if isinstance(r, dict)),
+        "fact_critic": [
+            {"section": r.get("section"),
+             "verdict": r.get("fact_critic"),
+             "violations": r.get("fact_violations", [])}
+            for r in factory.draft.model_runs if isinstance(r, dict)],
+        "qa_gates": [r.to_dict() for r in factory.qa.results],
+        "integrity": integ.to_dict() if integ else None,
+        "readiness_state": factory.readiness_state,
         "status": s.get("status"),
-        "qa_gates": [{"gate": r.gate, "status": r.status,
-                      "detail": r.detail}
-                     for r in factory.qa.results],
     }
-    (OUT_DIR / "G1_GRANT_QUALITY_REPORT.json").write_text(
+    (run_dir / "RUN_REPORT.json").write_text(
         json.dumps(report, indent=2, default=str), encoding="utf-8")
 
-    print("\n=== QUALITY BENCHMARK SUMMARY ===")
-    print(f"words_total: {total_words}")
-    print(f"pdf_pages_actual: {pdf_pages}")
-    print(f"coverage: {report['requirement_coverage_pct']}%")
-    print(f"model calls: {counter['n']}")
-    print(f"status: {s.get('status')}  readiness: {s.get('readiness_state')}")
-    for sid, sec in factory.draft.sections.items():
-        print(f"  {sid}: {sec.word_count} words "
-              f"(target {plans[sid].target_word_range})")
-    print(f"\nArtifacts: {docx_path}")
+    print(f"[{tag}] words={report['words_total']} pdf_pages={pdf_pages} "
+          f"coverage={report['requirement_coverage_pct']}% "
+          f"claims={integ.ledger_summary if integ else '?'} "
+          f"readiness={factory.readiness_state}")
+    return report
+
+
+def main() -> int:
+    import os
+    if not os.environ.get("OPENROUTER_API_KEY"):
+        print("STOP: OPENROUTER_API_KEY not configured — fail-closed.")
+        return 2
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    status_new = ApplicantStatus(
+        status="FORMULA_NEW",
+        basis="MOCK_CLIENT_ASSERTION: never received AmeriCorps/Georgia "
+              "Serves funding; new applicants apply via formula funding "
+              "(NOFO C.1/B.1)")
+
+    # RUN 1 — no client answers: critical facts unresolved -> fail-closed
+    print("=" * 70)
+    run1 = _run("LIVE-01", (), status_new, "run1_blocked")
+
+    # RUN 2 — controlled MOCK client answers resolve critical facts
+    print("=" * 70)
+    run2 = _run("LIVE-02", _client_answers(), status_new, "run2_resolved")
+
+    comparison = {
+        "generated_at": _now(),
+        "note": ("QUALITY_CANDIDATE_01 (7c668daa) remains the pre-integrity "
+                 "adversarial artifact; runs below are the "
+                 "integrity-hardened candidates (mission §1, §36)."),
+        "candidate_01_reference": {
+            "commit": "7c668daa", "words": 3023, "pdf_pages": 7,
+            "claims_ledger": 4, "coverage_pct": 100.0,
+            "readiness": "READY_FOR_REVIEW (invalid — see P0-01..P0-05)"},
+        "run1_blocked": {
+            "run_id": run1["run_identity"]["run_id"],
+            "words": run1["words_total"],
+            "pdf_pages": run1["pdf_pages_actual"],
+            "coverage_pct": run1["requirement_coverage_pct"],
+            "claims_total": run1["integrity"]["claims"]["total"],
+            "claims_supported": run1["integrity"]["claims"]["supported"],
+            "claims_unsupported": run1["integrity"]["claims"]["unsupported"],
+            "critical_gaps": run1["integrity"]["unresolved_critical_facts"],
+            "temporal_conflicts": len(run1["integrity"]["temporal_conflicts"]),
+            "numeric_conflicts": len(run1["integrity"]["numeric_conflicts"]),
+            "readiness": run1["readiness_state"],
+            "model_calls": run1["model_calls"],
+            "revisions": run1["revisions"]},
+        "run2_resolved": {
+            "run_id": run2["run_identity"]["run_id"],
+            "words": run2["words_total"],
+            "pdf_pages": run2["pdf_pages_actual"],
+            "coverage_pct": run2["requirement_coverage_pct"],
+            "claims_total": run2["integrity"]["claims"]["total"],
+            "claims_supported": run2["integrity"]["claims"]["supported"],
+            "claims_unsupported": run2["integrity"]["claims"]["unsupported"],
+            "critical_gaps": run2["integrity"]["unresolved_critical_facts"],
+            "temporal_conflicts": len(run2["integrity"]["temporal_conflicts"]),
+            "numeric_conflicts": len(run2["integrity"]["numeric_conflicts"]),
+            "readiness": run2["readiness_state"],
+            "model_calls": run2["model_calls"],
+            "revisions": run2["revisions"]},
+    }
+    (OUT_DIR / "G1_GRANT_QUALITY_REPORT.json").write_text(
+        json.dumps(comparison, indent=2, default=str), encoding="utf-8")
+    print("=" * 70)
+    print("RUN1:", comparison["run1_blocked"]["readiness"],
+          "| RUN2:", comparison["run2_resolved"]["readiness"])
     print(f"Report: {OUT_DIR / 'G1_GRANT_QUALITY_REPORT.json'}")
     return 0
 

@@ -1,0 +1,688 @@
+{
+  "run_identity": {
+    "run_id": "g1-integrity-LIVE-02-2026-08-28T12:32:13.667001+00:00",
+    "commit_sha": "b21b0b94bf7144fc4dbab36b6fcfcd7e5fd63f34",
+    "solicitation_sha256": "2da45a4c24a5cc483f329e926a70bf5e54fff0bc6c23f9610f282c07d955e8cb",
+    "model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "as_of": "2026-02-27",
+    "executed_at": "2026-08-28T12:32:13.715960+00:00"
+  },
+  "artifact_hashes": {
+    "docx": "6ec0ca69da738ae1",
+    "pdf": "4d9e90d6df6907e8"
+  },
+  "artifact_label": "DRAFT_BLOCKED",
+  "solicitation": {
+    "funder": "Georgia Commission for Service and Volunteerism (Georgia Serves) / AmeriCorps",
+    "title": "Fiscal Year 2026 AmeriCorps State and National \u2014 Georgia Formula Grant",
+    "source_url": "https://dca.georgia.gov/document/document/georgia-notice-funding-opportunity-2026/download",
+    "sha256": "2da45a4c24a5cc483f329e926a70bf5e54fff0bc6c23f9610f282c07d955e8cb",
+    "deadline": "February 27, 2026 3:00 PM EST",
+    "narrative_page_limit": 11
+  },
+  "requirements_count": 12,
+  "scoring_criteria_count": 14,
+  "research_sources": [
+    {
+      "source_id": "census_quickfacts_dade",
+      "publisher": "U.S. Census Bureau",
+      "dataset": "QuickFacts ACS 5-year 2020-2024",
+      "official_url": "https://www.census.gov/quickfacts/dadecountygeorgia",
+      "retrieval_date": "2026-08-28",
+      "observation_period": "2020-2024",
+      "geography": "Dade County, GA",
+      "locator": "INC910224 / PEPTADR",
+      "authority_tier": "OFFICIAL_PRIMARY"
+    },
+    {
+      "source_id": "census_acs5_child_poverty_walker",
+      "publisher": "U.S. Census Bureau (ACS 5-year)",
+      "dataset": "Child poverty rate, under 18",
+      "official_url": "https://www.census.gov/programs-surveys/acs",
+      "retrieval_date": "2026-08-28",
+      "observation_period": "2020-2024",
+      "geography": "Walker County, GA",
+      "locator": "table S1701",
+      "authority_tier": "OFFICIAL_PRIMARY"
+    },
+    {
+      "source_id": "gadoe_grad_rates",
+      "publisher": "Georgia Department of Education",
+      "dataset": "Cohort graduation rates (district comparison baseline)",
+      "official_url": "https://www.gadoe.org",
+      "retrieval_date": "2026-08-28",
+      "observation_period": "2024-25",
+      "geography": "Walker / Dade / Catoosa counties, GA",
+      "locator": "CCRPI graduation data",
+      "authority_tier": "OFFICIAL_PRIMARY"
+    }
+  ],
+  "organization": {
+    "label": "MOCK_EVALUATION_ORGANIZATION",
+    "fact_count": 26,
+    "applicant_status": "FORMULA_NEW"
+  },
+  "sections": {
+    "executive_summary": {
+      "title": "Executive Summary",
+      "words": 0,
+      "target_range": [
+        160,
+        200
+      ]
+    },
+    "program_design": {
+      "title": "Community and Logic Model & Evidence Base (Tier and Quality) & Notice Priority & Member Experience",
+      "words": 1259,
+      "target_range": [
+        982,
+        1512
+      ]
+    },
+    "organizational_capability": {
+      "title": "Organizational Background and Staffing & Member Supervision",
+      "words": 732,
+      "target_range": [
+        491,
+        756
+      ]
+    },
+    "cost_effectiveness": {
+      "title": "Member Recruitment & Member Retention & Data Collection & Budget Adequacy",
+      "words": 845,
+      "target_range": [
+        491,
+        756
+      ]
+    },
+    "evaluation_summary": {
+      "title": "Evaluation Summary/Plan",
+      "words": 22,
+      "target_range": [
+        32,
+        40
+      ]
+    }
+  },
+  "requirement_coverage_pct": 91.7,
+  "words_total": 2858,
+  "pdf_pages_actual": 7,
+  "model_calls": 13,
+  "revisions": 1,
+  "fact_critic": [
+    {
+      "section": "executive_summary",
+      "verdict": null,
+      "violations": []
+    },
+    {
+      "section": "program_design",
+      "verdict": "UNKNOWN",
+      "violations": []
+    },
+    {
+      "section": "organizational_capability",
+      "verdict": "UNKNOWN",
+      "violations": []
+    },
+    {
+      "section": "cost_effectiveness",
+      "verdict": "UNKNOWN",
+      "violations": []
+    },
+    {
+      "section": "evaluation_summary",
+      "verdict": null,
+      "violations": []
+    }
+  ],
+  "qa_gates": [
+    {
+      "gate": "all_sections_drafted",
+      "status": "PASS",
+      "detail": "all 5 sections drafted"
+    },
+    {
+      "gate": "word_limits_satisfied",
+      "status": "FAIL",
+      "detail": "sections over their individual limits: ['cost_effectiveness (845/756)']"
+    },
+    {
+      "gate": "budget_within_ceiling",
+      "status": "PASS",
+      "detail": "total 180145.00 vs ceiling 182400.00"
+    },
+    {
+      "gate": "deadline_correct",
+      "status": "PASS",
+      "detail": "solicitation deadline February 27, 2026 3:00 PM EST bound to blueprint"
+    },
+    {
+      "gate": "revision_correct",
+      "status": "PASS",
+      "detail": "revision ga_dca_nofp_2026 tracked in provenance, not prose"
+    },
+    {
+      "gate": "required_terminology",
+      "status": "PASS",
+      "detail": "all required terminology present"
+    },
+    {
+      "gate": "no_unsupported_material_claims",
+      "status": "FAIL",
+      "detail": "1 unresolved material claim(s) remain"
+    },
+    {
+      "gate": "no_fabricated_partnerships",
+      "status": "PASS",
+      "detail": "no partnership assertions without evidence"
+    },
+    {
+      "gate": "submission_disabled",
+      "status": "PASS",
+      "detail": "submission structurally disabled"
+    },
+    {
+      "gate": "numeric_consistency",
+      "status": "FAIL",
+      "detail": "23 numeric contradiction(s)"
+    }
+  ],
+  "integrity": {
+    "run_at": "2026-08-28T12:41:08.579671+00:00",
+    "as_of": "2026-02-27",
+    "claims": {
+      "total": 51,
+      "material": 51,
+      "supported": 20,
+      "unsupported": 31,
+      "by_class": {
+        "UNKNOWN": 1,
+        "SOLICITATION_FACT": 1,
+        "MODEL_INFERENCE": 30,
+        "FUTURE_TARGET": 17,
+        "CLIENT_ASSERTION": 2
+      },
+      "by_resolution": {
+        "UNKNOWN": 1,
+        "SUPPORTED": 3,
+        "UNSUPPORTED": 30,
+        "TARGET_ALLOWED": 17
+      }
+    },
+    "unresolved_critical_facts": [],
+    "client_questions": [],
+    "dosage_breaches": [],
+    "temporal_conflicts": [],
+    "numeric_conflicts": [
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $12,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $2,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $1,200 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $8,000, in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $15,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $5,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $2,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $4,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $3,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $2,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $150,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $4,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $3,000, in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $2,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $5,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $1,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $15,000, in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $240,000, in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $39,600 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $46,000, in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $120,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $8,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      },
+      {
+        "kind": "BUDGET_DRIFT",
+        "detail": "dollar figure $9,000 in prose is not a canonical budget amount",
+        "section_a": "cost_effectiveness",
+        "section_b": ""
+      }
+    ],
+    "status_conflicts": [],
+    "unsupported_claims": [
+      {
+        "claim_id": "cl-int-0001",
+        "section_id": "executive_summary",
+        "locator": "p1.s1",
+        "claim_text": "UNKNOWN: model lane failed for this section: model request replay detected (g1q-m-1/g1q-r-1) (MR-005)",
+        "subject": "",
+        "predicate": "",
+        "value": "5.0",
+        "claim_class": "UNKNOWN",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNKNOWN",
+        "allowed_by": "",
+        "model_run_ref": null
+      },
+      {
+        "claim_id": "cl-int-0003",
+        "section_id": "program_design",
+        "locator": "p2.s5",
+        "claim_text": "Leadership expertise is supplied by the executive director, Dana Whitfield, MPA, who brings 14 years of youth\u2011development leadership, and the program director, Marcus Ellison, LMSW, who supervises sit",
+        "subject": "",
+        "predicate": "",
+        "value": "14.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0004",
+        "section_id": "program_design",
+        "locator": "p4.s2",
+        "claim_text": "Each member provides tutoring three afternoons per week at their assigned site, with each session lasting 90 minutes.",
+        "subject": "",
+        "predicate": "",
+        "value": "90.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0005",
+        "section_id": "program_design",
+        "locator": "p4.s3",
+        "claim_text": "Over the 32\u2011week program year, this yields 144 tutoring hours per member (3\u202fsessions\u202f\u00d7\u202f1.5\u202fhrs\u202f\u00d7\u202f32\u202fweeks) and a collective total of approximately 1,152 tutoring hours across the eight\u2011member corps.",
+        "subject": "",
+        "predicate": "",
+        "value": "32.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0006",
+        "section_id": "program_design",
+        "locator": "p4.s4",
+        "claim_text": "The summer bridge component runs for four consecutive weeks at 20 hours per week, delivering roughly 80 hours of intensive academic enrichment aimed at rising ninth\u2011graders preparing for the transitio",
+        "subject": "",
+        "predicate": "",
+        "value": "20.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0007",
+        "section_id": "program_design",
+        "locator": "p5.s1",
+        "claim_text": "The target population comprises students in grades 6\u201112 residing in Walker, Dade, and Catoosa counties, with a deliberate focus on youth identified as at risk of disengaging from school \u2014 those exhibi",
+        "subject": "",
+        "predicate": "",
+        "value": "12.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0010",
+        "section_id": "program_design",
+        "locator": "p7.s1",
+        "claim_text": "The primary evidence document submitted is the Coalition\u2019s 2025 internal evaluation, a quasi\u2011experimental pre/post study that tracked a cohort of 387 youth who received at least 30 hours of tutoring o",
+        "subject": "",
+        "predicate": "",
+        "value": "2025.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0011",
+        "section_id": "program_design",
+        "locator": "p7.s3",
+        "claim_text": "Moreover, 91% of regularly attending seniors graduated on time, compared with a 78% on\u2011time graduation rate for the district comparison group.",
+        "subject": "",
+        "predicate": "",
+        "value": "91.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0012",
+        "section_id": "program_design",
+        "locator": "p7.s4",
+        "claim_text": "This study is cited as (Rural Georgia Youth Development Coalition, 2025).",
+        "subject": "",
+        "predicate": "",
+        "value": "2025.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0013",
+        "section_id": "program_design",
+        "locator": "p7.s5",
+        "claim_text": "Complementing this study, the Coalition\u2019s 2024\u201125 performance report offers additional evidence of program fidelity and intermediate impact: 87% of youth attended 30 or more sessions, and 84% of regul",
+        "subject": "",
+        "predicate": "",
+        "value": "2024.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0014",
+        "section_id": "program_design",
+        "locator": "p7.s6",
+        "claim_text": "This datum is referenced as (Rural Georgia Youth Development Coalition, 2025 program report).",
+        "subject": "",
+        "predicate": "",
+        "value": "2025.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-program_design"
+      },
+      {
+        "claim_id": "cl-int-0015",
+        "section_id": "organizational_capability",
+        "locator": "p1.s2",
+        "claim_text": "(EIN 58\u20112345671) was founded in 2012 and operates from its headquarters at 1420 Elm Street, LaFayette, GA 30728, with a SAM UEI of JJ7KQM4XLYY3.",
+        "subject": "",
+        "predicate": "",
+        "value": "58.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-organizational_capability"
+      },
+      {
+        "claim_id": "cl-int-0016",
+        "section_id": "organizational_capability",
+        "locator": "p1.s3",
+        "claim_text": "The organization\u2019s mission is to expand educational and economic opportunity for rural Northwest Georgia youth through mentoring, tutoring, and workforce readiness, serving students in grades 6\u201112 in ",
+        "subject": "",
+        "predicate": "",
+        "value": "12.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-organizational_capability"
+      },
+      {
+        "claim_id": "cl-int-0019",
+        "section_id": "organizational_capability",
+        "locator": "p2.s2",
+        "claim_text": "The Executive Director, Dana Whitfield, MPA, brings fourteen years of youth development leadership and holds ultimate responsibility for grant compliance, financial oversight, and strategic alignment ",
+        "subject": "",
+        "predicate": "",
+        "value": "",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-organizational_capability"
+      },
+      {
+        "claim_id": "cl-int-0020",
+        "section_id": "organizational_capability",
+        "locator": "p3.s1",
+        "claim_text": "The coalition has demonstrated the policies, procedures, and internal controls necessary to manage a federal grant responsibly.",
+        "subject": "",
+        "predicate": "",
+        "value": "",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-organizational_capability"
+      },
+      {
+        "claim_id": "cl-int-0021",
+        "section_id": "organizational_capability",
+        "locator": "p3.s3",
+        "claim_text": "The organization employs segregation of duties between those who authorize expenditures, those who process payments, and those who reconcile accounts, reducing the risk of error or fraud.",
+        "subject": "",
+        "predicate": "",
+        "value": "",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-organizational_capability"
+      },
+      {
+        "claim_id": "cl-int-0022",
+        "section_id": "organizational_capability",
+        "locator": "p3.s6",
+        "claim_text": "These controls, combined with the coalition\u2019s experience managing funds from the 21st CCLC program, the Schafer Family Foundation, and the United Way of Northwest Georgia, provide a solid foundation f",
+        "subject": "",
+        "predicate": "",
+        "value": "",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-organizational_capability"
+      },
+      {
+        "claim_id": "cl-int-0023",
+        "section_id": "organizational_capability",
+        "locator": "p6.s1",
+        "claim_text": "The member training plan begins with a two\u2011day pre\u2011service orientation covering AmeriCorps policies, prohibited activities, child safety, mandatory reporting, and an introduction to the coalition\u2019s tu",
+        "subject": "",
+        "predicate": "",
+        "value": "",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-organizational_capability"
+      },
+      {
+        "claim_id": "cl-int-0029",
+        "section_id": "cost_effectiveness",
+        "locator": "p1.s8",
+        "claim_text": "These combined efforts\u2014staff time, advertising, travel, background checks, and events\u2014constitute a recruitment budget of $8,000, designed to draw candidates who are committed to rural youth developmen",
+        "subject": "",
+        "predicate": "",
+        "value": "8000.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-cost_effectiveness"
+      },
+      {
+        "claim_id": "cl-int-0034",
+        "section_id": "cost_effectiveness",
+        "locator": "p2.s5",
+        "claim_text": "Community\u2011building activities, including quarterly team lunches, collaborative service projects, and end\u2011of\u2011term celebration events, are budgeted at $4,000 to foster peer support and a sense of belong",
+        "subject": "",
+        "predicate": "",
+        "value": "4000.0",
+        "claim_class": "MODEL_INFERENCE",
+        "materiality": "MATERIAL",
+        "source_refs": [],
+        "fact_refs": [],
+        "resolution_state": "UNSUPPORTED",
+        "allowed_by": "",
+        "model_run_ref": "model-run-cost_effectiveness"
+      }
+    ],
+    "readiness_state": "QA_BLOCKED",
+    "blockers": [
+      "23 numeric contradiction(s)",
+      "20 unsupported/unresolved material claim(s) with no governed authority"
+    ]
+  },
+  "readiness_state": "QA_BLOCKED",
+  "status": "BLOCKED"
+}
