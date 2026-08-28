@@ -283,3 +283,53 @@ def test_run_identity_fields_present():
         assert ident.get(key), f"run identity missing {key}"
     assert report["artifact_hashes"]["pdf"] and \
         report["artifact_hashes"]["docx"]
+
+
+# --- MR-005: retry-vs-replay (mission §3) -------------------------------
+
+def _flaky_empty_first_adapter(monkeypatch):
+    """Fake OpenRouter adapter: empty completion on the FIRST invoke, then
+    real prose. Records how many provider calls happened."""
+    import prototype.g0.model.adapters as _adapters
+    calls = {"n": 0}
+
+    def fake_init(self, *a, **k):
+        pass
+
+    def fake_invoke(self, *, model_request, credential):
+        calls["n"] += 1
+        payload = ("" if calls["n"] == 1
+                   else "The coalition will expand educational opportunity "
+                        "for rural Northwest Georgia youth across a 32-week "
+                        "program year. " * 15)
+        return {"output_text_or_structured_payload": payload,
+                "finish_reason": "stop"}
+
+    fake = type("FlakyAdapter", (object,),
+                {"__init__": fake_init, "invoke": fake_invoke})
+    monkeypatch.setattr(_adapters, "OpenRouterAdapter", fake)
+    return calls
+
+
+def test_mr005_empty_first_completion_retries_with_fresh_ids(monkeypatch):
+    """Regression for the LIVE-01/02 exec-summary MR-005 failure: a section
+    whose first free-tier completion is empty must retry with FRESH request
+    ids and succeed, instead of being mis-flagged as an unauthorized replay
+    of a reused request id (the run2 bug reused g1q-r-{i} across the
+    in-invoke retry)."""
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-test-g1q")
+    calls = _flaky_empty_first_adapter(monkeypatch)
+
+    from grant_platform.factory.quality_drafting import (
+        build_quality_model_invoke)
+    model_invoke, _gw, _c = build_quality_model_invoke(
+        model_id="nvidia/nemotron-3-super-120b-a12b:free")
+    bundle = {"section_id": "executive_summary",
+              "title": "Executive Summary", "notes": "",
+              "evidence": "", "protected_facts": {},
+              "instructions": "Write the executive summary."}
+    text = model_invoke(bundle).strip()
+    assert text, ("empty-first completion should retry and produce prose, "
+                  "not fail (MR-005 replay false-positive)")
+    assert calls["n"] == 2, ("expected exactly one empty attempt then one "
+                              f"successful retry, got {calls['n']}")

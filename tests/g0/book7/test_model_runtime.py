@@ -285,6 +285,43 @@ def test_red_green_replay_guard():
         s.invoke(req2, decision)
 
 
+def test_retry_with_fresh_request_id_is_not_a_replay():
+    """MR-005 retry semantics (mission §3): a bounded retry of the SAME
+    logical task with a FRESH request_id is a new execution attempt, NOT an
+    unauthorized replay. Only an identical request_id is refused."""
+    s = _stack()
+    s.grant_model()
+    task_id = "task-g1q-verify"
+    req_a = s.request(request_id="g1q-r-1-a0",
+                      model_request_id="g1q-m-1-a0", task_id=task_id)
+    s.invoke(req_a)
+    # same task, next attempt, NEW request id -> must be allowed
+    req_b = s.request(request_id="g1q-r-1-a1",
+                      model_request_id="g1q-m-1-a1", task_id=task_id)
+    resp = s.invoke(req_b)
+    assert resp["model_id"] == "openai/gpt-4o-mini"
+    # replaying the exact first attempt id is still refused
+    with pytest.raises(ModelError, match="replay"):
+        s.invoke(req_a)
+
+
+def test_retry_vs_replay_two_sections_distinct():  
+    """Different sections (distinct task/request ids) never collide, and a
+    fresh-id retry within a section is still permitted (MR-005 §2)."""
+    s = _stack()
+    s.grant_model()
+    s.allow(request_id="g1q-r-1-a0", model_request_id="g1q-m-1-a0",
+            task_id="task-g1q-1")  # exec summary pass 1
+    # different material section (task/req distinct) allowed
+    s.allow(request_id="g1q-r-2-a0", model_request_id="g1q-m-2-a0",
+            task_id="task-g1q-2", messages=[{"role": "user",
+                                            "content": "program_design"}])
+    # exec summary legit retry (fresh attempt id) allowed
+    s.allow(request_id="g1q-r-1-a1", model_request_id="g1q-m-1-a1",
+            task_id="task-g1q-1", messages=[{"role": "user",
+                                            "content": "exec_summary"}])
+
+
 def test_secret_absent_red_green():
     """The fail-closed credential path is real: with a resolver the request
     executes; with an absent secret it fails closed."""

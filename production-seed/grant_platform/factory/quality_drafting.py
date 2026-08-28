@@ -482,14 +482,18 @@ def build_quality_model_invoke(model_id: str =
 
     counter = {"n": 0}
 
-    def model_invoke(bundle: dict) -> str:
-        counter["n"] += 1
-        i = counter["n"]
-        req = {
-            "model_request_id": f"g1q-m-{i}",
-            "request_id": f"g1q-r-{i}",
+    def build_req(i: int, attempt: int, bundle: dict) -> dict:
+        """MR-005 fix: each gateway execution attempt carries a FRESH
+        request id. A bounded retry after an empty free-tier completion is a
+        NEW execution attempt, never a replay of the same id. The logical
+        task_id stays stable across attempts so one-shot replay protection
+        still blocks a genuinely repeated id (mission §3)."""
+        return {
+            "model_request_id": f"g1q-m-{i}-a{attempt}",
+            "request_id": f"g1q-r-{i}-a{attempt}",
             "tenant_id": tenant_id, "project_id": project_id,
-            "principal_id": "g1-quality-ceo", "task_id": f"task-g1q-{i}",
+            "principal_id": "g1-quality-ceo",
+            "task_id": f"task-g1q-{i}",
             "capability_id": "model.invoke",
             "provider_profile_id": "pp_openrouter_dev",
             "model_id": model_id,
@@ -506,6 +510,9 @@ def build_quality_model_invoke(model_id: str =
             "destination": "https://openrouter.ai",
             "resource_id": "res:g1q-draft",
         }
+
+    def invoke_once(i: int, attempt: int, bundle: dict) -> str:
+        req = build_req(i, attempt, bundle)
         decision = authz.authorize(req)
         if decision["decision"] != "ALLOW":
             raise ValueError(
@@ -515,19 +522,19 @@ def build_quality_model_invoke(model_id: str =
             actor="g1-quality-ceo", principal_type="HERMES_CEO",
             tenant_id=tenant_id, project_id=project_id,
             resource_id="res:g1q-draft")
-        text = str(resp["output_text_or_structured_payload"]).strip()
-        attempts = 2
-        while not text and attempts > 0:   # bounded retry for free-tier empties
-            decision = authz.authorize(req)
-            if decision["decision"] != "ALLOW":
-                break
-            resp = gateway.invoke(
-                model_request=req, authorization_decision=decision,
-                actor="g1-quality-ceo", principal_type="HERMES_CEO",
-                tenant_id=tenant_id, project_id=project_id,
-                resource_id="res:g1q-draft")
-            text = str(resp["output_text_or_structured_payload"]).strip()
-            attempts -= 1
+        return str(resp["output_text_or_structured_payload"]).strip()
+
+    def model_invoke(bundle: dict) -> str:
+        counter["n"] += 1
+        i = counter["n"]
+        text = invoke_once(i, attempt=0, bundle=bundle)
+        # bounded retry for free-tier empty completions; each attempt is a
+        # fresh request id so one-shot replay protection (MR-005) is not
+        # mis-triggered by a legitimate retry (mission §3).
+        attempt = 1
+        while not text and attempt < 3:
+            text = invoke_once(i, attempt=attempt, bundle=bundle)
+            attempt += 1
         return text
 
     return model_invoke, gateway, counter
