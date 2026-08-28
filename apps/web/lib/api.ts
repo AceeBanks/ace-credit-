@@ -155,7 +155,7 @@ export async function getModels(): Promise<ModelLite[]> {
 }
 
 export function downloadUrl(artifactId: string): string {
-  return `/api/artifacts/${artifactId}/download`;
+  return `/api/artifacts/${artifactId}/download?principal_id=client-1`;
 }
 
 export async function getConversations(): Promise<ConversationMeta[]> {

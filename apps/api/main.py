@@ -345,7 +345,8 @@ def download(artifact_id: str, store: Store = Depends(get_store),
              principal: dict = Depends(require_principal)):
     """Serve artifact payload (DOCX/PDF) on demand.
     Uses cached factory from chat when available (avoids re-running).
-    PDF opens inline in browser; DOCX triggers download."""
+    PDF opens inline in browser; DOCX triggers download.
+    Auth accepts ?principal_id= query param for browser-native links."""
     # Find artifact in any project for this tenant
     tenant_id = principal["tenant_id"]
     rows = []

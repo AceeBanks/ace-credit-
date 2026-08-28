@@ -26,13 +26,20 @@ def get_store(request: Request) -> Store:
 
 
 def require_principal(store: Store = Depends(get_store),
-                      x_principal: str | None = Header(default=None)) -> dict:
+                      x_principal: str | None = Header(default=None),
+                      request: Request = None) -> dict:
     """Minimal session gate: a principal header for dev; real session/JWT
     is the G1.10 hardening item. Tenant scope still comes from the
-    principal's durable row, never from the client for reads."""
-    if not x_principal:
+    principal's durable row, never from the client for reads.
+
+    Falls back to ?principal_id= query param for browser-native links
+    (downloads open in new tabs where custom headers can't be sent)."""
+    pid = x_principal
+    if not pid and request is not None:
+        pid = request.query_params.get("principal_id")
+    if not pid:
         raise HTTPException(status_code=401, detail="missing principal")
-    row = store.get_principal(x_principal)
+    row = store.get_principal(pid)
     if row is None:
         raise HTTPException(status_code=401, detail="unknown principal")
     return dict(row)
