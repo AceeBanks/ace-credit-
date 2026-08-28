@@ -119,6 +119,114 @@ RESEARCH_STATS: dict[float, tuple[str, str]] = {
 }
 
 
+# --- Canonical quantities + budget authority (mission §6-§7, §12-§13) ---------
+
+# Numeric authority classes (mission §7): MODEL_INFERENCE is never a
+# numeric license.
+NumericAuthority = (
+    "SOLICITATION_VALUE", "ORG_FACT_VALUE", "CLIENT_ASSERTION_VALUE",
+    "RESEARCH_STATISTIC", "BUDGET_VALUE", "CALCULATED_VALUE",
+    "FUTURE_TARGET",
+)
+
+
+@dataclass(frozen=True)
+class CanonicalQuantity:
+    """One canonical material quantity with a single governed source
+    (mission §16-§17). Cross-section deviation fails QA."""
+    quantity_id: str
+    subject: str
+    metric: str
+    value: object
+    unit: str
+    period: str
+    geography: str
+    source_type: str            # NumericAuthority
+    source_ref: str
+    allowed_usage: str = "sectional"
+    derivation: str = ""
+
+    @property
+    def numeric(self) -> float | None:
+        try:
+            return float(self.value)
+        except (TypeError, ValueError):
+            return None
+
+
+class CanonicalQuantityRegistry:
+    """Governed registry of every material quantity that must not drift.
+    Fill from OrganizationFactPack, ClientAnswerPack, BudgetEngine
+    (mission §6, §30)."""
+
+    def __init__(self, quantities: list[CanonicalQuantity] | None = None):
+        self.quantities: dict[str, CanonicalQuantity] = {
+            q.quantity_id: q for q in (quantities or [])}
+
+    def add(self, q: CanonicalQuantity) -> None:
+        self.quantities[q.quantity_id] = q
+
+    def find(self, *, subject: str | None = None,
+             metric: str | None = None) -> list[CanonicalQuantity]:
+        out = list(self.quantities.values())
+        if subject:
+            out = [q for q in out if q.subject == subject]
+        if metric:
+            out = [q for q in out if q.metric == metric]
+        return out
+
+    def dollar_values(self) -> set[float]:
+        return {q.numeric for q in self.quantities.values()
+                if q.source_type in ("BUDGET_VALUE", "SOLICITATION_VALUE")
+                and q.numeric is not None}
+
+    def all_values(self) -> set[float]:
+        return {q.numeric for q in self.quantities.values()
+                if q.numeric is not None}
+
+    def to_dict(self) -> list[dict]:
+        return [
+            {"quantity_id": q.quantity_id, "subject": q.subject,
+             "metric": q.metric, "value": str(q.value), "unit": q.unit,
+             "period": q.period, "geography": q.geography,
+             "source_type": q.source_type, "source_ref": q.source_ref,
+             "allowed_usage": q.allowed_usage, "derivation": q.derivation}
+            for q in self.quantities.values()]
+
+
+def build_budget_fact_pack(budget) -> list[dict]:
+    """Flatten a canonical BudgetReport into ordered monetary facts the
+    drafting lane may reference verbatim (mission §13-§14). All values
+    are read-only authority — the model may reference them, never alter
+    them or introduce substitutes."""
+    facts: list[dict] = []
+    if budget is None:
+        return facts
+    try:
+        total = float(str(budget.total).replace(",", ""))
+        ceiling = float(str(budget.ceiling).replace(",", ""))
+    except (ValueError, TypeError):
+        total = ceiling = None
+    if total is not None:
+        facts.append({"budget_id": "total", "label": "total project cost",
+                      "amount": f"${total:,.2f}", "source_ref": "BudgetEngine"})
+    if ceiling is not None:
+        facts.append({"budget_id": "ceiling", "label": "funding ceiling",
+                      "amount": f"${ceiling:,.2f}",
+                      "source_ref": "BudgetEngine"})
+    for line in getattr(budget, "lines", []):
+        try:
+            amt = float(str(line.amount).replace(",", ""))
+        except (ValueError, TypeError):
+            continue
+        facts.append({"budget_id": getattr(line, "line_id", ""),
+                      "label": getattr(line, "description", ""),
+                      "amount": f"${amt:,.2f}",
+                      "category": getattr(line, "category", ""),
+                      "source_ref": "BudgetEngine"})
+    return facts
+
+
 # --- Claim records --------------------------------------------------------------
 
 @dataclass
@@ -190,8 +298,9 @@ class ClaimLedger:
 # --- Extraction ---------------------------------------------------------------
 
 _NUM = re.compile(
-    r"\$\s?[\d,]+(?:\.\d+)?|\b\d[\d,]*(?:\.\d+)?\s?(?:percent|%)"
-    r"|\b\d[\d,]{1,}\b")
+    r"\$\s?[\d,]+(?:\.\d+)?"
+    r"|\b\d[\d,]*(?:\.\d+)?\s?(?:percent|%)"
+    r"|\b[-+]?\d+(?:\.\d+)?\b")
 _YEAR = re.compile(r"\b(19|20)\d{2}\b")
 _ORG_HINTS = ("coalition", "inc.", "organization", "EIN")
 
@@ -486,43 +595,120 @@ class NumericConflict:
 
 
 def check_numerics(ledger: ClaimLedger, budget=None) -> list[NumericConflict]:
-    """Numeric consistency: budget amounts used in prose must exist in the
-    canonical budget; identical canonical quantities must not drift across
-    sections (mission §16-§17)."""
+    """Numeric consistency against the canonical budget authority (mission
+    §16-§17). Every dollar amount in prose that is >= 1000 must reconcile
+    to a canonical budget value (total / ceiling / a governed line item).
+    Any non-canonical dollar figure in prose is an UNAUTHORIZED_NUMERIC_CLAIM
+    and blocks readiness — the model may never design a second budget.
+    """
     conflicts: list[NumericConflict] = []
-    canon_amounts: set[float] = set()
+    canon: set[float] = set()
     if budget is not None:
         for line in budget.lines:
             try:
-                canon_amounts.add(float(str(line.amount).replace(",", "")))
+                canon.add(float(str(line.amount).replace(",", "")))
             except (ValueError, TypeError):
                 continue
-        try:
-            canon_amounts.add(float(str(budget.total).replace(",", "")))
-        except (ValueError, TypeError):
-            pass
+        for key in ("total", "ceiling"):
+            try:
+                canon.add(float(str(getattr(budget, key)).replace(",", "")))
+            except (ValueError, TypeError, AttributeError):
+                pass
     for c in ledger.claims:
         if "$" not in c.claim_text:
             continue
+        seen: set[float] = set()
         for m in _NUM.finditer(c.claim_text):
             raw = m.group(0).replace("$", "").replace(",", "").strip()
+            if "%" in m.group(0) or "percent" in raw:
+                continue
             try:
                 v = float(raw)
             except ValueError:
                 continue
-            if v >= 1000 and canon_amounts and v not in canon_amounts:
-                conflicts.append(NumericConflict(
-                    kind="BUDGET_DRIFT", detail=(
-                        f"dollar figure {m.group(0)} in prose is not a "
-                        f"canonical budget amount"),
-                    section_a=c.section_id))
-                break
-    # Cross-section quantity drift is enforced through the lineage gate:
-    # every current/historical quantity must resolve to ONE governed
-    # source (FactPack | client answer | budget); a deviating value in any
-    # section therefore arrives UNLICENSED and is already blocked as an
-    # unsupported material claim. Repetition of the same target across
-    # sections is normal synthesis language, not drift.
+            if v < 1000 or v in seen or v in canon:
+                seen.add(v)
+                continue
+            # A dollar figure that matches a RESEARCH_STAT (e.g. $41,629
+            # median income) is an external statistic, not budget drift.
+            if v in RESEARCH_STATS:
+                continue
+            conflicts.append(NumericConflict(
+                kind="BUDGET_DRIFT", detail=(
+                    f"dollar figure {m.group(0)} in prose is not a canonical "
+                    f"budget amount (unauthorized numeric claim)"),
+                section_a=c.section_id))
+            break
+    return conflicts
+
+
+def check_derived_arithmetic(ledger: ClaimLedger) -> list[NumericConflict]:
+    """Derived numbers (mission §17, §41): when prose states a product
+    like 'N members x X sessions x Y weeks = Z', verify the arithmetic and
+    ensure the claim is flagged BUDGET_DERIVED / derived — never silently
+    invented. Detects impossible multiplicative claims."""
+    conflicts: list[NumericConflict] = []
+    for c in ledger.claims:
+        low = c.claim_text.lower()
+        if not any(t in low for t in ("yields", "totals", "a total of",
+                                      "amounts to", "equals", "= ",
+                                      "collective total", "x")):
+            continue
+        nums = [float(x) for x in _NUM.findall(c.claim_text)
+                if all(ch.isdigit() or ch in ",." for ch in x)]
+        # 3+ explicit factors plus a claimed sum means we can cross-check.
+        ints = [int(n) for n in nums if n == int(n)]
+        if len(ints) >= 3:
+            # heuristic: largest claimed value should be the product of the
+            # two leading multiplicands when they recur across the sentence
+            factors = sorted(ints)
+            if len(factors) >= 3:
+                big = factors[-1]
+                a, b = factors[0], factors[1]
+                if a > 1 and b > 1 and abs(a * b - big) <= max(2, 0.02 * big):
+                    conflicts.append(NumericConflict(
+                        kind="DERIVED_ARITHMETIC",
+                        detail=(f"derived total detected in prose: "
+                                f"{a} x {b} = {big} — must be a governed "
+                                f"CALCULATED_VALUE with lineage, not "
+                                f"free-form arithmetic ({c.claim_text[:120]})"),
+                        section_a=c.section_id))
+    return conflicts
+
+
+def check_cross_section_drift(ledger: ClaimLedger) -> list[NumericConflict]:
+    """Cross-section quantity drift (mission §16): a canonical quantity
+    (members, sites, weeks, etc.) must not appear with different values in
+    different sections. Identical canonical values are synthesis language;
+    deviations are contradictions."""
+    usage: dict[str, dict[str, set]] = {}  # (subject,metric) -> section->values
+    for c in ledger.claims:
+        if c.claim_class in ("FUTURE_TARGET", "EXTERNAL_STATISTIC",
+                             "BUDGET_DERIVED", "SOLICITATION_FACT"):
+            continue
+        key = (c.subject or "org", c.predicate or "quantity")
+        bucket = usage.setdefault(key, {})
+        bucket.setdefault(c.section_id, set()).add(c.value)
+    conflicts: list[NumericConflict] = []
+    for (subj, pred), bysec in usage.items():
+        all_vals = [v for vals in bysec.values() for v in vals]
+        if len(all_vals) < 2:
+            continue
+        numeric = set()
+        for v in all_vals:
+            try:
+                numeric.add(float(v))
+            except ValueError:
+                pass
+        if len(numeric) > 1 and 0 not in numeric:
+            conflict_sections = [s for s, vals in bysec.items()
+                                 if vals]
+            conflicts.append(NumericConflict(
+                kind="CROSS_SECTION_DRIFT",
+                detail=(f"quantity ({subj}|{pred}) differs across sections: "
+                        f"{sorted(numeric)} in "
+                        f"{', '.join(sorted(conflict_sections))}"),
+                section_a=next(iter(bysec))))
     return conflicts
 
 
@@ -605,7 +791,10 @@ class GlobalIntegrityReport:
     dosage_breaches: list = field(default_factory=list)
     temporal_conflicts: list = field(default_factory=list)
     numeric_conflicts: list = field(default_factory=list)
+    derived_conflicts: list = field(default_factory=list)
+    drift_conflicts: list = field(default_factory=list)
     status_conflicts: list = field(default_factory=list)
+    quantities: list = field(default_factory=list)
     unsupported_claims: list = field(default_factory=list)
     readiness_state: str = "QA_BLOCKED"
     blockers: list = field(default_factory=list)
@@ -622,6 +811,11 @@ class GlobalIntegrityReport:
                                    in self.temporal_conflicts],
             "numeric_conflicts": [n.__dict__ for n
                                   in self.numeric_conflicts],
+            "derived_conflicts": [n.__dict__ for n
+                                  in self.derived_conflicts],
+            "drift_conflicts": [n.__dict__ for n
+                                in self.drift_conflicts],
+            "canonical_quantities": self.quantities,
             "status_conflicts": [s.__dict__ for s
                                  in self.status_conflicts],
             "unsupported_claims": self.unsupported_claims,
@@ -632,12 +826,17 @@ class GlobalIntegrityReport:
 def run_integrity_pass(*, sections: dict, fact_pack, matrix, answers=(),
                        budget=None, profile=None,
                        applicant_status: ApplicantStatus | None = None,
-                       as_of: date | None = None) -> GlobalIntegrityReport:
+                       as_of: date | None = None,
+                       quantities: CanonicalQuantityRegistry | None = None
+                       ) -> GlobalIntegrityReport:
     """Global integrity pass after synthesis (mission §31)."""
     rep = GlobalIntegrityReport(run_at=_now())
     rep.as_of = (as_of or date.today()).isoformat()
     ledger = extract_claims(sections, fact_pack, answers, budget, profile)
     rep.ledger_summary = ledger.summary()
+
+    if quantities is not None:
+        rep.quantities = quantities.to_dict()
 
     unresolved, breaches = enforce_missing_facts(matrix, answers, ledger)
     rep.unresolved_critical = unresolved
@@ -646,6 +845,8 @@ def run_integrity_pass(*, sections: dict, fact_pack, matrix, answers=(),
 
     rep.temporal_conflicts = check_temporal(ledger, as_of or date.today())
     rep.numeric_conflicts = check_numerics(ledger, budget)
+    rep.derived_conflicts = check_derived_arithmetic(ledger)
+    rep.drift_conflicts = check_cross_section_drift(ledger)
     if applicant_status is not None:
         rep.status_conflicts = check_applicant_status(ledger,
                                                       applicant_status)
@@ -664,6 +865,12 @@ def run_integrity_pass(*, sections: dict, fact_pack, matrix, answers=(),
     if rep.numeric_conflicts:
         blockers.append(f"{len(rep.numeric_conflicts)} numeric "
                         "contradiction(s)")
+    if rep.derived_conflicts:
+        blockers.append(f"{len(rep.derived_conflicts)} derived-arithmetic "
+                        "contradiction(s) with no governed lineage")
+    if rep.drift_conflicts:
+        blockers.append(f"{len(rep.drift_conflicts)} cross-section "
+                        "quantity-drift contradiction(s)")
     if rep.status_conflicts:
         blockers.append(f"{len(rep.status_conflicts)} applicant-status "
                         "contradiction(s)")

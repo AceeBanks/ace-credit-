@@ -40,15 +40,20 @@ class SectionPlan:
     key_messages: tuple[str, ...]
     target_word_range: tuple[int, int]
     prohibited: tuple[str, ...]          # facts that must NOT be invented
+    budget_facts: tuple[dict, ...] = ()  # canonical BudgetFactPack (read-only)
 
 
 def build_section_plans(blueprint: ApplicationBlueprint,
                         fact_pack, profile,
                         client_answers=(),
-                        applicant_status=None) -> dict[str, SectionPlan]:
+                        applicant_status=None,
+                        budget_facts=()) -> dict[str, SectionPlan]:
     """One SectionPlan per material section: what it must accomplish, which
     criterion it serves, which applicant facts ground it, and how deep it
-    must go (§13-§14)."""
+    must go (§13-§14). budget_facts is the flattened canonical BudgetEngine
+    output — passed read-only so drafting never invents a second budget
+    (mission §12-§14)."""
+    budget_facts = tuple(budget_facts or ())
     plans: dict[str, SectionPlan] = {}
     sec_points: dict[str, int] = {}
     reqs_by_section: dict[str, list] = {}
@@ -105,8 +110,9 @@ def build_section_plans(blueprint: ApplicationBlueprint,
                 "partnerships not in the fact pack",
                 "staff counts or names not in the fact pack",
                 "historical outcomes not in the fact pack",
-                "funding amounts not in the fact pack",
-                "percentages not traceable to supplied facts or cited research"))
+                "funding amounts beyond the canonical BudgetFactPack",
+                "percentages not traceable to supplied facts or cited research"),
+            budget_facts=budget_facts)
     return plans
 
 
@@ -118,6 +124,17 @@ def _facts_block(fact_pack, client_answers=()) -> str:
     for a in client_answers:
         lines.append(f"- CLIENT ANSWER {a.fact_id} [{a.label}]: {a.value} "
                      f"(answered {a.answered_at} by {a.principal})")
+    return "\n".join(lines)
+
+
+def _budget_block(budget_facts) -> str:
+    if not budget_facts:
+        return "- (no budget supplied; do not mention any dollar amounts)"
+    lines = []
+    for bf in budget_facts:
+        label = bf.get("label", bf.get("budget_id", ""))
+        amount = bf.get("amount", "")
+        lines.append(f"- {label}: {amount}")
     return "\n".join(lines)
 
 
@@ -148,6 +165,9 @@ EVERY SUB-ELEMENT BELOW MUST BE ADDRESSED (miss any and reviewers deduct):
 APPLICANT FACTS (the ONLY facts you may assert about the applicant):
 {_facts_block(fact_pack, client_answers)}
 
+CANONICAL BUDGET (READ-ONLY AUTHORITY — the budget is already final):
+{_budget_block(plan.budget_facts)}
+
 EXTERNAL RESEARCH (cite inline as (Source, Year); use ONLY these for community statistics):
 {research_block or "- (none supplied; do not invent statistics)"}
 
@@ -160,9 +180,11 @@ RULES:
 1. Answer every sub-element explicitly. Reviewers score against a checklist.
 2. Use ONLY the applicant facts above for organizational claims. Never invent partnerships, staff, numbers, or history. If a needed fact is missing, write exactly "UNKNOWN: <what is missing>".
 3. Distinguish plans (future) from achievements (historical). Label planning numbers as targets.
-4. Target length {plan.target_word_range[0]}-{plan.target_word_range[1]} words. Depth must match the {plan.points}-point weight — generic filler is worse than short.
-5. Professional, specific, human voice. No "transformative impact" spam. No repetition of the mission statement.
-6. Do not include section headings or meta-commentary. Output the section prose only.
+4. DO NOT DESIGN A BUDGET. The CANONICAL BUDGET above is final. You may reference ONLY those exact dollar figures (and the exact match percentage from the solicitation context). Never introduce a different total, living allowance, or line item amount. If you need a budget figure that is not listed, omit it or write "UNKNOWN: <what is missing>".
+5. DO NOT INVENT MATERIAL NUMBERS. Every session count, hours figure, site count, member count, participant total, or percent must come from the applicant facts (or a clearly future-tense target derived from them) — never make one up.
+6. Target length {plan.target_word_range[0]}-{plan.target_word_range[1]} words. Depth must match the {plan.points}-point weight — generic filler is worse than short.
+7. Professional, specific, human voice. No "transformative impact" spam. No repetition of the mission statement.
+8. Do not include section headings or meta-commentary. Output the section prose only.
 """
 
 
@@ -274,7 +296,8 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
                            max_revisions: int = 1,
                            client_answers=(),
                            applicant_status=None,
-                           as_of: str = "") -> DraftingReport:
+                           as_of: str = "",
+                           budget_facts=()) -> DraftingReport:
     """Quality drafting: plan -> draft -> critique -> revise per section,
     plus a FACT_CRITIC integrity audit whose findings force revision
     regardless of the writing-critic verdict (mission §30).
@@ -286,7 +309,8 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
 
     plans = build_section_plans(blueprint, fact_pack, profile,
                                 client_answers=client_answers,
-                                applicant_status=applicant_status)
+                                applicant_status=applicant_status,
+                                budget_facts=budget_facts)
     sections: dict[str, SectionDraft] = {}
     claims: list[ClaimLedgerEntry] = []
     model_runs: list[dict] = []

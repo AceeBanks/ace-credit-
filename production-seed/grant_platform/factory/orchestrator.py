@@ -130,20 +130,28 @@ def run_factory(*, project_id: str = "proj-1",
     effective_deadline = bp.deadline or deadline
     if profile is not None and fact_pack is not None and model_invoke is not None:
         from grant_platform.factory.quality_drafting import draft_sections_quality
+        from grant_platform.factory.integrity import build_budget_fact_pack
         research = getattr(bp, "research_block", "")
+        # Canonical budget is final BEFORE drafting so budget prose never
+        # invents a second budget (mission §12-§14). Build it now and pass
+        # the flattened BudgetFactPack to the drafting lane read-only.
+        budget = build_budget(ceiling=ceiling or "50000.00",
+                              client_lines=client_budget_lines)
+        budget_facts = build_budget_fact_pack(budget)
         draft = draft_sections_quality(
             bp, fact_pack=fact_pack, profile=profile,
             research_block=research,
             model_invoke=model_invoke, model_id=model_id,
             client_answers=client_answers,
             applicant_status=applicant_status,
-            as_of=(as_of.isoformat() if as_of else ""))
+            as_of=(as_of.isoformat() if as_of else ""),
+            budget_facts=budget_facts)
     else:
         draft = draft_sections(bp, model_invoke=model_invoke,
                                model_id=model_id)
+        budget = build_budget(ceiling=ceiling or "50000.00",
+                              client_lines=client_budget_lines)
     synthesis = synthesize(bp, draft)
-    budget = build_budget(ceiling=ceiling or "50000.00",
-                          client_lines=client_budget_lines)
     qa = run_full_qa(blueprint=bp, draft=draft, budget=budget,
                      synthesis=synthesis,
                      expected_deadline=effective_deadline or "",
@@ -203,6 +211,16 @@ def run_factory(*, project_id: str = "proj-1",
                 "numeric_consistency", "FAIL",
                 f"{len(integrity.numeric_conflicts)} numeric "
                 f"contradiction(s)"))
+        if integrity.derived_conflicts:
+            qa.results.append(type(qa.results[0])(
+                "derived_arithmetic", "FAIL",
+                f"{len(integrity.derived_conflicts)} derived-arithmetic "
+                f"contradiction(s)"))
+        if integrity.drift_conflicts:
+            qa.results.append(type(qa.results[0])(
+                "cross_section_drift", "FAIL",
+                f"{len(integrity.drift_conflicts)} cross-section "
+                f"quantity-drift contradiction(s)"))
         if integrity.status_conflicts:
             qa.results.append(type(qa.results[0])(
                 "applicant_status_consistency", "FAIL",

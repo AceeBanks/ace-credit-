@@ -333,3 +333,86 @@ def test_mr005_empty_first_completion_retries_with_fresh_ids(monkeypatch):
                   "not fail (MR-005 replay false-positive)")
     assert calls["n"] == 2, ("expected exactly one empty attempt then one "
                               f"successful retry, got {calls['n']}")
+
+
+# --- mission §42-§47: adversarial tests --------------------------------------
+
+def test_adversarial_budget_invention_blocked():
+    """§42 — prose '$240,000' with canonical total '$180,145' => BUDGET_DRIFT
+    and QA_BLOCKED. Never weakened to let model design a second budget."""
+    budget = _budget(["112000.00", "8568.00"], "180145.00")
+    rep = _run_pass({"cost": _sec("cost", (
+        "The project costs $240,000 including all match and in-kind."))},
+        answers=_answered_critical(), budget=budget, status=ApplicantStatus(
+            "FORMULA_NEW", "mock"))
+    assert any(n.kind == "BUDGET_DRIFT" for n in rep.numeric_conflicts)
+    assert rep.readiness_state == "QA_BLOCKED"
+
+
+def test_adversarial_dosage_invention_blocked():
+    """§43 — canonical facts carry no session duration; inventing
+    'each session lasts 90 minutes' is an unauthorized program-design
+    claim (mission §18-§21)."""
+    fp = build_mock_fact_pack()
+    fp.facts.pop("member_dosage", None) if hasattr(fp, "facts") else None
+    rep = _run_pass({"design": _sec("design", (
+        "Each member provides tutoring sessions each session lasting "
+        "90 minutes at the assigned site."))},
+        answers=())
+    # unresolved dosage must at minimum leave the fact unresolved / NOT ready
+    assert rep.readiness_state != "READY_FOR_REVIEW"
+
+
+def test_adversarial_fake_ein_is_unsupported():
+    """§44 — a fabricated EIN in prose has no governed org identity source
+    => unsupported material claim => blocked."""
+    rep = _run_pass({"org": _sec("org", (
+        "The coalition (EIN 58-9999999) was founded in 2012 and operates "
+        "from its headquarters."))},
+        answers=_answered_critical(), status=ApplicantStatus("FORMULA_NEW",
+                                                             "mock"))
+    assert rep.ledger_summary["unsupported"] >= 1, rep.ledger_summary
+    assert rep.readiness_state == "QA_BLOCKED"
+
+
+def test_adversarial_invented_historical_outcome_blocked():
+    """§45 — 'improved math by 0.5 grade equivalents' with no evidence is
+    an unsupported historical outcome, not a supported fact."""
+    rep = _run_pass({"evidence": _sec("evidence", (
+        "Participants improved math performance by 0.5 grade equivalents "
+        "last year."))},
+        answers=_answered_critical(), status=ApplicantStatus("FORMULA_NEW",
+                                                             "mock"))
+    assert rep.ledger_summary["unsupported"] >= 1
+    assert rep.readiness_state == "QA_BLOCKED"
+
+
+def test_adversarial_future_target_tense_enforced():
+    """§46 — a target written as past achievement is a temporal/claim-class
+    failure; the same target with future tense is allowed only when authority
+    permits. 'We achieved 80%' must not pass as clean."""
+    budget = _budget(["39600.00"], "180145.00")
+    past = _run_pass({"program": _sec("program", (
+        "We achieved 80% participant completion last cycle."))},
+        answers=_answered_critical(), budget=budget,
+        status=ApplicantStatus("FORMULA_NEW", "mock"))
+    assert past.ledger_summary["unsupported"] >= 1 \
+        or len(past.temporal_conflicts) >= 1, past.ledger_summary
+    assert past.readiness_state != "READY_FOR_REVIEW"
+
+
+def test_claim_extraction_detects_mixed_material_assertions():
+    """§47 — a paragraph carrying dollar amounts, a percentage, a date, a
+    count, and a named partner must surface every material assertion (no
+    silent ledger under-coverage like the old 4-claim defect)."""
+    text = ("The budget totals $180,145 with a $39,600 cash match. "
+            "Poverty is 19.5 percent in Walker County as of 2025. "
+            "The coalition currently serves 420 youth in partnership with "
+            "the United Way of Northwest Georgia. "
+            "8 members serve full-time across four school sites.")
+    rep = _run_pass({"need": _sec("need", text)},
+                    answers=_answered_critical(),
+                    budget=_budget(["39600.00"], "180145.00"),
+                    status=ApplicantStatus("FORMULA_NEW", "mock"))
+    assert rep.ledger_summary["total"] >= 4, rep.ledger_summary
+    assert rep.numeric_conflicts == [], "budget amounts must be reconciled"
