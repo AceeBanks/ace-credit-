@@ -2,6 +2,13 @@
 // The client stays ignorant of model infrastructure (Appendix A §10):
 // it sends task intent; the backend decides eligibility/routing.
 
+export interface ModelSelection {
+  mode: "AUTO" | "MANUAL";
+  provider_id?: string;
+  model_id?: string;
+  allow_fallback: boolean;
+}
+
 export interface ChatResult {
   conversation_id: string;
   intent_id: string;
@@ -9,6 +16,8 @@ export interface ChatResult {
   plan_id: string | null;
   task_ids: string[];
   project_id: string;
+  model_selection_mode: string;
+  resolved_model_id: string | null;
 }
 
 export interface Message {
@@ -38,10 +47,12 @@ export interface ArtifactMeta {
 
 export interface ProduceSummary {
   status: string;
+  readiness_state: string;
   generation_mode: string;
   sections: number;
   word_count: number;
   claims: number;
+  claim_counts: Record<string, number>;
   unsupported: number;
   qa_pass: number;
   qa_fail: number;
@@ -62,6 +73,15 @@ export interface ModelLite {
   enabled: boolean;
 }
 
+export interface ConversationMeta {
+  conversation_id: string;
+  tenant_id: string;
+  client_actor_id: string;
+  title: string | null;
+  project_id: string | null;
+  created_at: string;
+}
+
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const detail = await res.text();
@@ -72,12 +92,19 @@ async function json<T>(res: Response): Promise<T> {
 
 const HEADERS = { "X-Principal": "client-1", "Content-Type": "application/json" };
 
-export async function postChat(message: string): Promise<ChatResult> {
+export async function postChat(
+  message: string,
+  modelSelection?: ModelSelection,
+): Promise<ChatResult> {
   return json<ChatResult>(
     await fetch("/api/chat", {
       method: "POST",
       headers: HEADERS,
-      body: JSON.stringify({ message, requested_capabilities: [] }),
+      body: JSON.stringify({
+        message,
+        requested_capabilities: [],
+        model_selection: modelSelection ?? { mode: "AUTO", allow_fallback: true },
+      }),
     }),
   );
 }
@@ -95,12 +122,20 @@ export async function getProgress(projectId: string): Promise<Progress> {
   );
 }
 
-export async function produce(projectId: string, liveModel = false): Promise<ProduceSummary> {
+export async function produce(
+  projectId: string,
+  liveModel = false,
+  modelSelection?: ModelSelection,
+): Promise<ProduceSummary> {
   return json<ProduceSummary>(
     await fetch(`/api/projects/${projectId}/produce`, {
       method: "POST",
       headers: HEADERS,
-      body: JSON.stringify({ project_id: projectId, live_model: liveModel }),
+      body: JSON.stringify({
+        project_id: projectId,
+        live_model: liveModel,
+        model_selection: modelSelection,
+      }),
     }),
   );
 }
@@ -121,4 +156,11 @@ export async function getModels(): Promise<ModelLite[]> {
 
 export function downloadUrl(artifactId: string): string {
   return `/api/artifacts/${artifactId}/download`;
+}
+
+export async function getConversations(): Promise<ConversationMeta[]> {
+  const data = await json<{ conversations: ConversationMeta[] }>(
+    await fetch("/api/conversations", { headers: HEADERS }),
+  );
+  return data.conversations;
 }

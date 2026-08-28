@@ -499,3 +499,39 @@ class Store:
             "SELECT * FROM worker_results WHERE task_id=?",
             (task_id,)).fetchone()
         return dict(row) if row else None
+
+    # -- G1 Wave 5: attachments ---------------------------------------------
+    def create_attachment(self, a: dict) -> None:
+        self.conn.execute(
+            "INSERT OR REPLACE INTO attachments (attachment_id,"
+            " tenant_id, project_id, conversation_id, filename,"
+            " mime_type, content_hash, file_size_bytes, object_key,"
+            " parser_status, content_text, uploaded_by)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (a["attachment_id"], a["tenant_id"], a.get("project_id"),
+             a.get("conversation_id"), a["filename"], a["mime_type"],
+             a["content_hash"], a["file_size_bytes"], a["object_key"],
+             a.get("parser_status", "PENDING"), a.get("content_text"),
+             a["uploaded_by"]))
+        self.conn.commit()
+
+    def attachments_for(self, tenant_id: str,
+                        project_id: str | None = None) -> list[dict]:
+        if project_id:
+            rows = self.conn.execute(
+                "SELECT * FROM attachments WHERE tenant_id=? AND"
+                " project_id=? ORDER BY created_at",
+                (tenant_id, project_id)).fetchall()
+        else:
+            rows = self.conn.execute(
+                "SELECT * FROM attachments WHERE tenant_id=?"
+                " ORDER BY created_at",
+                (tenant_id,)).fetchall()
+        return [dict(r) for r in rows]
+
+    def get_attachment(self, attachment_id: str,
+                       tenant_id: str) -> dict | None:
+        row = self.conn.execute(
+            "SELECT * FROM attachments WHERE attachment_id=? AND"
+            " tenant_id=?", (attachment_id, tenant_id)).fetchone()
+        return dict(row) if row else None

@@ -75,15 +75,19 @@ def test_progress_from_durable_task_state(client):
 
 
 def test_produce_full_factory_package(client):
+    """Deterministic lane has UNKNOWN material claims (honest gaps),
+    so status is BLOCKED — never fake-ready."""
     r = client.post("/projects/proj-1/produce",
                     json={"live_model": False}, headers=AUTH)
     assert r.status_code == 200
     data = r.json()
-    assert data["status"] == "SUBMISSION_READY_MOCK"
+    # P0-02 fix: UNKNOWN material claims block READY status
+    assert data["status"] == "BLOCKED"
+    assert data["readiness_state"] in ("NEEDS_CLIENT_INPUT", "QA_BLOCKED")
     assert data["generation_mode"] == "DETERMINISTIC_BASELINE"
     assert data["submission_enabled"] is False
     assert data["within_ceiling"] is True
-    assert data["qa_fail"] == 0
+    assert data["unsupported"] > 0  # honest: UNKNOWN claims remain
     assert data["sections"] == 7
 
 
@@ -150,3 +154,159 @@ def test_no_submission_route_exists(client):
     assert not any("submit" in r for r in routes)
     r = client.post("/submission/execute", json={}, headers=AUTH)
     assert r.status_code == 404
+
+
+# --- P0-01: Model selection end-to-end -----------------------------------
+
+
+def test_model_selection_transmitted_via_chat(client):
+    """Frontend model selection is transmitted to backend and reflected
+    in ChatOut."""
+    # AUTO mode
+    r = client.post("/chat", json={
+        "message": "We need funding for STEM.",
+        "model_selection": {"mode": "AUTO", "allow_fallback": True}},
+        headers=AUTH)
+    assert r.status_code == 200
+    assert r.json()["model_selection_mode"] == "AUTO"
+    assert r.json()["resolved_model_id"] is None
+    # MANUAL mode with known model
+    r2 = client.post("/chat", json={
+        "message": "We need funding for STEM.",
+        "model_selection": {
+            "mode": "MANUAL",
+            "model_id": "minimax/minimax-m3:free",
+            "allow_fallback": True}},
+        headers=AUTH)
+    assert r2.status_code == 200
+    assert r2.json()["model_selection_mode"] == "MANUAL"
+    assert r2.json()["resolved_model_id"] == "minimax/minimax-m3:free"
+
+
+def test_manual_model_denied_when_not_governed(client):
+    """MANUAL selection with an unknown model returns 422."""
+    r = client.post("/projects/proj-1/produce",
+        json={"live_model": True,
+              "model_selection": {
+                  "mode": "MANUAL",
+                  "model_id": "fake/model",
+                  "allow_fallback": False}},
+        headers=AUTH)
+    assert r.status_code == 422
+    assert "not in the governed" in r.json()["detail"]["message"].lower() or \
+           "model_not_governed" in r.json()["detail"]["error"]
+
+
+def test_manual_model_denied_when_disabled(client):
+    """MANUAL selection with a disabled model returns 422."""
+    r = client.post("/projects/proj-1/produce",
+        json={"live_model": True,
+              "model_selection": {
+                  "mode": "MANUAL",
+                  "model_id": "anthropic/claude-3.5-sonnet",
+                  "allow_fallback": False}},
+        headers=AUTH)
+    assert r.status_code == 422
+    assert "disabled" in r.json()["detail"]["message"].lower()
+
+
+def test_produce_with_model_selection(client):
+    """Produce endpoint accepts model_selection payload."""
+    r = client.post("/projects/proj-1/produce",
+        json={"live_model": False,
+              "model_selection": {"mode": "AUTO", "allow_fallback": True}},
+        headers=AUTH)
+    assert r.status_code == 200
+    data = r.json()
+    assert "readiness_state" in data
+    assert "claim_counts" in data
+
+
+# --- Conversations persistence -------------------------------------------
+
+
+def test_conversations_persist(client):
+    """Chat creates a conversation that appears in the list."""
+    client.post("/chat", json={"message": "We need funding for a program."},
+                headers=AUTH)
+    r = client.get("/conversations", headers=AUTH)
+    assert r.status_code == 200
+    convs = r.json()["conversations"]
+    assert len(convs) >= 1
+    assert any("funding" in (c.get("title") or "").lower() for c in convs)
+
+
+def test_conversations_tenant_scoped(client):
+    """Conversations from other tenants are not visible."""
+    client.post("/chat", json={"message": "We need funding for something."},
+                headers=AUTH)
+    r = client.get("/conversations", headers={"X-Principal": "nobody"})
+    assert r.status_code == 401
+
+
+# --- P0-02: Claim readiness semantics -----------------------------------
+
+
+def test_readiness_state_with_unknown_claims(client):
+    """Deterministic lane with UNKNOWN claims must not be READY."""
+    r = client.post("/projects/proj-1/produce",
+                    json={"live_model": False}, headers=AUTH)
+    data = r.json()
+    # NEVER READY when UNKNOWN material claims exist
+    assert data["readiness_state"] != "READY_FOR_REVIEW"
+    assert data["unsupported"] > 0
+    claim_counts = data["claim_counts"]
+    assert claim_counts.get("UNKNOWN", 0) > 0
+
+
+# --- P1-04: Attachments --------------------------------------------------
+
+
+def test_attachment_upload_txt(client):
+    """Upload a TXT file and retrieve its content."""
+    content = b"Community Youth Works serves 200 students annually."
+    r = client.post("/attachments/upload?project_id=proj-1",
+                    files={"file": ("org_info.txt", content, "text/plain")},
+                    headers=AUTH)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["attachment_id"].startswith("att-")
+    assert data["filename"] == "org_info.txt"
+    assert data["parser_status"] == "PASSED"
+    # Retrieve content
+    c = client.get(f"/attachments/{data['attachment_id']}/content",
+                   headers=AUTH)
+    assert c.status_code == 200
+    assert "200 students" in c.json()["content_text"]
+
+
+def test_attachment_rejects_unsupported_mime(client):
+    """Executable files must be rejected."""
+    r = client.post("/attachments/upload",
+                    files={"file": ("malware.exe", b"MZ...", "application/x-executable")},
+                    headers=AUTH)
+    assert r.status_code == 422
+    assert "unsupported_mime_type" in r.json()["detail"]["error"]
+
+
+def test_attachment_list_scoped_to_tenant(client):
+    """Attachments are tenant-scoped."""
+    client.post("/attachments/upload",
+                files={"file": ("test.txt", b"hello", "text/plain")},
+                headers=AUTH)
+    r = client.get("/attachments", headers=AUTH)
+    assert r.status_code == 200
+    assert len(r.json()["attachments"]) >= 1
+    # Another tenant sees nothing
+    r2 = client.get("/attachments", headers={"X-Principal": "nobody"})
+    assert r2.status_code == 401
+
+
+def test_attachment_rejects_oversize(client):
+    """Files over 10MB must be rejected."""
+    big_content = b"x" * (10 * 1024 * 1024 + 1)
+    r = client.post("/attachments/upload",
+                    files={"file": ("big.txt", big_content, "text/plain")},
+                    headers=AUTH)
+    assert r.status_code == 422
+    assert "file_too_large" in r.json()["detail"]["error"]

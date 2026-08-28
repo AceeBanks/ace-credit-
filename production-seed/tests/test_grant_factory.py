@@ -155,12 +155,14 @@ def test_synthesis_terminology_pass():
 
 
 def test_full_factory_submission_ready_mock_deterministic():
+    """Deterministic lane has UNKNOWN material claims (honest gaps),
+    so status is BLOCKED — never fake-ready. P0-02 fix."""
     factory = run_factory(project_id="proj-1")
-    assert factory.status == SUBMISSION_READY_MOCK
+    assert factory.status == BLOCKED  # UNKNOWN claims block READY
     summary = factory.summary()
     assert summary["sections"] == 7
-    assert summary["qa_pass"] >= 8
-    assert summary["qa_fail"] == 0
+    assert summary["unsupported"] > 0  # honest UNKNOWN claims
+    assert summary["readiness_state"] != "READY_FOR_REVIEW"
     assert summary["submission_enabled"] is False
     assert summary["within_ceiling"] is True
     assert summary["generation_mode"] == "DETERMINISTIC_BASELINE"

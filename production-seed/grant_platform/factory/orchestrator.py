@@ -43,17 +43,33 @@ class FactoryPackage:
     model_runs: list[dict] = field(default_factory=list)
     generated_at: str = ""
 
+    @property
+    def readiness_state(self) -> str:
+        """Explicit readiness outcome: never claim READY when gaps remain."""
+        unresolved = self.draft.unsupported_material_claims()
+        if self.qa.failures:
+            return "QA_BLOCKED"
+        if unresolved:
+            return "NEEDS_CLIENT_INPUT"
+        return "READY_FOR_REVIEW"
+
     def summary(self) -> dict:
+        unresolved = self.draft.unsupported_material_claims()
+        claim_counts: dict[str, int] = {}
+        for c in self.draft.claims:
+            claim_counts[c.classification] = claim_counts.get(c.classification, 0) + 1
         return {
             "project_id": self.project_id,
             "revision_id": self.revision_id,
             "status": self.status,
+            "readiness_state": self.readiness_state,
             "generation_mode": self.draft.generation_mode,
             "sections": len(self.draft.sections),
             "word_count": sum(s.word_count
                               for s in self.draft.sections.values()),
             "claims": len(self.draft.claims),
-            "unsupported": len(self.draft.unsupported_material_claims()),
+            "claim_counts": claim_counts,
+            "unsupported": len(unresolved),
             "qa_pass": self.qa.pass_count,
             "qa_fail": len(self.qa.failures),
             "budget_total": self.budget.total,

@@ -86,12 +86,26 @@ def run_full_qa(*, blueprint: ApplicationBlueprint,
         f"all {len(drafted)} sections drafted" if not missing
         else f"missing sections: {missing}"))
 
-    over = [s.section_id for s in draft.sections.values()
-            if s.word_count > blueprint.word_limit_total()]
+    # Per-section word limits: each section must be within its own limit
+    over: list[str] = []
+    section_limits: dict[str, int] = {s.section_id: s.word_limit
+                                       for s in blueprint.sections}
+    for sid, sec in draft.sections.items():
+        limit = section_limits.get(sid)
+        if limit and sec.word_count > limit:
+            over.append(f"{sid} ({sec.word_count}/{limit})")
     results.append(QAResult(
         "word_limits_satisfied", "PASS" if not over else "FAIL",
-        f"sections within limits: {len(draft.sections)}"
-        if not over else f"over limit: {over}"))
+        f"all {len(draft.sections)} sections within per-section limits"
+        if not over else f"sections over their individual limits: {over}"))
+    # Aggregate check: total across all sections vs blueprint total
+    total_words = sum(s.word_count for s in draft.sections.values())
+    total_limit = blueprint.word_limit_total()
+    if total_words > total_limit:
+        over.append(f"aggregate ({total_words}/{total_limit})")
+        results[-1] = QAResult(
+            "word_limits_satisfied", "FAIL",
+            f"sections over limits: {over}")
 
     results.append(QAResult(
         "budget_within_ceiling", "PASS" if budget.within_ceiling else "FAIL",
@@ -121,14 +135,16 @@ def run_full_qa(*, blueprint: ApplicationBlueprint,
         else "missing required terminology"))
 
     unsupported = draft.unsupported_material_claims()
-    # UNKNOWN entries are honest gaps, not fabrications; only fabricated
-    # material claims (assertions without refs) fail the hard gate.
-    fabricated = [c for c in unsupported
-                  if c.classification in ("ASSUMPTION", "QUESTION")]
+    # ALL unresolved material claims block READY: UNKNOWN means
+    # missing information the user must provide; QUESTION means
+    # clarification needed; ASSUMPTION means unverified. None of
+    # these should present as "ready" to the user.
     results.append(QAResult(
         "no_unsupported_material_claims",
-        "PASS" if not fabricated else "FAIL",
-        f"{len(fabricated)} fabricated material claims"))
+        "PASS" if not unsupported else "FAIL",
+        f"{len(unsupported)} unresolved material claim(s) remain"))
+    fabricated = [c for c in unsupported
+                  if c.classification in ("ASSUMPTION", "QUESTION")]
     results.append(QAResult(
         "no_fabricated_partnerships",
         "PASS" if not any("partnership" in c.claim.lower()

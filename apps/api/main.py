@@ -19,9 +19,13 @@ from __future__ import annotations
 import io
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException
+import hashlib
+import uuid
+
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel
 
@@ -51,6 +55,16 @@ from grant_platform.model.selection import (  # noqa: E402
 )
 from grant_platform.runtime.tasks import TaskRunner  # noqa: E402
 from grant_platform.store.db import Store  # noqa: E402
+from grant_platform.store.objects import LocalObjectStore  # noqa: E402
+
+# Attachment governance (Appendix B §18)
+ALLOWED_MIME_TYPES = {
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain",
+}
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+OBJ_STORE = LocalObjectStore(_ROOT / "var" / "g1-objects")
 
 app = FastAPI(title="Grant Platform — G1 Client API",
               version="0.1.0",
@@ -101,10 +115,18 @@ def _seed_dev(store: Store) -> None:
         opportunity_id="opp_ga_501", revision_id="opp_rev_ga_501_1"))
 
 
+class ModelSelectionPayload(BaseModel):
+    mode: str = "AUTO"                    # AUTO | MANUAL
+    provider_id: str | None = None
+    model_id: str | None = None
+    allow_fallback: bool = True
+
+
 class ChatIn(BaseModel):
     message: str
     conversation_id: str | None = None
     requested_capabilities: list[str] = []
+    model_selection: ModelSelectionPayload | None = None
 
 
 class ChatOut(BaseModel):
@@ -114,6 +136,8 @@ class ChatOut(BaseModel):
     plan_id: str | None = None
     task_ids: list[str] = []
     project_id: str = "proj-1"
+    model_selection_mode: str = "AUTO"
+    resolved_model_id: str | None = None
 
 
 @app.post("/chat", response_model=ChatOut)
@@ -131,9 +155,14 @@ def chat(body: ChatIn, store: Store = Depends(get_store),
         requested_capabilities=body.requested_capabilities)
     ceo = CeoHermes(store)
     exec_ = ceo.plan(reply.intent, project_id="proj-1")
+    ms = body.model_selection
+    mode = ms.mode if ms else "AUTO"
+    resolved = ms.model_id if ms and ms.mode == "MANUAL" else None
     return ChatOut(conversation_id=conv, intent_id=reply.intent.intent_id,
                    reply=reply.text, plan_id=exec_.plan.plan_id,
-                   task_ids=exec_.task_ids)
+                   task_ids=exec_.task_ids,
+                   model_selection_mode=mode,
+                   resolved_model_id=resolved)
 
 
 @app.get("/chat/{conversation_id}/messages")
@@ -161,26 +190,80 @@ def progress(project_id: str, store: Store = Depends(get_store),
 class ProduceIn(BaseModel):
     project_id: str = "proj-1"
     live_model: bool = False
+    model_selection: ModelSelectionPayload | None = None
+
+
+def _resolve_model_invoke(body_model: ModelSelectionPayload | None,
+                          live_model_flag: bool
+                          ) -> tuple[Callable | None, str | None]:
+    """Resolve the model invocation path from the client request.
+    Returns (model_invoke or None, resolved_model_id or None).
+    
+    Route logic:
+    - If live_model flag is True, route through the governed model gateway
+    - If model_selection.mode == 'MANUAL' and a model_id is given, route
+      through governed gateway with that specific model
+    - If model_selection.mode == 'AUTO' and live_model is True, use AUTO
+    - Otherwise: deterministic baseline (None)
+    """
+    from grant_platform.model.registry import ModelRegistry
+    from grant_platform.model.selection import SelectionContext, select_model
+
+    use_live = live_model_flag
+    resolved_model_id: str | None = None
+
+    if body_model is not None and body_model.mode == "MANUAL" and body_model.model_id:
+        use_live = True
+        resolved_model_id = body_model.model_id
+    elif body_model is not None and body_model.mode == "AUTO" and live_model_flag:
+        use_live = True
+
+    if not use_live:
+        return None, None
+
+    # Validate MANUAL selection against governed registry
+    if resolved_model_id:
+        reg = ModelRegistry.load_default()
+        try:
+            profile = reg.get(resolved_model_id)
+        except KeyError:
+            raise HTTPException(
+                status_code=422,
+                detail={"error": "model_not_governed",
+                        "model_id": resolved_model_id,
+                        "message": f"Model '{resolved_model_id}' is not in the "
+                                   "governed ModelRegistry (deny-by-default)"})
+        if not profile.enabled or profile.availability == "DISABLED":
+            raise HTTPException(
+                status_code=422,
+                detail={"error": "model_disabled",
+                        "model_id": resolved_model_id,
+                        "message": f"Model '{resolved_model_id}' is "
+                                   "disabled in the governed registry"})
+
+    # Attempt governed model invoke via the runtime tool
+    try:
+        from tools.g1.run_w4_live import build_governed_model_invoke
+        model_invoke, _gw, _c = build_governed_model_invoke()
+        return model_invoke, resolved_model_id
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="governed model runtime unavailable; use live_model=false")
 
 
 @app.post("/projects/{project_id}/produce")
 def produce(project_id: str, body: ProduceIn,
             store: Store = Depends(get_store),
             principal: dict = Depends(require_principal)):
-    """Run the full Grant factory. live_model=True routes through the
-    governed Model Gateway when a runtime is configured; otherwise the
-    honest deterministic lane is used (never faked as model output)."""
-    if body.live_model:
-        try:
-            from tools.g1.run_w4_live import build_governed_model_invoke
-            model_invoke, _gw, _c = build_governed_model_invoke()
-        except Exception:
-            raise HTTPException(
-                status_code=503,
-                detail="governed model runtime unavailable; use live_model=false")
-    else:
-        model_invoke = None
-    factory = run_factory(project_id=project_id, model_invoke=model_invoke)
+    """Run the full Grant factory. Routes through governed model gateway
+    when live_model=True or a MANUAL model selection is provided.
+    Otherwise uses the honest deterministic lane (never faked as model
+    output)."""
+    model_invoke, resolved_model_id = _resolve_model_invoke(
+        body.model_selection, body.live_model)
+    factory = run_factory(project_id=project_id, model_invoke=model_invoke,
+                          model_id=resolved_model_id)
     # persist artifact metadata
     for kind, render in (("proposal_docx", factory.docx),
                          ("proposal_pdf", factory.pdf)):
@@ -221,6 +304,141 @@ def download(artifact_id: str, store: Store = Depends(get_store),
                     headers={"Content-Disposition":
                              f'attachment; filename="{artifact_id}.'
                              f'{"docx" if kind == "proposal_docx" else "pdf"}"'})
+
+
+@app.get("/conversations")
+def list_conversations(store: Store = Depends(get_store),
+                      principal: dict = Depends(require_principal)):
+    """Return all conversations for the current tenant (DEV pilot)."""
+    tenant_id = principal["tenant_id"]
+    rows = store.conn.execute(
+        "SELECT * FROM conversations WHERE tenant_id=?"
+        " ORDER BY created_at DESC", (tenant_id,)).fetchall()
+    return {"conversations": [dict(r) for r in rows]}
+
+
+# --- Attachments (Appendix B §18) ----------------------------------------
+
+
+@app.post("/attachments/upload")
+async def upload_attachment(
+    file: UploadFile = File(...),
+    project_id: str | None = None,
+    conversation_id: str | None = None,
+    store: Store = Depends(get_store),
+    principal: dict = Depends(require_principal),
+):
+    """Governed file upload. Validates MIME type, size limit, hashes content,
+    stores in object store, records metadata with artifact provenance."""
+    # 1. MIME type gate
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "unsupported_mime_type",
+                    "mime_type": file.content_type,
+                    "allowed": sorted(ALLOWED_MIME_TYPES)})
+    # 2. Read and enforce size limit
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "file_too_large",
+                    "size_bytes": len(content),
+                    "max_bytes": MAX_FILE_SIZE_BYTES})
+    # 3. Content hash + object store
+    content_hash = hashlib.sha256(content).hexdigest()
+    filename = file.filename or "upload.bin"
+    ext = filename.rsplit(".", 1)[-1] if "." in filename else "bin"
+    attachment_id = f"att-{uuid.uuid4().hex[:12]}"
+    object_key = f"attachments/{principal['tenant_id']}/{attachment_id}.{ext}"
+    OBJ_STORE.put(object_key, content, file.content_type or "application/octet-stream")
+    # 4. Parse text content for PDF/DOCX/TXT
+    content_text: str | None = None
+    parser_status = "PASSED"
+    if file.content_type == "text/plain":
+        content_text = content.decode("utf-8", errors="replace")
+    elif file.content_type == "application/pdf":
+        try:
+            import fitz  # PyMuPDF
+            doc = fitz.open(stream=content, filetype="pdf")
+            content_text = "\n".join(page.get_text() for page in doc)
+            doc.close()
+        except Exception:
+            parser_status = "PARSE_ERROR"
+    elif "wordprocessingml" in (file.content_type or ""):
+        try:
+            import zipfile as _zf
+            import xml.etree.ElementTree as ET
+            with _zf.ZipFile(__import__("io").BytesIO(content)) as zf:
+                doc_xml = zf.read("word/document.xml")
+                root = ET.fromstring(doc_xml)
+                ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+                paragraphs = root.findall(".//w:p", ns)
+                texts = []
+                for p in paragraphs:
+                    t = "".join(r.text or "" for r in p.findall(".//w:t", ns))
+                    if t.strip():
+                        texts.append(t.strip())
+                content_text = "\n".join(texts)
+        except Exception:
+            parser_status = "PARSE_ERROR"
+    # 5. Persist metadata
+    store.create_attachment({
+        "attachment_id": attachment_id,
+        "tenant_id": principal["tenant_id"],
+        "project_id": project_id,
+        "conversation_id": conversation_id,
+        "filename": filename,
+        "mime_type": file.content_type or "application/octet-stream",
+        "content_hash": content_hash,
+        "file_size_bytes": len(content),
+        "object_key": object_key,
+        "parser_status": parser_status,
+        "content_text": content_text,
+        "uploaded_by": principal["principal_id"],
+    })
+    return {
+        "attachment_id": attachment_id,
+        "filename": filename,
+        "mime_type": file.content_type,
+        "content_hash": content_hash,
+        "file_size_bytes": len(content),
+        "parser_status": parser_status,
+        "message": "uploaded",
+    }
+
+
+@app.get("/attachments")
+def list_attachments(
+    project_id: str | None = None,
+    store: Store = Depends(get_store),
+    principal: dict = Depends(require_principal),
+):
+    """List attachments for the current tenant/project."""
+    tenant_id = principal["tenant_id"]
+    attachments = store.attachments_for(tenant_id, project_id)
+    # Strip content_text for listing (too large)
+    safe = [{k: v for k, v in a.items() if k != "content_text"}
+            for a in attachments]
+    return {"attachments": safe}
+
+
+@app.get("/attachments/{attachment_id}/content")
+def get_attachment_content(
+    attachment_id: str,
+    store: Store = Depends(get_store),
+    principal: dict = Depends(require_principal),
+):
+    """Return parsed text content of an attachment."""
+    att = store.get_attachment(attachment_id, principal["tenant_id"])
+    if not att:
+        raise HTTPException(status_code=404, detail="attachment not found")
+    return {
+        "attachment_id": attachment_id,
+        "filename": att["filename"],
+        "content_text": att.get("content_text"),
+        "parser_status": att["parser_status"],
+    }
 
 
 class ModelSelectIn(BaseModel):
