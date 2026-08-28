@@ -90,16 +90,34 @@ def run_full_qa(*, blueprint: ApplicationBlueprint,
     # allocations (they are planning budgets, not funder-enforced per-
     # section caps). The aggregate budget remains a HARD gate below.
     over: list[str] = []
+    under: list[str] = []
     section_limits: dict[str, int] = {s.section_id: s.word_limit
                                        for s in blueprint.sections}
+    solicitation = getattr(blueprint, "solicitation", None)
+    required_ids = {r.section_id for r in solicitation.requirements
+                    if r.required and r.response_type != "na"} if solicitation else set()
+    required_sections = required_ids or {s.section_id for s in blueprint.sections}
     for sid, sec in draft.sections.items():
         limit = section_limits.get(sid)
         if limit and sec.word_count > round(limit * 1.1):
             over.append(f"{sid} ({sec.word_count}/{limit})")
+        if sid in required_sections and sec.word_count == 0:
+            under.append(f"{sid} (0/{limit or 'minimum'})")
     results.append(QAResult(
-        "word_limits_satisfied", "PASS" if not over else "FAIL",
+        "word_limits_satisfied", "PASS" if not over and not under else "FAIL",
         f"all {len(draft.sections)} sections within per-section limits"
-        if not over else f"sections over their individual limits: {over}"))
+        if not over and not under else
+        f"sections over limits: {over}; missing required sections: {under}"))
+    # A provider-error placeholder is not a substantive response, even when
+    # its word count happens to be below the maximum.
+    unavailable = [s.section_id for s in draft.sections.values()
+                   if s.text.startswith("UNKNOWN: model lane failed")
+                   or s.text.startswith("GENERATION_UNAVAILABLE")]
+    if unavailable:
+        results.append(QAResult(
+            "generation_complete", "FAIL",
+            f"provider execution unavailable for sections: {unavailable}"))
+
     # Aggregate check: total across all sections vs blueprint total
     total_words = sum(s.word_count for s in draft.sections.values())
     total_limit = blueprint.word_limit_total()

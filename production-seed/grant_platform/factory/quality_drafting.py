@@ -418,7 +418,7 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
                                or bool(_length_weakness(text, plan)))
             model_runs.append({
                 "section": sec.section_id, "status": "OK",
-                "model_id": model_id, "passes": passes,
+                "model_id": model_id, "provenance": getattr(model_invoke, "provenance", []), "passes": passes,
                 "revisions": revisions,
                 "critic_overall": overall,
                 "critic_weaknesses": weaknesses,
@@ -464,11 +464,28 @@ def _bundle(sec, plan, prompt: str) -> dict:
     }
 
 
+def _normalize_provider_failure(exc: Exception) -> str:
+    text = str(exc).lower()
+    if "429" in text or "rate" in text or "capacity" in text:
+        return "RATE_LIMITED"
+    if "timeout" in text or "timed out" in text:
+        return "TIMEOUT"
+    if "empty" in text:
+        return "EMPTY_COMPLETION"
+    if "401" in text or "403" in text or "credential" in text or "auth" in text:
+        return "AUTH_FAILURE"
+    if "context" in text or "token" in text:
+        return "CONTEXT_INCOMPATIBLE"
+    if "404" in text or "not allowed" in text or "unavailable" in text:
+        return "MODEL_UNAVAILABLE"
+    return "UNKNOWN_PROVIDER_ERROR"
+
+
 # --- Governed live invoke with real token budgets ----------------------------
 
 
 def build_quality_model_invoke(model_id: str =
-                               "nvidia/nemotron-3-super-120b-a12b:free",
+                               "z-ai/glm-5.2:free",
                                *,
                                max_output_tokens: int = 4096,
                                tenant_id: str = "tenant-a",
@@ -525,8 +542,9 @@ def build_quality_model_invoke(model_id: str =
     gateway._authz = authz
 
     counter = {"n": 0}
+    provenance: list[dict] = []
 
-    def build_req(i: int, attempt: int, bundle: dict) -> dict:
+    def build_req(i: int, attempt: int, bundle: dict, requested_model: str | None = None) -> dict:
         """MR-005 fix: each gateway execution attempt carries a FRESH
         request id. A bounded retry after an empty free-tier completion is a
         NEW execution attempt, never a replay of the same id. The logical
@@ -540,7 +558,7 @@ def build_quality_model_invoke(model_id: str =
             "task_id": f"task-g1q-{i}",
             "capability_id": "model.invoke",
             "provider_profile_id": "pp_openrouter_dev",
-            "model_id": model_id,
+            "model_id": requested_model or model_id,
             "purpose": "grant_drafting",
             "messages": [
                 {"role": "system", "content":
@@ -555,8 +573,8 @@ def build_quality_model_invoke(model_id: str =
             "resource_id": "res:g1q-draft",
         }
 
-    def invoke_once(i: int, attempt: int, bundle: dict) -> str:
-        req = build_req(i, attempt, bundle)
+    def invoke_once(i: int, attempt: int, bundle: dict, requested_model: str | None = None) -> str:
+        req = build_req(i, attempt, bundle, requested_model=requested_model)
         decision = authz.authorize(req)
         if decision["decision"] != "ALLOW":
             raise ValueError(
@@ -570,15 +588,58 @@ def build_quality_model_invoke(model_id: str =
 
     def model_invoke(bundle: dict) -> str:
         counter["n"] += 1
-        i = counter["n"]
-        text = invoke_once(i, attempt=0, bundle=bundle)
-        # bounded retry for free-tier empty completions; each attempt is a
-        # fresh request id so one-shot replay protection (MR-005) is not
-        # mis-triggered by a legitimate retry (mission §3).
-        attempt = 1
-        while not text and attempt < 3:
-            text = invoke_once(i, attempt=attempt, bundle=bundle)
-            attempt += 1
-        return text
+        logical_i = counter["n"]
+        candidates = [model_id]
+        if model_id in ("z-ai/glm-5.2:free", "thinkingmachines/inkling-small:free"):
+            candidates += [m for m in (
+                "thinkingmachines/inkling-small:free",
+                "minimax/minimax-m3:free") if m not in candidates]
+        last_error = None
+        for candidate in candidates:
+            for attempt in range(2):
+                started = datetime.now(timezone.utc)
+                try:
+                    # Build a fresh governed gateway per candidate so each
+                    # fallback request has an independent policy-bound lane.
+                    if candidate != model_id:
+                        fallback_invoke, _fallback_gateway, _ = build_quality_model_invoke(
+                            candidate, max_output_tokens=max_output_tokens,
+                            tenant_id=tenant_id, project_id=project_id)
+                        text = fallback_invoke(bundle)
+                    else:
+                        text = invoke_once(logical_i, attempt=attempt, bundle=bundle,
+                                           requested_model=candidate)
+                    text = str(text).strip()
+                    provenance.append({"section_id": bundle.get("section_id"),
+                                       "task_type": "grant_drafting",
+                                       "candidate_model": candidate,
+                                       "attempt_number": attempt,
+                                       "provider": "openrouter",
+                                       "latency_ms": round((datetime.now(timezone.utc)-started).total_seconds()*1000, 3),
+                                       "status": "SUCCESS" if text else "EMPTY_COMPLETION",
+                                       "normalized_failure_reason": "" if text else "EMPTY_COMPLETION",
+                                       "fallback_to": None})
+                    if text:
+                        return text
+                    last_error = RuntimeError("empty completion")
+                except Exception as exc:
+                    last_error = exc
+                    reason = _normalize_provider_failure(exc)
+                    next_model = (candidates[candidates.index(candidate)+1]
+                                  if candidates.index(candidate)+1 < len(candidates) else None)
+                    provenance.append({"section_id": bundle.get("section_id"),
+                                       "task_type": "grant_drafting",
+                                       "candidate_model": candidate,
+                                       "attempt_number": attempt,
+                                       "provider": "openrouter",
+                                       "latency_ms": round((datetime.now(timezone.utc)-started).total_seconds()*1000, 3),
+                                       "status": "FAILED",
+                                       "normalized_failure_reason": reason,
+                                       "fallback_to": next_model})
+                    if reason == "AUTH_FAILURE":
+                        break
+            # one bounded retry, then fallback to the next approved model
+        raise RuntimeError(f"GENERATION_UNAVAILABLE: approved pool exhausted: {last_error}")
 
+    model_invoke.provenance = provenance
     return model_invoke, gateway, counter

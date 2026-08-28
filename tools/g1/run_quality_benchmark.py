@@ -222,6 +222,7 @@ def _run(tag: str, answers, status, out_tag: str) -> dict:
                            for x in factory.draft.sections.values()),
         "pdf_pages_actual": pdf_pages,
         "model_calls": counter["n"],
+        "model_provenance": getattr(model_invoke, "provenance", []),
         "revisions": sum(r.get("revisions", 0)
                          for r in factory.draft.model_runs
                          if isinstance(r, dict)),
