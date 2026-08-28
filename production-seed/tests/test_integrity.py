@@ -226,6 +226,78 @@ def test_cross_section_drift_caught_via_lineage():
     assert rep.readiness_state != "READY_FOR_REVIEW"
 
 
+def test_governed_fact_dollar_not_budget_drift():
+    """run3 regression: the board-committed cash match ($39,600) and
+    in-kind ($18,000) live inside the governed match_ability fact; prose
+    citing them verbatim is licensed, never BUDGET_DRIFT."""
+    budget = _budget(["112000.00", "8568.00"], "180145.00")
+    fp = build_mock_fact_pack()
+    ledger = gi.extract_claims(
+        {"cost": _sec("cost", (
+            "The organization provides a board-committed cash match of "
+            "$39,600 per year plus in-kind space valued at $18,000."))},
+        fp, answers=_answered_critical(), budget=budget,
+        profile=AMERICORPS_GA_2026)
+    assert any(c.claim_class == "CANONICAL_FACT"
+               for c in ledger.claims), [c.claim_class
+                                         for c in ledger.claims]
+    conflicts = gi.check_numerics(ledger, budget, fp, _answered_critical())
+    assert not any(c.kind == "BUDGET_DRIFT" for c in conflicts)
+
+
+def test_derived_match_total_licensed():
+    """run3 regression: $57,600 = cash match $39,600 + in-kind $18,000
+    (both governed facts) is a derived figure with lineage, not an
+    invented second budget (mission §17)."""
+    budget = _budget(["112000.00", "8568.00"], "180145.00")
+    rep = _run_pass({"cost": _sec("cost", (
+        "Combined cash and in-kind match totals $57,600."))},
+        answers=_answered_critical(), budget=budget)
+    assert not any(n.kind == "BUDGET_DRIFT"
+                   for n in rep.numeric_conflicts)
+    assert rep.readiness_state == "READY_FOR_REVIEW", rep.blockers
+
+
+def test_mangled_dollar_figure_still_blocks():
+    """run3 regression: '$57,6008' (concatenated $57,600 + 8) is not
+    licensed by any authority — it must stay BUDGET_DRIFT."""
+    budget = _budget(["112000.00", "8568.00"], "180145.00")
+    fp = build_mock_fact_pack()
+    ledger = gi.extract_claims(
+        {"cost": _sec("cost", (
+            "The project requests $57,6008 in federal funds."))},
+        fp, answers=_answered_critical(), budget=budget,
+        profile=AMERICORPS_GA_2026)
+    conflicts = gi.check_numerics(ledger, budget, fp, _answered_critical())
+    assert any(c.kind == "BUDGET_DRIFT" for c in conflicts)
+
+
+def test_subjectless_numbers_not_cross_section_drift():
+    """run3 regression: unsupported numbers, years, and budget figures
+    carry no named quantity subject — they must NOT be bucketed under a
+    synthetic (org|quantity) key and reported as cross-section drift."""
+    ledger = gi.ClaimLedger()
+    for sid, val in (("a", "2024"), ("b", "2025"), ("c", "57600")):
+        ledger.add(gi.ClaimRecord(
+            "", sid, "p1.s1", f"figure {val}", subject="",
+            predicate="", value=val, claim_class="MODEL_INFERENCE"))
+    assert gi.check_cross_section_drift(ledger) == []
+
+
+def test_named_quantity_drift_still_caught():
+    """A genuinely named canonical quantity with different values across
+    sections is still a contradiction (mission §16)."""
+    ledger = gi.ClaimLedger()
+    for sid, val in (("need", "420"), ("program", "412")):
+        ledger.add(gi.ClaimRecord(
+            "", sid, "p1.s1", f"serves {val} youth",
+            subject="youth_served", predicate="count", value=val,
+            claim_class="CANONICAL_FACT"))
+    conflicts = gi.check_cross_section_drift(ledger)
+    assert len(conflicts) == 1
+    assert conflicts[0].kind == "CROSS_SECTION_DRIFT"
+
+
 # --- §18/§19: research provenance normalization ---------------------------------
 
 def test_research_provenance_is_normalized_official():
@@ -333,6 +405,64 @@ def test_mr005_empty_first_completion_retries_with_fresh_ids(monkeypatch):
                   "not fail (MR-005 replay false-positive)")
     assert calls["n"] == 2, ("expected exactly one empty attempt then one "
                               f"successful retry, got {calls['n']}")
+
+
+def test_over_length_section_forced_into_revision():
+    """run3 regression: the executive summary drafted 2,189 words against
+    a 200-word limit (the model dumped its fill-in-the-template reasoning
+    into the section). Deterministic length enforcement must force a
+    revision with an explicit LENGTH directive until the section is within
+    its hard limit (mission §30)."""
+    from grant_platform.factory.quality_drafting import (
+        draft_sections_quality)
+    from grant_platform.factory.solicitation import (
+        build_blueprint_from_solicitation)
+    fp = build_mock_fact_pack()
+    bp = build_blueprint_from_solicitation(AMERICORPS_GA_2026)
+    calls = {"n": 0, "drafts": 0}
+    captured = {}
+    long_text = ("The coalition will expand educational opportunity for "
+                 "rural youth in Northwest Georgia. " * 140)  # ~1600 words
+    short_text = ("The coalition will expand educational opportunity for "
+                  "rural youth in Northwest Georgia. " * 16)  # 192 words
+    critic_json = ("{\"answers_exact_question\": 5, "
+                   "\"applicant_specific\": 5, \"evidence_used\": 5, "
+                   "\"unsupported_claims\": 5, \"depth_vs_weight\": 5, "
+                   "\"repetition_or_filler\": 5, \"overall\": 5, "
+                   "\"weaknesses\": [], \"verdict\": \"ACCEPT\"}")
+    fact_json = ("{\"unsupported_numbers\": [], \"temporal_violations\": [], "
+                 "\"status_violations\": [], \"invented_entities\": [], "
+                 "\"tense_violations\": [], "
+                 "\"integrity_verdict\": \"CLEAN\"}")
+
+    def fake_invoke(bundle):
+        calls["n"] += 1
+        instr = bundle["instructions"]
+        if "federal grant reviewer scoring" in instr:
+            return critic_json
+        if "FACTUAL INTEGRITY auditor" in instr:
+            return fact_json
+        n_drafts = calls["drafts"]
+        calls["drafts"] = n_drafts + 1
+        if "YOUR PREVIOUS DRAFT" in instr:
+            captured["revise_prompt"] = instr
+        # first draft of a section is over-length; every revision returns
+        # a within-limit rewrite
+        return long_text if n_drafts == 0 else short_text
+
+    rep = draft_sections_quality(
+        bp, fact_pack=fp, profile=AMERICORPS_GA_2026,
+        model_invoke=fake_invoke, model_id="test-model",
+        client_answers=_answered_critical(),
+        applicant_status=ApplicantStatus("FORMULA_NEW", "mock"),
+        as_of="2026-02-27")
+    es = rep.sections["executive_summary"]
+    assert es.word_count <= 200, (
+        f"executive summary not cut to limit: {es.word_count} words")
+    assert calls["drafts"] >= 2, ("over-length draft was not forced "
+                                   "into revision")
+    assert "LENGTH:" in captured.get("revise_prompt", ""), (
+        "revision did not carry a deterministic LENGTH directive")
 
 
 # --- mission §42-§47: adversarial tests --------------------------------------

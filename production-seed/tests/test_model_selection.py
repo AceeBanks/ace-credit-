@@ -171,6 +171,52 @@ def test_unapproved_free_model_is_never_selected():
     assert any("not in approved pool" in r for r in result.rejected_reasons)
 
 
+def test_zero_context_verified_flag_is_rejected():
+    profile = _profile(model_id="z-ai/glm-5.2:free",
+                       free_pool_approved=True, context_verified=True,
+                       context_window_tokens=0)
+    ctx = SelectionContext(task="grant_drafting", estimated_input_tokens=1,
+                           expected_output_tokens=1)
+    result = select_model(ctx, [profile])
+    assert not result.ok
+
+
+def test_unverified_context_cannot_pass_hard_gate():
+    profile = _profile(model_id="z-ai/glm-5.2:free",
+                       free_pool_approved=True, context_verified=False,
+                       context_window_tokens=100000)
+    ctx = SelectionContext(task="grant_drafting", estimated_input_tokens=1,
+                           expected_output_tokens=1)
+    result = select_model(ctx, [profile])
+    assert not result.ok
+    assert any("unverified" in r for r in result.rejected_reasons)
+
+
+def test_verified_approved_model_with_enough_context_is_eligible():
+    profile = _profile(model_id="z-ai/glm-5.2:free",
+                       free_pool_approved=True, context_verified=True,
+                       context_window_tokens=100000)
+    ctx = SelectionContext(task="grant_drafting", estimated_input_tokens=1,
+                           expected_output_tokens=1)
+    assert select_model(ctx, [profile]).ok
+
+
+def test_approved_model_with_insufficient_context_is_skipped():
+    profile = _profile(model_id="z-ai/glm-5.2:free",
+                       free_pool_approved=True, context_verified=True,
+                       context_window_tokens=10)
+    ctx = SelectionContext(task="grant_drafting", estimated_input_tokens=100,
+                           expected_output_tokens=20)
+    assert not select_model(ctx, [profile]).ok
+
+
+def test_minimax_existing_verified_capacity_remains_usable():
+    from grant_platform.model.registry import ModelRegistry
+    minimax = ModelRegistry.load_default().get("minimax/minimax-m3:free")
+    assert minimax.context_verified
+    assert minimax.context_window_tokens > 1
+
+
 def test_auto_prefers_quality_then_cost():
     ctx = SelectionContext(task="grant_drafting",
                            estimated_input_tokens=1000,

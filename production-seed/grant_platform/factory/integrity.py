@@ -357,6 +357,67 @@ def _match_fact_value(value: str, fact_pack, answers) -> tuple[str, str]:
     return "", ""
 
 
+def _governed_fact_dollars(fact_pack) -> set[float]:
+    """Dollar values (>=1000) that appear in governed fact-pack facts
+    (e.g. the cash-match figure inside a sentence-valued fact). These are
+    canonical money figures the prose may reference verbatim (mission
+    §12-§14); a dollar claim matching one is licensed, not budget drift."""
+    out: set[float] = set()
+    if fact_pack is None:
+        return out
+    for f in fact_pack.facts.values():
+        for m in _NUM.finditer(str(f.value)):
+            raw = m.group(0).replace("$", "").replace(",", "").strip()
+            if "%" in m.group(0) or "percent" in raw:
+                continue
+            try:
+                v = float(raw)
+            except ValueError:
+                continue
+            if v >= 1000:
+                out.add(v)
+    return out
+
+
+def _fact_containing_dollar(value: str, fact_pack) -> str:
+    """fact_id of a governed fact whose text carries exactly this dollar
+    figure (>=1000), or "" when no fact licenses it."""
+    try:
+        v = float(value.replace(",", ""))
+    except (ValueError, TypeError):
+        return ""
+    if fact_pack is None or v < 1000:
+        return ""
+    for f in fact_pack.facts.values():
+        for m in _NUM.finditer(str(f.value)):
+            raw = m.group(0).replace("$", "").replace(",", "").strip()
+            if "%" in m.group(0) or "percent" in raw:
+                continue
+            try:
+                if float(raw) == v:
+                    return f.fact_id
+            except ValueError:
+                continue
+    return ""
+
+
+def _derived_dollar_authority(value: str, fact_pack, budget) -> str:
+    """License a dollar figure that equals the sum of two governed dollar
+    facts (e.g. cash match $39,600 + in-kind $18,000 = $57,600) as a
+    BUDGET_DERIVED value with explicit lineage (mission §17). Returns the
+    authority string or "" when the figure is not derivable."""
+    try:
+        v = float(value.replace(",", ""))
+    except (ValueError, TypeError):
+        return ""
+    governed = _governed_fact_dollars(fact_pack)
+    for a in sorted(governed):
+        b = round(v - a, 2)
+        if b in governed and a != b and a > 0 and b > 0:
+            return f"BudgetEngine:derived({a:g}+{b:g})"
+    return ""
+
+
 def _classify(sentence: str, value: str, fact_pack, answers,
               budget, profile) -> ClaimRecord:
     """Classify one material sentence against governed authorities."""
@@ -397,6 +458,22 @@ def _classify(sentence: str, value: str, fact_pack, answers,
             fact_refs.append(fid)
             src_refs.append(src)
             allowed_by = src
+        if not fact_refs:
+            # governed fact-pack dollar value written as prose (e.g. the
+            # $39,600 cash match inside the match_ability fact)
+            fid = _fact_containing_dollar(value, fact_pack)
+            if fid:
+                fact_refs.append(fid)
+                src_refs.append(f"OrganizationFactPack:{fid}")
+                allowed_by = f"OrganizationFactPack:{fid}"
+        if not fact_refs:
+            # derived sum of two governed dollar facts (e.g. cash + in-kind
+            # match) is BUDGET_DERIVED with lineage, never invention
+            by = _derived_dollar_authority(value, fact_pack, budget)
+            if by:
+                return ClaimRecord("", "", "", sentence, "", "", value,
+                                   "BUDGET_DERIVED", source_refs=(by,),
+                                   allowed_by=by)
         if fact_refs:
             cls = "BUDGET_DERIVED" if any(r.startswith("budget:")
                                           for r in fact_refs) \
@@ -594,12 +671,15 @@ class NumericConflict:
     section_b: str = ""
 
 
-def check_numerics(ledger: ClaimLedger, budget=None) -> list[NumericConflict]:
+def check_numerics(ledger: ClaimLedger, budget=None, fact_pack=None,
+                   answers=()) -> list[NumericConflict]:
     """Numeric consistency against the canonical budget authority (mission
     §16-§17). Every dollar amount in prose that is >= 1000 must reconcile
-    to a canonical budget value (total / ceiling / a governed line item).
-    Any non-canonical dollar figure in prose is an UNAUTHORIZED_NUMERIC_CLAIM
-    and blocks readiness — the model may never design a second budget.
+    to a canonical budget value (total / ceiling / a governed line item), a
+    governed fact-pack dollar (e.g. the board-committed cash match), or a
+    derived sum of governed figures (mission §17). Any non-canonical dollar
+    figure in prose is an UNAUTHORIZED_NUMERIC_CLAIM and blocks readiness
+    — the model may never design a second budget.
     """
     conflicts: list[NumericConflict] = []
     canon: set[float] = set()
@@ -614,6 +694,13 @@ def check_numerics(ledger: ClaimLedger, budget=None) -> list[NumericConflict]:
                 canon.add(float(str(getattr(budget, key)).replace(",", "")))
             except (ValueError, TypeError, AttributeError):
                 pass
+    # governed fact-pack dollars are canonical money figures
+    canon |= _governed_fact_dollars(fact_pack)
+    # derived sums of two governed dollar figures carry lineage (§17)
+    base = sorted(canon)
+    for i, a in enumerate(base):
+        for b in base[i + 1:]:
+            canon.add(round(a + b, 2))
     for c in ledger.claims:
         if "$" not in c.claim_text:
             continue
@@ -686,7 +773,14 @@ def check_cross_section_drift(ledger: ClaimLedger) -> list[NumericConflict]:
         if c.claim_class in ("FUTURE_TARGET", "EXTERNAL_STATISTIC",
                              "BUDGET_DERIVED", "SOLICITATION_FACT"):
             continue
-        key = (c.subject or "org", c.predicate or "quantity")
+        # Only NAMED canonical quantities can drift. Claims with no subject
+        # identity (plain MODEL_INFERENCE / unsupported numbers) are not a
+        # quantity under comparison — bucketing them under a synthetic
+        # (org|quantity) key produced cross-section "drift" out of years,
+        # budget figures, and unrelated counts (run3 regression).
+        if not c.subject or not c.predicate:
+            continue
+        key = (c.subject, c.predicate)
         bucket = usage.setdefault(key, {})
         bucket.setdefault(c.section_id, set()).add(c.value)
     conflicts: list[NumericConflict] = []
@@ -697,9 +791,13 @@ def check_cross_section_drift(ledger: ClaimLedger) -> list[NumericConflict]:
         numeric = set()
         for v in all_vals:
             try:
-                numeric.add(float(v))
+                fv = float(v)
             except ValueError:
-                pass
+                continue
+            # calendar years are dates, not quantities under comparison
+            if 1900 <= fv <= 2099 and fv == int(fv):
+                continue
+            numeric.add(fv)
         if len(numeric) > 1 and 0 not in numeric:
             conflict_sections = [s for s, vals in bysec.items()
                                  if vals]
@@ -844,7 +942,8 @@ def run_integrity_pass(*, sections: dict, fact_pack, matrix, answers=(),
     rep.dosage_breaches = breaches
 
     rep.temporal_conflicts = check_temporal(ledger, as_of or date.today())
-    rep.numeric_conflicts = check_numerics(ledger, budget)
+    rep.numeric_conflicts = check_numerics(ledger, budget, fact_pack,
+                                           answers)
     rep.derived_conflicts = check_derived_arithmetic(ledger)
     rep.drift_conflicts = check_cross_section_drift(ledger)
     if applicant_status is not None:

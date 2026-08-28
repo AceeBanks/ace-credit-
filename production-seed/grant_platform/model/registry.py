@@ -16,8 +16,8 @@ from grant_platform.model.selection import ModelProfile
 DEFAULT_PROFILES = [
     ModelProfile(
         model_id="z-ai/glm-5.2:free", provider_id="openrouter",
-        free_pool_approved=True, context_verified=True,
-        context_window_tokens=0, max_output_tokens=4096,
+        free_pool_approved=True, context_verified=False,
+        context_window_tokens=1, max_output_tokens=4096,
         enabled=True, availability="BETA", supports_long_form=True,
         supports_structured_output=True, supports_reasoning=True,
         full_proposal_eligible=True, research_eligible=True, qa_eligible=True,
@@ -26,8 +26,8 @@ DEFAULT_PROFILES = [
         cost_tier="LOW", latency_tier="UNRATED", quality_tier="UNRATED"),
     ModelProfile(
         model_id="thinkingmachines/inkling-small:free", provider_id="openrouter",
-        free_pool_approved=True, context_verified=True,
-        context_window_tokens=0, max_output_tokens=4096,
+        free_pool_approved=True, context_verified=False,
+        context_window_tokens=1, max_output_tokens=4096,
         enabled=True, availability="BETA", supports_long_form=False,
         supports_structured_output=True, supports_reasoning=True,
         full_proposal_eligible=True, research_eligible=True, qa_eligible=True,

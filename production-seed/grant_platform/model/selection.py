@@ -109,6 +109,10 @@ def _reject_reasons(profile: ModelProfile, ctx: SelectionContext,
         reasons.append(
             f"context window {profile.context_window_tokens} < required "
             f"{required}")
+    if profile.context_window_tokens <= 0 or (profile.provider_id == "openrouter"
+                                             and profile.model_id.endswith(":free")
+                                             and not profile.context_verified):
+        reasons.append("context capacity unverified")
     if profile.max_output_tokens < ctx.expected_output_tokens:
         reasons.append(
             f"max output {profile.max_output_tokens} < required "

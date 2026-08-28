@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-08-28T15:14:06.877904+00:00",
+  "branch": "grant-sector-g1-production",
+  "commit_sha": "216bc1d180c8dea0440b5ec6ae37ee4012ca39ba",
+  "benchmark": "FY2026 AmeriCorps Georgia NOFO + MOCK_EVALUATION_ORGANIZATION",
+  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "predicates": {
+    "same_benchmark": true,
+    "live_model": true,
+    "requirements_coverage_100": true,
+    "claim_extraction_complete": true,
+    "critical_missing_facts_zero": true,
+    "unsupported_material_claims_zero": false,
+    "model_inference_material_claims_zero": false,
+    "unauthorized_numeric_claims_zero": false,
+    "temporal_conflicts_zero": false,
+    "numeric_conflicts_zero": false,
+    "budget_conflicts_zero": false,
+    "word_limits_pass": false,
+    "organization_identity_pass": true,
+    "research_lineage_pass": true,
+    "artifact_run_ids_synchronized": true,
+    "submission_enabled_false": true
+  },
+  "status": "FAIL"
+}

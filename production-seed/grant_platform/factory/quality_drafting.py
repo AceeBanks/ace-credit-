@@ -185,6 +185,8 @@ RULES:
 6. Target length {plan.target_word_range[0]}-{plan.target_word_range[1]} words. Depth must match the {plan.points}-point weight — generic filler is worse than short.
 7. Professional, specific, human voice. No "transformative impact" spam. No repetition of the mission statement.
 8. Do not include section headings or meta-commentary. Output the section prose only.
+9. LENGTH IS A HARD REQUIREMENT: the final section must be {plan.target_word_range[0]}-{plan.target_word_range[1]} words. Count the words of your output and cut ruthlessly if you are over. An over-length section is rejected outright.
+10. OUTPUT ONLY THE FINAL SECTION TEXT — never the funder's template, your notes, your reasoning, a fact list, or planning commentary. What you output IS the submission: a reviewer must be able to paste it into the application as-is.
 """
 
 
@@ -271,6 +273,21 @@ def _notes_for(plan: SectionPlan, profile) -> str:
     return "\n\n".join(f"[{r.title}] {r.prompt}" for r in reqs)
 
 
+def _length_weakness(text: str, plan: SectionPlan) -> list[str]:
+    """Deterministic over-length violation (mission §30: deterministic
+    integrity outranks the writing critic). The model cannot talk its way
+    out of a hard word limit — an over-length section is forced into
+    revision with an explicit length directive."""
+    hi = plan.target_word_range[1]
+    lo = plan.target_word_range[0]
+    wc = len(text.split())
+    if wc > hi:
+        return [f"LENGTH: section is {wc} words, hard limit {hi} "
+                f"(target {lo}-{hi}). Cut it to at most {hi} words — "
+                "delete reasoning, notes, templates, and repetition."]
+    return []
+
+
 def _parse_critic(raw: str) -> dict:
     """Defensive JSON parse of the critic verdict (§28-§29)."""
     try:
@@ -293,7 +310,7 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
                            model_invoke: Callable | None = None,
                            model_id: str | None = None,
                            critic_threshold: int = 4,
-                           max_revisions: int = 1,
+                           max_revisions: int = 3,
                            client_answers=(),
                            applicant_status=None,
                            as_of: str = "",
@@ -375,9 +392,11 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
             # Deterministic integrity outranks the writing critic (§30):
             # FACT_CRITIC violations force revision regardless of style.
             must_revise = (overall < critic_threshold
-                           or bool(fact_violations))
+                           or bool(fact_violations)
+                           or bool(_length_weakness(text, plan)))
             while (must_revise and revisions < max_revisions):
-                merged = weaknesses + fact_violations
+                merged = weaknesses + fact_violations + \
+                    _length_weakness(text, plan)
                 text = str(model_invoke(_bundle(
                     sec, plan,
                     _revise_prompt(text, plan, merged, fact_pack,
@@ -395,7 +414,8 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
                 fact_verdict, fact_violations = _run_fact_critic(text)
                 passes += 1
                 must_revise = (overall < critic_threshold
-                               or bool(fact_violations))
+                               or bool(fact_violations)
+                               or bool(_length_weakness(text, plan)))
             model_runs.append({
                 "section": sec.section_id, "status": "OK",
                 "model_id": model_id, "passes": passes,

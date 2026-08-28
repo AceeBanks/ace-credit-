@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-28T12:41:08.619097+00:00",
-  "note": "QUALITY_CANDIDATE_01 (7c668daa) remains the pre-integrity adversarial artifact; runs below are the integrity-hardened candidates (mission \u00a71, \u00a736).",
+  "generated_at": "2026-08-28T15:14:06.873122+00:00",
+  "note": "QUALITY_CANDIDATE_01 (7c668daa) remains the pre-integrity adversarial artifact; run1/run2 are prior integrity candidates, run3 is the integrity-hardened resolved run (mission \u00a71, \u00a736, \u00a750).",
   "candidate_01_reference": {
     "commit": "7c668daa",
     "words": 3023,
@@ -15,15 +15,19 @@
     "pdf_pages": 10,
     "coverage_pct": 83.3,
     "claims_total": 57,
+    "claims_material": 57,
     "claims_supported": 23,
     "claims_unsupported": 34,
+    "model_inference_material": 29,
     "critical_gaps": [
       "member_dosage",
       "prior_americorps"
     ],
     "temporal_conflicts": 1,
     "numeric_conflicts": 10,
+    "budget_conflicts": 10,
     "readiness": "NEEDS_CLIENT_INPUT",
+    "artifact_label": "DRAFT_BLOCKED",
     "model_calls": 21,
     "revisions": 2
   },
@@ -33,13 +37,36 @@
     "pdf_pages": 7,
     "coverage_pct": 91.7,
     "claims_total": 51,
+    "claims_material": 51,
     "claims_supported": 20,
     "claims_unsupported": 31,
+    "model_inference_material": 30,
     "critical_gaps": [],
     "temporal_conflicts": 0,
     "numeric_conflicts": 23,
+    "budget_conflicts": 23,
     "readiness": "QA_BLOCKED",
+    "artifact_label": "DRAFT_BLOCKED",
     "model_calls": 13,
+    "revisions": 1
+  },
+  "run3_integrity": {
+    "run_id": "g1-integrity-LIVE-03-2026-08-28T15:03:34.569726+00:00",
+    "words": 4827,
+    "pdf_pages": 11,
+    "coverage_pct": 100.0,
+    "claims_total": 112,
+    "claims_material": 112,
+    "claims_supported": 58,
+    "claims_unsupported": 54,
+    "model_inference_material": 51,
+    "critical_gaps": [],
+    "temporal_conflicts": 3,
+    "numeric_conflicts": 15,
+    "budget_conflicts": 15,
+    "readiness": "QA_BLOCKED",
+    "artifact_label": "DRAFT_BLOCKED",
+    "model_calls": 15,
     "revisions": 1
   }
 }
