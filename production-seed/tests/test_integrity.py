@@ -423,6 +423,11 @@ def test_required_empty_section_fails_qa():
                      expected_deadline=bp.deadline)
     assert any(r.gate == "word_limits_satisfied" and r.status == "FAIL"
                for r in qa.results)
+    assert any(r.gate == "all_sections_drafted" and r.status == "FAIL"
+               for r in qa.results)
+    assert any(r.gate == "generation_complete" and r.status == "FAIL"
+               for r in qa.results)
+    assert not qa.submission_ready_mock
 
 
 def test_over_length_section_forced_into_revision():

@@ -590,26 +590,19 @@ def build_quality_model_invoke(model_id: str =
     def model_invoke(bundle: dict) -> str:
         counter["n"] += 1
         logical_i = counter["n"]
-        candidates = [model_id]
-        if model_id in ("z-ai/glm-5.2:free", "thinkingmachines/inkling-small:free"):
-            candidates += [m for m in (
-                "thinkingmachines/inkling-small:free",
-                "minimax/minimax-m3:free") if m not in candidates]
+        approved = (
+            "z-ai/glm-5.2:free",
+            "thinkingmachines/inkling-small:free",
+            "minimax/minimax-m3:free",
+        )
+        candidates = list(approved) if model_id in approved else [model_id]
         last_error = None
-        for candidate in candidates:
+        for candidate_index, candidate in enumerate(candidates):
             for attempt in range(2):
                 started = datetime.now(timezone.utc)
                 try:
-                    # Build a fresh governed gateway per candidate so each
-                    # fallback request has an independent policy-bound lane.
-                    if candidate != model_id:
-                        fallback_invoke, _fallback_gateway, _ = build_quality_model_invoke(
-                            candidate, max_output_tokens=max_output_tokens,
-                            tenant_id=tenant_id, project_id=project_id)
-                        text = fallback_invoke(bundle)
-                    else:
-                        text = invoke_once(logical_i, attempt=attempt, bundle=bundle,
-                                           requested_model=candidate)
+                    text = invoke_once(logical_i, attempt=attempt, bundle=bundle,
+                                       requested_model=candidate)
                     text = str(text).strip()
                     provenance.append({"section_id": bundle.get("section_id"),
                                        "task_type": "grant_drafting",
@@ -626,8 +619,8 @@ def build_quality_model_invoke(model_id: str =
                 except Exception as exc:
                     last_error = exc
                     reason = _normalize_provider_failure(exc)
-                    next_model = (candidates[candidates.index(candidate)+1]
-                                  if candidates.index(candidate)+1 < len(candidates) else None)
+                    next_model = (candidates[candidate_index + 1]
+                                  if candidate_index + 1 < len(candidates) else None)
                     provenance.append({"section_id": bundle.get("section_id"),
                                        "task_type": "grant_drafting",
                                        "candidate_model": candidate,

@@ -80,11 +80,14 @@ def run_full_qa(*, blueprint: ApplicationBlueprint,
     drafted = [s.section_id for s in blueprint.sections]
     have = list(draft.sections.keys())
     missing = [sid for sid in drafted if sid not in have]
+    placeholders = [s.section_id for s in draft.sections.values()
+                    if s.word_count == 0 or s.text.startswith((
+                        "UNKNOWN:", "GENERATION_UNAVAILABLE", "Information pending."))]
     results.append(QAResult(
         "all_sections_drafted",
-        "PASS" if not missing else "FAIL",
-        f"all {len(drafted)} sections drafted" if not missing
-        else f"missing sections: {missing}"))
+        "PASS" if not missing and not placeholders else "FAIL",
+        f"all {len(drafted)} sections substantive" if not missing and not placeholders
+        else f"missing sections: {missing}; non-substantive sections: {placeholders}"))
 
     # A section must be substantive as well as within its maximum.
     over: list[str] = []
@@ -114,10 +117,11 @@ def run_full_qa(*, blueprint: ApplicationBlueprint,
     zero_required = [s.section_id for s in draft.sections.values()
                      if s.section_id in required_sections and s.word_count == 0]
     unavailable = sorted(set(unavailable + zero_required))
-    if unavailable:
+    if unavailable or placeholders:
         results.append(QAResult(
             "generation_complete", "FAIL",
-            f"provider execution unavailable for sections: {unavailable}"))
+            f"provider execution unavailable or non-substantive sections: "
+            f"{sorted(set(unavailable + placeholders))}"))
 
     # Aggregate check: total across all sections vs blueprint total.
     total_words = sum(s.word_count for s in draft.sections.values())
