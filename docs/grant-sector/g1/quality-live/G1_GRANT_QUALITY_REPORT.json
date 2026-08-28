@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T15:14:06.873122+00:00",
+  "generated_at": "2026-08-28T15:46:08.636365+00:00",
   "note": "QUALITY_CANDIDATE_01 (7c668daa) remains the pre-integrity adversarial artifact; run1/run2 are prior integrity candidates, run3 is the integrity-hardened resolved run (mission \u00a71, \u00a736, \u00a750).",
   "candidate_01_reference": {
     "commit": "7c668daa",
@@ -51,22 +51,22 @@
     "revisions": 1
   },
   "run3_integrity": {
-    "run_id": "g1-integrity-LIVE-03-2026-08-28T15:03:34.569726+00:00",
-    "words": 4827,
-    "pdf_pages": 11,
-    "coverage_pct": 100.0,
-    "claims_total": 112,
-    "claims_material": 112,
-    "claims_supported": 58,
-    "claims_unsupported": 54,
-    "model_inference_material": 51,
+    "run_id": "g1-integrity-LIVE-03-2026-08-28T15:46:02.260000+00:00",
+    "words": 22,
+    "pdf_pages": 2,
+    "coverage_pct": 16.7,
+    "claims_total": 5,
+    "claims_material": 5,
+    "claims_supported": 0,
+    "claims_unsupported": 5,
+    "model_inference_material": 1,
     "critical_gaps": [],
-    "temporal_conflicts": 3,
-    "numeric_conflicts": 15,
-    "budget_conflicts": 15,
+    "temporal_conflicts": 0,
+    "numeric_conflicts": 0,
+    "budget_conflicts": 0,
     "readiness": "QA_BLOCKED",
     "artifact_label": "DRAFT_BLOCKED",
-    "model_calls": 15,
-    "revisions": 1
+    "model_calls": 4,
+    "revisions": 0
   }
 }

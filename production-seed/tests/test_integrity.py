@@ -393,8 +393,7 @@ def test_mr005_empty_first_completion_retries_with_fresh_ids(monkeypatch):
     calls = _flaky_empty_first_adapter(monkeypatch)
 
     from grant_platform.factory.quality_drafting import (
-        build_quality_model_invoke)
-    model_invoke, _gw, _c = build_quality_model_invoke(
+        build_quality_model_invoke)        model_invoke, _gw, _c = build_quality_model_invoke(
         model_id="nvidia/nemotron-3-super-120b-a12b:free")
     bundle = {"section_id": "executive_summary",
               "title": "Executive Summary", "notes": "",
