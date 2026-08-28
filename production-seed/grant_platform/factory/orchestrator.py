@@ -89,20 +89,38 @@ def run_factory(*, project_id: str = "proj-1",
                 model_invoke: Callable | None = None,
                 model_id: str | None = None,
                 client_budget_lines: list | None = None,
-                blueprint: ApplicationBlueprint | None = None) -> FactoryPackage:
+                blueprint: ApplicationBlueprint | None = None,
+                fact_pack=None,
+                profile=None) -> FactoryPackage:
     """Run the full factory. Returns a SUBMISSION_READY_MOCK package when
-    all QA hard gates pass, BLOCKED otherwise (never fake-ready)."""
+    all QA hard gates pass, BLOCKED otherwise (never fake-ready).
+
+    Quality path (G1-QUALITY): when a solicitation profile and organization
+    fact pack are supplied with a live model_invoke, sections are planned,
+    drafted, critiqued, and revised against the REAL funder requirements
+    (draft_sections_quality). Otherwise the plain lane applies."""
     bp = blueprint or build_blueprint(
         revision_id=revision_id, deadline=deadline,
         funding_ceiling=ceiling)
-    draft = draft_sections(bp, model_invoke=model_invoke, model_id=model_id)
+    effective_revision = bp.opportunity_revision_id or revision_id
+    effective_deadline = bp.deadline or deadline
+    if profile is not None and fact_pack is not None and model_invoke is not None:
+        from grant_platform.factory.quality_drafting import draft_sections_quality
+        research = getattr(bp, "research_block", "")
+        draft = draft_sections_quality(
+            bp, fact_pack=fact_pack, profile=profile,
+            research_block=research,
+            model_invoke=model_invoke, model_id=model_id)
+    else:
+        draft = draft_sections(bp, model_invoke=model_invoke,
+                               model_id=model_id)
     synthesis = synthesize(bp, draft)
     budget = build_budget(ceiling=ceiling or "50000.00",
                           client_lines=client_budget_lines)
     qa = run_full_qa(blueprint=bp, draft=draft, budget=budget,
                      synthesis=synthesis,
-                     expected_deadline=deadline or "",
-                     expected_revision=revision_id)
+                     expected_deadline=effective_deadline or "",
+                     expected_revision=effective_revision)
     # per-section protected facts are a hard gate for LIVE_MODEL sections
     model_sections = [s for s in draft.sections.values()
                       if s.generation_mode == "LIVE_MODEL"]
@@ -118,10 +136,10 @@ def run_factory(*, project_id: str = "proj-1",
 
     docx = render_docx(draft.sections,
                        artifact_version_id=f"av-{project_id}-{_now()}",
-                       project_ref=project_id, revision_ref=revision_id)
+                       project_ref=project_id, revision_ref=effective_revision)
     pdf = render_pdf(draft.sections,
                      artifact_version_id=f"av-{project_id}-{_now()}",
-                     project_ref=project_id, revision_ref=revision_id)
+                     project_ref=project_id, revision_ref=effective_revision)
 
     return FactoryPackage(
         blueprint=bp, draft=draft, synthesis=synthesis, budget=budget,

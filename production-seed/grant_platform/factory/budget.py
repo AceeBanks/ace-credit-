@@ -56,16 +56,17 @@ class BudgetReport:
 def build_budget(*, ceiling: str = "50000.00",
                  client_lines: list[tuple[str, str, str]] | None = None,
                  budget_id: str | None = None) -> BudgetReport:
-    """Reconcile budget within ceiling. CLIENT lines are honored verbatim
-    and checked; nothing is invented."""
-    lines = [BudgetLine(line_id=f"bl-{i}", description=desc,
-                        category=cat, amount=amt, source="GOVERNED")
-             for i, (desc, cat, amt) in enumerate(GOVERNED_LINES)]
+    """Reconcile budget within ceiling. When the client supplies budget
+    lines, the client budget REPLACES the governed fixture lines (a real
+    application's budget is the client's, never fixture + client)."""
     if client_lines:
-        for i, (desc, cat, amt) in enumerate(client_lines):
-            lines.append(BudgetLine(line_id=f"blc-{i}", description=desc,
-                                    category=cat, amount=amt,
-                                    source="CLIENT"))
+        lines = [BudgetLine(line_id=f"blc-{i}", description=desc,
+                            category=cat, amount=amt, source="CLIENT")
+                 for i, (desc, cat, amt) in enumerate(client_lines)]
+    else:
+        lines = [BudgetLine(line_id=f"bl-{i}", description=desc,
+                            category=cat, amount=amt, source="GOVERNED")
+                 for i, (desc, cat, amt) in enumerate(GOVERNED_LINES)]
 
     total = sum((Decimal(l.amount) for l in lines), Decimal("0.00"))
     ceiling_dec = Decimal(ceiling)

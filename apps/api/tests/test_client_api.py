@@ -70,8 +70,14 @@ def test_progress_from_durable_task_state(client):
     assert r.status_code == 200
     data = r.json()
     assert data["task_count"] >= 8
-    # DEV pilot: tasks are executed inline and marked SUCCEEDED
-    assert data["by_state"].get("SUCCEEDED", 0) >= 8
+    # Chat plans durable tasks (queued); produce executes them.
+    assert data["by_state"].get("READY", 0) >= 8
+    r2 = client.post("/projects/proj-1/produce",
+                     json={"model_selection": {"mode": "DETERMINISTIC"}},
+                     headers=AUTH)
+    assert r2.status_code == 200
+    data2 = client.get("/projects/proj-1/progress", headers=AUTH).json()
+    assert data2["by_state"].get("SUCCEEDED", 0) >= 8
 
 
 def test_produce_full_factory_package(client):

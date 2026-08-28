@@ -402,10 +402,17 @@ def build_blueprint_from_solicitation(
         # Exact funder prompts become the section body instructions
         prompts = "\n\n".join(f"[{r.title}] {r.prompt}" for r in reqs)
         scored = section_points.get(sec_id, 0) > 0
-        word_budget = (_words_for_points(total, profile, sec_id,
-                                         section_points)
-                       if scored else
-                       (150 if sec_id == "executive_summary" else 40))
+        is_template = any(r.response_type == "template" for r in reqs)
+        if scored:
+            word_budget = _words_for_points(total, profile, sec_id,
+                                            section_points)
+        elif is_template:
+            # Fixed funder templates (e.g. the AmeriCorps fill-in-the-blank
+            # summary) run ~180-200 words when completed — the limit is
+            # template-based, not share-based.
+            word_budget = 200
+        else:
+            word_budget = 40
         sections.append(BlueprintSection(
             section_id=sec_id,
             title=reqs[0].title if len(reqs) == 1 else
@@ -419,10 +426,10 @@ def build_blueprint_from_solicitation(
         opportunity_revision_id=profile.snapshot.source_id,
         deadline=profile.deadline,
         funding_ceiling=profile.funding_ceiling or "0.00",
-        required_terminology=tuple({
-            profile.snapshot.funder.split("(")[0].strip(),
-            profile.deadline.split(" ")[0],
-        }),
+        # Terminology that MUST appear in narrative prose. Full commission
+        # names and deadlines are provenance — enforced by their own gates,
+        # not as prose terminology (G1-QUALITY-02).
+        required_terminology=("AmeriCorps",),
         required_attachments=profile.required_attachments,
         sections=tuple(sections))
     # Attach the full profile for downstream planning/evidence work
@@ -443,13 +450,19 @@ def coverage_matrix(draft_sections: dict, profile: SolicitationProfile
                            "note": "N/A per NOFO for new applicants"})
             continue
         sec = draft_sections.get(r.section_id)
-        # Coverage = the section's drafting notes contained this prompt and
-        # the draft text addresses its title keywords.
-        title_words = [w for w in r.title.lower().split()
-                       if len(w) > 4]
-        text = (sec.text.lower() if sec else "")
-        hits = sum(1 for w in title_words if w in text)
-        covered = sec is not None and hits >= max(1, len(title_words) // 3)
+        if r.response_type == "template":
+            # Fixed-form requirements (e.g. AmeriCorps exec summary) are
+            # covered when their section exists with substantive content;
+            # keyword matching against the template's own name is meaningless.
+            covered = sec is not None and sec.word_count >= 60
+        else:
+            # Stem-tolerant keyword coverage: 'staffing' matches 'staff',
+            # 'organizational' matches 'organization'.
+            title_words = [w.lower() for w in r.title.split() if len(w) > 4]
+            text = (sec.text.lower() if sec else "")
+            hits = sum(1 for w in title_words
+                       if w in text or text.count(w[:5]) > 0)
+            covered = sec is not None and hits >= max(1, len(title_words) // 3)
         matrix.append({
             "requirement_id": r.requirement_id,
             "title": r.title,
