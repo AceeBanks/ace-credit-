@@ -66,6 +66,9 @@ ALLOWED_MIME_TYPES = {
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 OBJ_STORE = LocalObjectStore(_ROOT / "var" / "g1-objects")
 
+# Cache factory results so produce returns the same results as chat
+_FACTORY_CACHE: dict[str, "FactoryPackage"] = {}
+
 app = FastAPI(title="Grant Platform — G1 Client API",
               version="0.1.0",
               description="Chat-first client API. Submission disabled.")
@@ -155,9 +158,57 @@ def chat(body: ChatIn, store: Store = Depends(get_store),
         requested_capabilities=body.requested_capabilities)
     ceo = CeoHermes(store)
     exec_ = ceo.plan(reply.intent, project_id="proj-1")
+    # Link conversation to project for history
+    store.conn.execute(
+        "UPDATE conversations SET project_id=?"
+        " WHERE conversation_id=? AND tenant_id=?",
+        ("proj-1", conv, principal["tenant_id"]))
+    store.conn.commit()
+
+    # --- Inline task execution (DEV/PILOT path) ---
+    # In production, workers would claim tasks via the durable kernel.
+    # For the local pilot, we execute the factory immediately and mark
+    # each task as SUCCEEDED so the frontend poll→produce flow triggers.
     ms = body.model_selection
     mode = ms.mode if ms else "AUTO"
     resolved = ms.model_id if ms and ms.mode == "MANUAL" else None
+    try:
+        # Resolve model invoke for live model path
+        model_invoke, resolved_id = _resolve_model_invoke(
+            ms, mode == "MANUAL")
+        if resolved_id:
+            resolved = resolved_id
+        # Run the full factory pipeline
+        tenant_id = principal["tenant_id"]
+        for task_id in exec_.task_ids:
+            store.claim_task(task_id, tenant_id, "WORKER")
+        factory = run_factory(
+            project_id="proj-1", model_invoke=model_invoke,
+            model_id=resolved)
+        # Persist artifacts
+        for kind, render in (("proposal_docx", factory.docx),
+                             ("proposal_pdf", factory.pdf)):
+            store.create_artifact(Artifact(
+                artifact_id=f"proj-1-{kind}",
+                artifact_version_id=render.artifact_version_id,
+                tenant_id=tenant_id, project_id="proj-1",
+                kind=kind, payload_ref=f"obj:proj-1/{kind}",
+                content_hash=render.content_hash, version_number=1))
+        # Mark all tasks as SUCCEEDED with result refs
+        for task_id in exec_.task_ids:
+            store.complete_task(
+                task_id, tenant_id, "WORKER",
+                f"ref:result:{task_id}")
+        # Store factory summary for produce endpoint
+        _FACTORY_CACHE["proj-1"] = factory
+    except Exception as exc:
+        # Mark tasks as FAILED so the frontend shows the error
+        for task_id in exec_.task_ids:
+            store.set_task_state(task_id, "FAILED",
+                                 worker="WORKER")
+        # Still return the reply so the user sees context
+        pass
+
     return ChatOut(conversation_id=conv, intent_id=reply.intent.intent_id,
                    reply=reply.text, plan_id=exec_.plan.plan_id,
                    task_ids=exec_.task_ids,
@@ -259,12 +310,18 @@ def produce(project_id: str, body: ProduceIn,
     """Run the full Grant factory. Routes through governed model gateway
     when live_model=True or a MANUAL model selection is provided.
     Otherwise uses the honest deterministic lane (never faked as model
-    output)."""
+    output). Uses cached factory from chat when available (no re-run)."""
+    # Always validate model selection (even with cached factory)
     model_invoke, resolved_model_id = _resolve_model_invoke(
         body.model_selection, body.live_model)
-    factory = run_factory(project_id=project_id, model_invoke=model_invoke,
-                          model_id=resolved_model_id)
-    # persist artifact metadata
+    # Use cached factory from the chat flow if available (avoids re-running)
+    if project_id in _FACTORY_CACHE:
+        factory = _FACTORY_CACHE[project_id]
+    else:
+        factory = run_factory(project_id=project_id,
+                              model_invoke=model_invoke,
+                              model_id=resolved_model_id)
+    # Always persist artifact metadata (idempotent INSERT OR REPLACE)
     for kind, render in (("proposal_docx", factory.docx),
                          ("proposal_pdf", factory.pdf)):
         store.create_artifact(Artifact(

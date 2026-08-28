@@ -178,10 +178,37 @@ class PersonalHermes:
             "source_conversation_ref": intent.source_conversation_ref,
             "payload": intent.to_payload()})
 
-        reply_text = (f"I understand you'd like to {intent_type.replace('_', ' ').lower()}. "
-                      f"Authority scope: {scope}. "
-                      "I've recorded your request and will hand it to the "
-                      "execution planner.")
+        # Build a contextual reply that references the user's actual request
+        msg_preview = content[:120].rstrip()
+        if intent_type == "BUILD_APPLICATION":
+            reply_text = (
+                f"Got it — you're looking for funding for: \"{msg_preview}\"\n\n"
+                "Here's what I'll do:\n"
+                "1. Search for matching grant opportunities\n"
+                "2. Check your eligibility\n"
+                "3. Research the funder's priorities and past winners\n"
+                "4. Plan and draft a full proposal\n"
+                "5. Build the budget and run quality checks\n\n"
+                "I'm kicking off the work now — you'll see progress below.")
+        elif intent_type == "ASSESS_OPPORTUNITY":
+            reply_text = (
+                f"Let me check eligibility for: \"{msg_preview}\"\n\n"
+                "I'll review the requirements and let you know if you qualify.")
+        elif intent_type == "RESEARCH_FUNDER":
+            reply_text = (
+                f"I'll research the funder for: \"{msg_preview}\"\n\n"
+                "Looking into their priorities, past awards, and what makes a strong application.")
+        elif intent_type == "UPDATE_PROFILE":
+            reply_text = (
+                "I'll update your organization profile with the new information.")
+        elif intent_type == "EXPLAIN_RESULT":
+            reply_text = (
+                f"Let me explain: \"{msg_preview}\"\n\n"
+                "Here's what's going on and why.")
+        else:
+            reply_text = (
+                f"I understand you'd like to {intent_type.replace('_', ' ').lower()}. "
+                f"Here's what I found regarding: \"{msg_preview}\"")
         msg_id = f"msg-{conversation_id}-{_now()}-reply"
         self.store.create_message({
             "message_id": msg_id, "conversation_id": conversation_id,

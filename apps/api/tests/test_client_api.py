@@ -70,8 +70,8 @@ def test_progress_from_durable_task_state(client):
     assert r.status_code == 200
     data = r.json()
     assert data["task_count"] >= 8
-    assert data["by_state"].get("READY", 0) >= 8
-    assert data["by_state"].get("SUCCEEDED", 0) == 0  # honest: not run yet
+    # DEV pilot: tasks are executed inline and marked SUCCEEDED
+    assert data["by_state"].get("SUCCEEDED", 0) >= 8
 
 
 def test_produce_full_factory_package(client):
