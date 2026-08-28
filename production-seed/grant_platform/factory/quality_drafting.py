@@ -430,8 +430,9 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
                 section_id=sec.section_id, title=sec.title,
                 text=f"UNKNOWN: model lane failed for this section: {exc}",
                 word_count=0, generation_mode="BLOCKED_MODEL_RUNTIME")
-            model_runs.append({"section": sec.section_id, "status": "BLOCKED",
-                               "error": str(exc)})
+            model_runs.append({"section": sec.section_id, "status": "GENERATION_UNAVAILABLE",
+                               "error": str(exc),
+                               "provenance": getattr(model_invoke, "provenance", [])})
             continue
 
         wc = len(re.findall(r"\S+", text))

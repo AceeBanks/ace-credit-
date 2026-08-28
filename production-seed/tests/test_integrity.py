@@ -407,6 +407,24 @@ def test_mr005_empty_first_completion_retries_with_fresh_ids(monkeypatch):
                               f"successful retry, got {calls['n']}")
 
 
+def test_required_empty_section_fails_qa():
+    from grant_platform.factory.qa import run_full_qa
+    from grant_platform.factory.solicitation import build_blueprint_from_solicitation
+    from grant_platform.factory.drafting import DraftingReport
+    from grant_platform.factory.synthesis import SynthesisReport
+    bp = build_blueprint_from_solicitation(AMERICORPS_GA_2026)
+    draft = DraftingReport(sections={
+        s.section_id: _sec(s.section_id, "") for s in bp.sections
+    }, generation_mode="LIVE_MODEL")
+    budget = SimpleNamespace(lines=[], total="0", ceiling="0",
+                             within_ceiling=True)
+    qa = run_full_qa(blueprint=bp, draft=draft, budget=budget,
+                     synthesis=SynthesisReport(),
+                     expected_deadline=bp.deadline)
+    assert any(r.gate == "word_limits_satisfied" and r.status == "FAIL"
+               for r in qa.results)
+
+
 def test_over_length_section_forced_into_revision():
     """run3 regression: the executive summary drafted 2,189 words against
     a 200-word limit (the model dumped its fill-in-the-template reasoning

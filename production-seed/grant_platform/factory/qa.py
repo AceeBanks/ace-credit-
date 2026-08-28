@@ -86,9 +86,7 @@ def run_full_qa(*, blueprint: ApplicationBlueprint,
         f"all {len(drafted)} sections drafted" if not missing
         else f"missing sections: {missing}"))
 
-    # Per-section word budgets: 10% tolerance on the engine's own internal
-    # allocations (they are planning budgets, not funder-enforced per-
-    # section caps). The aggregate budget remains a HARD gate below.
+    # A section must be substantive as well as within its maximum.
     over: list[str] = []
     under: list[str] = []
     section_limits: dict[str, int] = {s.section_id: s.word_limit
@@ -113,19 +111,24 @@ def run_full_qa(*, blueprint: ApplicationBlueprint,
     unavailable = [s.section_id for s in draft.sections.values()
                    if s.text.startswith("UNKNOWN: model lane failed")
                    or s.text.startswith("GENERATION_UNAVAILABLE")]
+    zero_required = [s.section_id for s in draft.sections.values()
+                     if s.section_id in required_sections and s.word_count == 0]
+    unavailable = sorted(set(unavailable + zero_required))
     if unavailable:
         results.append(QAResult(
             "generation_complete", "FAIL",
             f"provider execution unavailable for sections: {unavailable}"))
 
-    # Aggregate check: total across all sections vs blueprint total
+    # Aggregate check: total across all sections vs blueprint total.
     total_words = sum(s.word_count for s in draft.sections.values())
     total_limit = blueprint.word_limit_total()
     if total_words > total_limit:
         over.append(f"aggregate ({total_words}/{total_limit})")
-        results[-1] = QAResult(
-            "word_limits_satisfied", "FAIL",
-            f"sections over limits: {over}")
+        for i, result in enumerate(results):
+            if result.gate == "word_limits_satisfied":
+                results[i] = QAResult("word_limits_satisfied", "FAIL",
+                                      f"sections over limits: {over}")
+                break
 
     results.append(QAResult(
         "budget_within_ceiling", "PASS" if budget.within_ceiling else "FAIL",
