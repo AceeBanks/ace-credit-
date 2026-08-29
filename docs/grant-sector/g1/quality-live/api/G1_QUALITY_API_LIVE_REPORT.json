@@ -1,0 +1,210 @@
+{
+  "run_id": "g1-quality-prod-live-2026-08-29T22:29:32.969551+00:00",
+  "endpoint": "POST /projects/proj-bench/produce",
+  "model_selection": {
+    "mode": "AUTO",
+    "allow_fallback": true
+  },
+  "http_status": 200,
+  "pipeline": {
+    "project_id": "proj-bench",
+    "revision_id": "opp_rev_ga_501_1",
+    "status": "BLOCKED",
+    "readiness_state": "QA_BLOCKED",
+    "generation_mode": "LIVE_MODEL",
+    "sections": 5,
+    "word_count": 22,
+    "claims": 5,
+    "claim_counts": {
+      "UNKNOWN": 4,
+      "MODEL_INFERENCE": 1
+    },
+    "unsupported": 0,
+    "qa_pass": 6,
+    "qa_fail": 4,
+    "budget_total": "180145.00",
+    "ceiling": "182400.00",
+    "within_ceiling": true,
+    "docx_pages": 5,
+    "pdf_pages": 1,
+    "submission_enabled": false,
+    "generated_at": "2026-08-29T22:29:32.953504+00:00",
+    "gate": "OK",
+    "pipeline_label": "QUALITY_PRODUCTION",
+    "pipeline_version": "G1-QUALITY-PROD-01",
+    "solicitation_id": "ga_dca_nofp_2026",
+    "run_id": "g1qp-df698189cd",
+    "quality_passes": {
+      "sections_planned": 5,
+      "redundant": false,
+      "shallow_output_detected": true
+    },
+    "integrity_passes": {
+      "total": 5,
+      "material": 5,
+      "supported": 0,
+      "unsupported": 5,
+      "by_class": {
+        "UNKNOWN": 4,
+        "MODEL_INFERENCE": 1
+      },
+      "by_resolution": {
+        "UNKNOWN": 4,
+        "UNSUPPORTED": 1
+      }
+    },
+    "claim_ledger_hash": "620dd2286311b92c7529ab4b7a7198a104b47224b9f183c021baeb1123667134",
+    "fact_freeze_hash": "4c9f544b44bd3ea51ac73d0ed0af8153800b71cafd5ca5ac762df9c3d5929c55",
+    "model_provenance": [
+      {
+        "section": "executive_summary",
+        "status": "GENERATION_UNAVAILABLE",
+        "model_id": null,
+        "passes": null,
+        "revisions": null,
+        "critic_overall": null,
+        "fact_critic": null,
+        "error": "GENERATION_UNAVAILABLE: approved pool exhausted: model request replay detected (g1q-m-1-a1/g1q-r-1-a1) (MR-005)",
+        "reason": "RATE_LIMITED",
+        "fallbacks": [
+          "z-ai/glm-5.2:free->thinkingmachines/inkling-small:free",
+          "z-ai/glm-5.2:free->thinkingmachines/inkling-small:free",
+          "thinkingmachines/inkling-small:free->minimax/minimax-m3:free",
+          "thinkingmachines/inkling-small:free->minimax/minimax-m3:free",
+          "minimax/minimax-m3:free->END",
+          "minimax/minimax-m3:free->END"
+        ]
+      },
+      {
+        "section": "program_design",
+        "status": "GENERATION_UNAVAILABLE",
+        "model_id": null,
+        "passes": null,
+        "revisions": null,
+        "critic_overall": null,
+        "fact_critic": null,
+        "error": "GENERATION_UNAVAILABLE: approved pool exhausted: model request replay detected (g1q-m-2-a1/g1q-r-2-a1) (MR-005)",
+        "reason": "RATE_LIMITED",
+        "fallbacks": [
+          "z-ai/glm-5.2:free->thinkingmachines/inkling-small:free",
+          "z-ai/glm-5.2:free->thinkingmachines/inkling-small:free",
+          "thinkingmachines/inkling-small:free->minimax/minimax-m3:free",
+          "thinkingmachines/inkling-small:free->minimax/minimax-m3:free",
+          "minimax/minimax-m3:free->END",
+          "minimax/minimax-m3:free->END"
+        ]
+      },
+      {
+        "section": "organizational_capability",
+        "status": "GENERATION_UNAVAILABLE",
+        "model_id": null,
+        "passes": null,
+        "revisions": null,
+        "critic_overall": null,
+        "fact_critic": null,
+        "error": "GENERATION_UNAVAILABLE: approved pool exhausted: model request replay detected (g1q-m-3-a1/g1q-r-3-a1) (MR-005)",
+        "reason": "RATE_LIMITED",
+        "fallbacks": [
+          "z-ai/glm-5.2:free->thinkingmachines/inkling-small:free",
+          "z-ai/glm-5.2:free->thinkingmachines/inkling-small:free",
+          "thinkingmachines/inkling-small:free->minimax/minimax-m3:free",
+          "thinkingmachines/inkling-small:free->minimax/minimax-m3:free",
+          "minimax/minimax-m3:free->END",
+          "minimax/minimax-m3:free->END"
+        ]
+      },
+      {
+        "section": "cost_effectiveness",
+        "status": "GENERATION_UNAVAILABLE",
+        "model_id": null,
+        "passes": null,
+        "revisions": null,
+        "critic_overall": null,
+        "fact_critic": null,
+        "error": "GENERATION_UNAVAILABLE: approved pool exhausted: model request replay detected (g1q-m-4-a1/g1q-r-4-a1) (MR-005)",
+        "reason": "RATE_LIMITED",
+        "fallbacks": [
+          "z-ai/glm-5.2:free->thinkingmachines/inkling-small:free",
+          "z-ai/glm-5.2:free->thinkingmachines/inkling-small:free",
+          "thinkingmachines/inkling-small:free->minimax/minimax-m3:free",
+          "thinkingmachines/inkling-small:free->minimax/minimax-m3:free",
+          "minimax/minimax-m3:free->END",
+          "minimax/minimax-m3:free->END"
+        ]
+      },
+      {
+        "section": "evaluation_summary",
+        "status": "NA",
+        "model_id": "minimax/minimax-m3:free",
+        "passes": null,
+        "revisions": null,
+        "critic_overall": null,
+        "fact_critic": null,
+        "error": null,
+        "reason": null,
+        "fallbacks": null
+      }
+    ],
+    "client_questions": [],
+    "requirement_coverage_pct": 16.7,
+    "quality_score": {
+      "dimensions": {
+        "Executive Summary": 2,
+        "Need / Problem": 2,
+        "Program Design": 1,
+        "Goals / Objectives": 0,
+        "Implementation": 0,
+        "Evaluation": 2,
+        "Organizational Capacity": 0,
+        "Budget Narrative": 1,
+        "Sustainability": 0,
+        "Funder Alignment": 1,
+        "Evidence Discipline": 1,
+        "Persuasiveness": 0,
+        "Professional Readiness": 2
+      },
+      "overall_out_of_5": 0.92,
+      "max": 5.0
+    },
+    "shallow_output": {
+      "shallow_output": true,
+      "signals": [
+        {
+          "signal": "under_depth_ratio_section",
+          "section": "program_design",
+          "detail": "ratio 0.00 vs planned target (982, 1512)"
+        },
+        {
+          "signal": "under_depth_ratio_section",
+          "section": "organizational_capability",
+          "detail": "ratio 0.00 vs planned target (491, 756)"
+        },
+        {
+          "signal": "under_depth_ratio_section",
+          "section": "cost_effectiveness",
+          "detail": "ratio 0.00 vs planned target (491, 756)"
+        },
+        {
+          "signal": "low_rubric_coverage",
+          "detail": "requirement coverage 16.7%"
+        }
+      ],
+      "under_depth_sections": [
+        "program_design",
+        "organizational_capability",
+        "cost_effectiveness"
+      ],
+      "requirement_coverage_pct": 16.7,
+      "signal_labels": [
+        "under_depth_ratio_section",
+        "under_depth_ratio_section",
+        "under_depth_ratio_section",
+        "low_rubric_coverage"
+      ]
+    }
+  },
+  "reproduce": [
+    "python tools/g1/run_quality_api_benchmark.py",
+    "python tools/g1/run_quality_api_benchmark.py --model z-ai/glm-5.2:free"
+  ]
+}
