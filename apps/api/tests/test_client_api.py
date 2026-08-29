@@ -220,19 +220,37 @@ def test_manual_model_denied_when_disabled(client):
     assert "disabled" in r.json()["detail"]["message"].lower()
 
 
-def test_produce_with_model_selection(client):
-    """REGRESSION GATE (G1-QUALITY-01): standard AUTO flow MUST use the
-    governed live model. DETERMINISTIC_BASELINE is never acceptable as
-    successful client output for AUTO."""
+def test_produce_with_model_selection_auto_requires_real_solicitation(client, monkeypatch):
+    """REGRESSION GATE (G1-QUALITY-PROD): standard AUTO flow MUST route
+    through the governed live canonical quality path and must NOT fall
+    back to a shallow deterministic skeleton. Without a decomposed
+    solicitation on the project, AUTO fails closed with
+    NEEDS_OPPORTUNITY rather than emitting a generic package."""
+    from apps.api import main as api_main
+
+    def fake_invoke(bundle):
+        return _QUALITY_PROSE
+    monkeypatch.setattr(api_main, "_resolve_model_invoke",
+                        lambda body: (fake_invoke, "z-ai/glm-5.2:free"))
+    # proj-1 is the Georgia dev seed with NO decomposed NOFO -> real
+    # solicitation required first.
     r = client.post("/projects/proj-1/produce",
         json={"model_selection": {"mode": "AUTO", "allow_fallback": True}},
         headers=AUTH)
     assert r.status_code == 200
     data = r.json()
-    assert data["generation_mode"] == "LIVE_MODEL"
+    assert data["readiness_state"] == "NEEDS_OPPORTUNITY"
+    assert data["pipeline_label"] == "QUALITY_PRODUCTION"
+    # never a deterministic skeleton
     assert data["generation_mode"] != "DETERMINISTIC_BASELINE"
-    assert "readiness_state" in data
-    assert "claim_counts" in data
+    assert data["submission_enabled"] is False
+
+
+_QUALITY_PROSE = ("The coalition will expand educational and economic "
+    "opportunity for rural Northwest Georgia youth by placing AmeriCorps "
+    "members to deliver tutoring, mentoring, and workforce readiness. "
+    "The organization is an eligible applicant and will steward funds "
+    "within the governing budget across the FY2026 program year.")
 
 
 def test_auto_without_credential_fails_closed(client, monkeypatch):

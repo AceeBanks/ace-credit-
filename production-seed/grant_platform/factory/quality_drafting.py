@@ -430,9 +430,22 @@ def draft_sections_quality(blueprint: ApplicationBlueprint, *,
                 section_id=sec.section_id, title=sec.title,
                 text=f"UNKNOWN: model lane failed for this section: {exc}",
                 word_count=0, generation_mode="BLOCKED_MODEL_RUNTIME")
-            model_runs.append({"section": sec.section_id, "status": "GENERATION_UNAVAILABLE",
+            _provenance = getattr(model_invoke, "provenance", [])
+            _sec_prov = [p for p in _provenance
+                         if p.get("section_id") == sec.section_id]
+            reasons = sorted({p.get("normalized_failure_reason")
+                              for p in _sec_prov
+                              if p.get("normalized_failure_reason")})
+            fallbacks = [f"{p.get('candidate_model')}->{p.get('fallback_to') or 'END'}"
+                         for p in _sec_prov if p.get("status") == "FAILED"]
+            model_runs.append({"section": sec.section_id,
+                               "status": "GENERATION_UNAVAILABLE",
                                "error": str(exc),
-                               "provenance": getattr(model_invoke, "provenance", [])})
+                               "reason": (reasons[0]
+                                           if reasons else
+                                           _normalize_provider_failure(exc)),
+                               "fallbacks": fallbacks,
+                               "provenance": _sec_prov})
             continue
 
         wc = len(re.findall(r"\S+", text))

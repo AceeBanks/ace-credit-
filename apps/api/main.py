@@ -48,6 +48,15 @@ from grant_platform.domain.records import (  # noqa: E402
     Tenant,
 )
 from grant_platform.factory.orchestrator import run_factory  # noqa: E402
+from grant_platform.factory.quality_contexts import (  # noqa: E402
+    build_context_for_revision,
+)
+from grant_platform.factory.quality_pipeline import (  # noqa: E402
+    DIAGNOSTIC_LABEL,
+    QUALITY_LABEL,
+    QualityPipelinePackage,
+    produce_application_quality,
+)
 from grant_platform.model.registry import ModelRegistry  # noqa: E402
 from grant_platform.model.selection import (  # noqa: E402
     SelectionContext,
@@ -286,13 +295,16 @@ def _resolve_model_invoke(body_model: ModelSelectionPayload | None,
                                "live generation is required for client "
                                "output. The deterministic skeleton is not a "
                                "client deliverable."})
+    # G1-QUALITY-PROD: use the QUALITY-sized governed invoke (4096 output
+    # tokens) so client sections are not capped at the ~512-token skeleton
+    # budget that produced ~380-word sections. Same governance as the w4
+    # invoke — the p4 module was the sole cause of shallow 1,319-word output.
     try:
-        from tools.g1.run_w4_live import build_governed_model_invoke
-        if resolved_model_id:
-            model_invoke, _gw, _c = build_governed_model_invoke(
-                model_id=resolved_model_id)
-        else:
-            model_invoke, _gw, _c = build_governed_model_invoke()
+        from grant_platform.factory.quality_drafting import (
+            build_quality_model_invoke)
+        model_invoke, _gw, _c = build_quality_model_invoke(
+            model_id=resolved_model_id or "z-ai/glm-5.2:free",
+            project_id="proj-g1q")
         return model_invoke, resolved_model_id
     except HTTPException:
         raise
@@ -307,34 +319,90 @@ def _resolve_model_invoke(body_model: ModelSelectionPayload | None,
 def produce(project_id: str, body: ProduceIn,
             store: Store = Depends(get_store),
             principal: dict = Depends(require_principal)):
-    """Run the full Grant factory. AUTO/MANUAL route through the governed
-    live model (fail-closed). The deterministic skeleton runs ONLY when
-    explicitly requested (mode=DETERMINISTIC) as a dev/TEST diagnostic —
-    it is never presented as a client deliverable."""
+    """Run the canonical quality proposal pipeline (the ONLY production
+    client path). AUTO/MANUAL route through the governed live model via
+    the full G1 Quality + integrity engine. If the project's governed
+    opportunity revision has NO decomposed solicitation, we report
+    NEEDS_OPPORTUNITY (never a generic fixture package). The deterministic
+    developer diagnostic is reachable ONLY via explicit
+    mode=DETERMINISTIC and is labeled DEVELOPER_DIAGNOSTIC — it is never
+    presented as a client deliverable."""
+    tenant_id = principal["tenant_id"]
+    mode = (body.model_selection.mode if body.model_selection
+            else "AUTO").upper()
+    proj = store.get_project(project_id, tenant_id)
+    revision_id = (proj or {}).get("revision_id") or "opp_rev_ga_501_1"
+
+    if mode == "DETERMINISTIC":
+        # Developer / test diagnostic only — clearly labeled, never a
+        # client deliverable (G1-QUALITY-PROD §4, §25).
+        factory = run_factory(project_id=project_id)
+        pkg = QualityPipelinePackage(factory=factory, gate="OK",
+                                     pipeline_label=DIAGNOSTIC_LABEL)
+        for t in store.tasks_for(tenant_id):
+            if t.get("project_id") == project_id and t["state"] in ("READY", "RUNNING"):
+                store.claim_task(t["task_id"], tenant_id, "WORKER")
+                store.complete_task(t["task_id"], tenant_id, "WORKER",
+                                    f"ref:result:{t['task_id']}")
+        for kind, render in (("proposal_docx", factory.docx),
+                             ("proposal_pdf", factory.pdf)):
+            store.create_artifact(Artifact(
+                artifact_id=f"{project_id}-{kind}",
+                artifact_version_id=render.artifact_version_id,
+                tenant_id=tenant_id, project_id=project_id, kind=kind,
+                payload_ref=f"obj:{project_id}/{kind}",
+                content_hash=render.content_hash, version_number=1))
+        _FACTORY_CACHE[project_id] = factory
+        return pkg.summary()
+
+    # AUTO / MANUAL -> canonical quality pipeline. Model governance
+    # validates FIRST (deny-by-default / fail-closed credential), then the
+    # project's quality context (solicitation profile + org facts).
     model_invoke, resolved_model_id = _resolve_model_invoke(
         body.model_selection)
-    factory = run_factory(project_id=project_id,
-                          model_invoke=model_invoke,
-                          model_id=resolved_model_id)
-    tenant_id = principal["tenant_id"]
-    # Mark this run's durable tasks complete (claim -> succeed) so client
-    # progress derives from real backend work, never synthetic timers.
-    for t in store.tasks_for(tenant_id):
-        if t.get("project_id") == project_id and t["state"] in ("READY", "RUNNING"):
-            store.claim_task(t["task_id"], tenant_id, "WORKER")
-            store.complete_task(t["task_id"], tenant_id, "WORKER",
-                                f"ref:result:{t['task_id']}")
-    # Always persist artifact metadata (idempotent INSERT OR REPLACE)
-    for kind, render in (("proposal_docx", factory.docx),
-                         ("proposal_pdf", factory.pdf)):
-        store.create_artifact(Artifact(
-            artifact_id=f"{project_id}-{kind}",
-            artifact_version_id=render.artifact_version_id,
-            tenant_id=tenant_id, project_id=project_id,
-            kind=kind, payload_ref=f"obj:{project_id}/{kind}",
-            content_hash=render.content_hash, version_number=1))
-    _FACTORY_CACHE[project_id] = factory
-    return factory.summary()
+    ctx = build_context_for_revision(project_id=project_id,
+                                     revision_id=revision_id)
+    if ctx is None:
+        # No real decomposed solicitation: honest NEEDS_OPPORTUNITY, never
+        # a generic fake package (G1-QUALITY-PROD §8, §20).
+        pkg = QualityPipelinePackage(
+            factory=None, gate="NEEDS_OPPORTUNITY",
+            provenance={"pipeline_version": "G1-QUALITY-PROD-01",
+                        "pipeline_label": QUALITY_LABEL,
+                        "project_id": project_id},
+            pipeline_label=QUALITY_LABEL)
+        return pkg.summary()
+
+    package = produce_application_quality(
+        project_id=project_id, profile=ctx.profile, fact_pack=ctx.fact_pack,
+        client_answers=ctx.client_answers,
+        applicant_status=ctx.applicant_status, as_of=ctx.as_of,
+        research_block=ctx.research_block, ceiling=ctx.ceiling,
+        client_budget_lines=ctx.client_budget_lines,
+        model_invoke=model_invoke, model_id=resolved_model_id,
+        missing_matrix=ctx.matrix,
+        deadline=ctx.profile.deadline,
+    )
+    if package.gate == "OK" and package.factory is not None:
+        factory = package.factory
+        # Mark this run's durable tasks complete so client progress derives
+        # from real backend work, never synthetic timers.
+        for t in store.tasks_for(tenant_id):
+            if t.get("project_id") == project_id and t["state"] in ("READY", "RUNNING"):
+                store.claim_task(t["task_id"], tenant_id, "WORKER")
+                store.complete_task(t["task_id"], tenant_id, "WORKER",
+                                    f"ref:result:{t['task_id']}")
+        # Always persist artifact metadata (idempotent INSERT OR REPLACE)
+        for kind, render in (("proposal_docx", factory.docx),
+                             ("proposal_pdf", factory.pdf)):
+            store.create_artifact(Artifact(
+                artifact_id=f"{project_id}-{kind}",
+                artifact_version_id=render.artifact_version_id,
+                tenant_id=tenant_id, project_id=project_id, kind=kind,
+                payload_ref=f"obj:{project_id}/{kind}",
+                content_hash=render.content_hash, version_number=1))
+        _FACTORY_CACHE[project_id] = factory
+    return package.summary()
 
 
 @app.get("/projects/{project_id}/deliverables")
