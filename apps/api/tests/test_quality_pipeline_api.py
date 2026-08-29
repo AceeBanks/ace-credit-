@@ -144,6 +144,36 @@ def test_americorps_benchmark_runs_canonical_quality_pipeline(monkeypatch):
             assert {"proposal_docx", "proposal_pdf"} <= kinds
 
 
+def test_auto_produce_never_invokes_w4_skeleton_writer(monkeypatch):
+    """REGRESSION (G1-QUALITY-PROD-05): the historical W4 512-token
+    skeleton writer (tools/g1/run_w4_live.build_governed_model_invoke) is
+    NEVER reachable from ordinary AUTO/MANUAL client production. If it is
+    re-wired into the /produce model resolution, this test fails by raising
+    inside the producer — proving only the canonical QUALITY_PRODUCTION lane
+    can run for a real client request."""
+    import tools.g1.run_w4_live as w4
+
+    def _w4_must_not_be_called(*args, **kwargs):
+        raise AssertionError(
+            "W4 skeleton writer called from client AUTO path — /produce must "
+            "only use the canonical quality lane")
+    monkeypatch.setattr(w4, "build_governed_model_invoke",
+                        _w4_must_not_be_called)
+
+    _patch_seed(monkeypatch, add_americorps=True)
+    with TestClient(app) as c:
+        r = c.post("/projects/proj-bench/produce",
+                   json={"model_selection": {"mode": "AUTO",
+                                             "allow_fallback": True}},
+                   headers=AUTH)
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert data["pipeline_label"] == "QUALITY_PRODUCTION"
+        assert data["solicitation_id"] == "ga_dca_nofp_2026"
+        # Reaching this line means the canonical quality lane executed and the
+        # W4 skeleton writer was never invoked.
+
+
 def test_americorps_with_critical_gaps_asks_client_first(monkeypatch):
     """§21: unresolved CRITICAL missing facts -> NEEDS_CLIENT_INPUT with
     concrete questions returned BEFORE any draft (no fabricated filler)."""
